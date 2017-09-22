@@ -87,14 +87,15 @@ static float throttleAngleScale;
 static float fc_acc;
 static float smallAngleCosZ = 0;
 
-static float magneticDeclination = 0.0f;       // calculated at startup from config
-
 static imuRuntimeConfig_t imuRuntimeConfig;
 
-STATIC_UNIT_TESTED float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;    // quaternion of sensor frame relative to earth frame
 STATIC_UNIT_TESTED float rMat[3][3];
 
-attitudeEulerAngles_t attitude = { { 0, 0, 0 } };     // absolute angle inclination in multiple of 0.1 degree    180 deg = 1800
+// quaternion of sensor frame relative to earth frame
+DEFINE_QUATERNION(q);
+
+// absolute angle inclination in multiple of 0.1 degree    180 deg = 1800
+DEFINE_EULER(attitude);
 
 PG_REGISTER_WITH_RESET_TEMPLATE(imuConfig_t, imuConfig, PG_IMU_CONFIG, 0);
 
@@ -106,34 +107,37 @@ PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
     .acc_unarmedcal = 1
 );
 
-STATIC_UNIT_TESTED void imuComputeRotationMatrix(void)
-{
-    float q1q1 = sq(q1);
-    float q2q2 = sq(q2);
-    float q3q3 = sq(q3);
+STATIC_UNIT_TESTED void imuComputeQuaternionProducts(void){
+    q.ww = q.w*q.w;
+    q.wx = q.w*q.x;
+    q.wy = q.w*q.y;
+    q.wz = q.w*q.z;
+    q.xx = q.x*q.x;
+    q.xy = q.x*q.y;
+    q.xz = q.x*q.z;
+    q.yy = q.y*q.y;
+    q.yz = q.y*q.z;
+    q.zz = q.z*q.z;
+}
 
-    float q0q1 = q0 * q1;
-    float q0q2 = q0 * q2;
-    float q0q3 = q0 * q3;
-    float q1q2 = q1 * q2;
-    float q1q3 = q1 * q3;
-    float q2q3 = q2 * q3;
+STATIC_UNIT_TESTED void imuComputeRotationMatrix(void){
+    imuComputeQuaternionProducts();
 
-    rMat[0][0] = 1.0f - 2.0f * q2q2 - 2.0f * q3q3;
-    rMat[0][1] = 2.0f * (q1q2 + -q0q3);
-    rMat[0][2] = 2.0f * (q1q3 - -q0q2);
+    rMat[0][0] = 1.0f - 2.0f * q.yy - 2.0f * q.zz;
+    rMat[0][1] = 2.0f * (q.xy + -q.wz);
+    rMat[0][2] = 2.0f * (q.xz - -q.wy);
 
-    rMat[1][0] = 2.0f * (q1q2 - -q0q3);
-    rMat[1][1] = 1.0f - 2.0f * q1q1 - 2.0f * q3q3;
-    rMat[1][2] = 2.0f * (q2q3 + -q0q1);
+    rMat[1][0] = 2.0f * (q.xy - -q.wz);
+    rMat[1][1] = 1.0f - 2.0f * q.xx - 2.0f * q.zz;
+    rMat[1][2] = 2.0f * (q.yz + -q.wx);
 
-    rMat[2][0] = 2.0f * (q1q3 + -q0q2);
-    rMat[2][1] = 2.0f * (q2q3 - -q0q1);
-    rMat[2][2] = 1.0f - 2.0f * q1q1 - 2.0f * q2q2;
+    rMat[2][0] = 2.0f * (q.xz + -q.wy);
+    rMat[2][1] = 2.0f * (q.yz - -q.wx);
+    rMat[2][2] = 1.0f - 2.0f * q.xx - 2.0f * q.yy;
 
 #if defined(SIMULATOR_BUILD) && defined(SKIP_IMU_CALC) && !defined(SET_IMU_FROM_EULER)
-    rMat[1][0] = -2.0f * (q1q2 - -q0q3);
-    rMat[2][0] = -2.0f * (q1q3 + -q0q2);
+    rMat[1][0] = -2.0f * (q.xy - -q.wz);
+    rMat[2][0] = -2.0f * (q.xz + -q.wy);
 #endif
 }
 
@@ -345,20 +349,20 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     gy *= (0.5f * dt);
     gz *= (0.5f * dt);
 
-    const float qa = q0;
-    const float qb = q1;
-    const float qc = q2;
-    q0 += (-qb * gx - qc * gy - q3 * gz);
-    q1 += (qa * gx + qc * gz - q3 * gy);
-    q2 += (qa * gy - qb * gz + q3 * gx);
-    q3 += (qa * gz + qb * gy - qc * gx);
+    const float qa = q.w;
+    const float qb = q.x;
+    const float qc = q.y;
+    q.w += (-qb * gx - qc * gy - q.z * gz);
+    q.x += (qa * gx + qc * gz - q.z * gy);
+    q.y += (qa * gy - qb * gz + q.z * gx);
+    q.z += (qa * gz + qb * gy - qc * gx);
 
     // Normalise quaternion
-    recipNorm = invSqrt(sq(q0) + sq(q1) + sq(q2) + sq(q3));
-    q0 *= recipNorm;
-    q1 *= recipNorm;
-    q2 *= recipNorm;
-    q3 *= recipNorm;
+    recipNorm = invSqrt(sq(q.w) + sq(q.x) + sq(q.y) + sq(q.z));
+    q.w *= recipNorm;
+    q.x *= recipNorm;
+    q.y *= recipNorm;
+    q.z *= recipNorm;
 
     // Pre-compute rotation matrix from quaternion
     imuComputeRotationMatrix();
@@ -366,10 +370,16 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void)
 {
-    /* Compute pitch/roll angles */
+    // rotation matrix
     attitude.values.roll = lrintf(atan2f(rMat[2][1], rMat[2][2]) * (1800.0f / M_PIf));
     attitude.values.pitch = lrintf(((0.5f * M_PIf) - acosf(-rMat[2][0])) * (1800.0f / M_PIf));
-    attitude.values.yaw = lrintf((-atan2f(rMat[1][0], rMat[0][0]) * (1800.0f / M_PIf) + magneticDeclination));
+    attitude.values.yaw = lrintf((-atan2f(rMat[1][0], rMat[0][0]) * (1800.0f / M_PIf)));
+
+    // quaternion
+    /*
+    attitude.values.roll = lrintf(atan2f((+2.0f * (q.wx + q.yz)), (+1.0f - 2.0f * (q.xx + q.yy))) * (1800.0f / M_PIf));
+    attitude.values.pitch = lrintf(asinf(+2.0f * (q.wy - q.xz)) * (1800.0f / M_PIf));
+    attitude.values.yaw = lrintf((-atan2f((+2.0f * (q.wz + q.xy)), (+1.0f - 2.0f * (q.yy + q.zz))) * (1800.0f / M_PIf))); */
 
     if (attitude.values.yaw < 0)
         attitude.values.yaw += 3600;
@@ -506,10 +516,10 @@ void imuSetAttitudeQuat(float w, float x, float y, float z)
 {
     IMU_LOCK;
 
-    q0 = w;
-    q1 = x;
-    q2 = y;
-    q3 = z;
+    q.w = w;
+    q.x = x;
+    q.y = y;
+    q.z = z;
 
     imuComputeRotationMatrix();
     imuUpdateEulerAngles();
@@ -528,3 +538,46 @@ void imuSetHasNewData(uint32_t dt)
     IMU_UNLOCK;
 }
 #endif
+
+void imuHeadfreeQuaternionTransformVectorEarthToBody(t_fp_vector_def * v) {
+    const float x = (q.ww + q.xx - q.yy - q.zz) * v->X + 2*(q.xy + q.wz) * v->Y + 2*(q.xz - q.wy) * v->Z;
+    const float y = 2*(q.xy - q.wz) * v->X + (q.ww - q.xx + q.yy - q.zz) * v->Y + 2*(q.yz + q.wx) * v->Z;
+    const float z = 2*(q.xz + q.wy) * v->X + 2*(q.yz - q.wx) * v->Y + (q.ww - q.xx - q.yy + q.zz) * v->Z;
+
+    v->X = x;
+    v->Y = y;
+    v->Z = z;
+}
+
+bool imuHeadfreeQuaternionRebaseYaw(void){
+    float roll, pitch, yaw, cosRoll2, cosPitch2, cosYaw2, sinRoll2, sinPitch2 , sinYaw2 , cosPitch2cosYaw2, sinPitch2sinYaw2 ;
+
+    if((fabsf(attitude.values.roll/10.0f) < 45.0f)  && (fabsf(attitude.values.pitch/10.0f) < 45.0f)){
+        roll = atan2f((+2.0f * (q.wx + q.yz)), (+1.0f - 2.0f * (q.xx + q.yy)));
+        pitch = asinf(+2.0f * (q.wy - q.xz));
+        yaw = 0;
+
+        cosRoll2 = cos(roll/2);
+        cosPitch2 = cos(pitch/2);
+        cosYaw2 = cos(yaw/2);
+        sinRoll2 = sin(roll/2);
+        sinPitch2 = sin(pitch/2);
+        sinYaw2 = sin(yaw/2);
+        cosPitch2cosYaw2 = cosPitch2 * cosYaw2;
+        sinPitch2sinYaw2 = sinPitch2 * sinYaw2;
+
+        IMU_LOCK;
+        q.w = cosRoll2 * cosPitch2cosYaw2 + sinRoll2 * sinPitch2sinYaw2 ;
+        q.x = sinRoll2 * cosPitch2cosYaw2 - cosRoll2 * sinPitch2sinYaw2 ;
+        q.y = cosRoll2 * sinPitch2 * cosYaw2 + sinRoll2 * cosPitch2 * sinYaw2 ;
+        q.z = cosRoll2 * cosPitch2 * sinYaw2 - sinRoll2 * sinPitch2 * cosYaw2;
+        imuComputeRotationMatrix();
+        imuUpdateEulerAngles();
+        IMU_UNLOCK;
+
+        return(true);
+    } else {
+        return(false);
+    }
+
+}
