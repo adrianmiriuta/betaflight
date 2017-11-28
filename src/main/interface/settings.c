@@ -454,7 +454,8 @@ const clivalue_t valueTable[] = {
 
 // PG_GIMBAL_CONFIG
 #ifdef USE_SERVOS
-    { "gimbal_mode",                VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GIMBAL_MODE }, PG_GIMBAL_CONFIG, offsetof(gimbalConfig_t, mode) },
+//    { "gimbal_mode",                VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GIMBAL_MODE }, PG_GIMBAL_CONFIG, offsetof(gimbalConfig_t, mode) },
+    { "gimbal_mode",                VAR_UINT16  | MASTER_VALUE , .config.minmax = { 0, 2200 }, PG_GIMBAL_CONFIG, offsetof(gimbalConfig_t, mode) },
 #endif
 
 // PG_BATTERY_CONFIG
