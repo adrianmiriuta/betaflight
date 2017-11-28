@@ -135,25 +135,6 @@ static void calculateSetpointRate(int axis)
     setpointRate[axis] = constrainf(angleRate, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT); // Rate limit protection (deg/sec)
 }
 
-static void scaleRcCommandToFpvCamAngle(void)
-{
-    //recalculate sin/cos only when rxConfig()->fpvCamAngleDegrees changed
-    static uint8_t lastFpvCamAngleDegrees = 0;
-    static float cosFactor = 1.0;
-    static float sinFactor = 0.0;
-
-    if (lastFpvCamAngleDegrees != rxConfig()->fpvCamAngleDegrees) {
-        lastFpvCamAngleDegrees = rxConfig()->fpvCamAngleDegrees;
-        cosFactor = cos_approx(rxConfig()->fpvCamAngleDegrees * RAD);
-        sinFactor = sin_approx(rxConfig()->fpvCamAngleDegrees * RAD);
-    }
-
-    float roll = setpointRate[ROLL];
-    float yaw = setpointRate[YAW];
-    setpointRate[ROLL] = constrainf(roll * cosFactor -  yaw * sinFactor, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
-    setpointRate[YAW]  = constrainf(yaw  * cosFactor + roll * sinFactor, -SETPOINT_RATE_LIMIT, SETPOINT_RATE_LIMIT);
-}
-
 #define THROTTLE_BUFFER_MAX 20
 #define THROTTLE_DELTA_MS 100
 
@@ -200,7 +181,7 @@ void processRcCommand(void)
     uint8_t readyToCalculateRateAxisCnt = 0;
 
     if (rxConfig()->rcInterpolation) {
-         // Set RC refresh rate for sampling and channels to filter
+        // Set RC refresh rate for sampling and channels to filter
         switch (rxConfig()->rcInterpolation) {
         case RC_SMOOTHING_AUTO:
             rxRefreshRate = currentRxRefreshRate + 1000; // Add slight overhead to prevent ramps
@@ -256,10 +237,6 @@ void processRcCommand(void)
         if (debugMode == DEBUG_RC_INTERPOLATION) {
             debug[2] = rcInterpolationStepCount;
             debug[3] = setpointRate[0];
-        }
-        // Scaling of AngleRate to camera angle (Mixing Roll and Yaw)
-        if (rxConfig()->fpvCamAngleDegrees && IS_RC_MODE_ACTIVE(BOXFPVANGLEMIX) && !FLIGHT_MODE(HEADFREE_MODE)) {
-            scaleRcCommandToFpvCamAngle();
         }
 
         isRXDataNew = false;
@@ -341,7 +318,7 @@ void updateRcCommands(void)
         }
     }
     if (FLIGHT_MODE(HEADFREE_MODE)) {
-        static t_fp_vector_def  rcCommandBuff;
+        static t_fp_vector_def rcCommandBuff;
 
         rcCommandBuff.X = rcCommand[ROLL];
         rcCommandBuff.Y = rcCommand[PITCH];
@@ -350,13 +327,30 @@ void updateRcCommands(void)
         } else {
             rcCommandBuff.Z = 0;
         }
+
         imuQuaternionHeadfreeTransformVectorEarthToBody(&rcCommandBuff);
+
         rcCommand[ROLL] = rcCommandBuff.X;
         rcCommand[PITCH] = rcCommandBuff.Y;
         if ((!FLIGHT_MODE(ANGLE_MODE)&&(!FLIGHT_MODE(HORIZON_MODE)))) {
             rcCommand[YAW] = rcCommandBuff.Z;
         }
     }
+
+    if (IS_RC_MODE_ACTIVE(BOXFPVANGLEMIX) && !FLIGHT_MODE(HEADFREE_MODE)) {
+        static t_fp_vector_def rcCommandBuff;
+
+        rcCommandBuff.X = 0;
+        rcCommandBuff.Y = 0;
+        rcCommandBuff.Z = rcCommand[YAW];
+
+        imuQuaternionTransformVectorEarthToBody(&rcCommandBuff);
+
+        rcCommand[ROLL] = rcCommand[ROLL] + rcCommandBuff.X;
+        rcCommand[PITCH] = rcCommand[PITCH] + rcCommandBuff.Y;
+        rcCommand[YAW] = rcCommandBuff.Z;
+    }
+
 }
 
 void resetYawAxis(void)

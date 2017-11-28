@@ -597,3 +597,13 @@ void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
     v->Y = y;
     v->Z = z;
 }
+
+void imuQuaternionTransformVectorEarthToBody(t_fp_vector_def *v) {
+    const float x = (qP.ww + qP.xx - qP.yy - qP.zz) * v->X + 2.0f * (qP.xy + qP.wz) * v->Y + 2.0f * (qP.xz - qP.wy) * v->Z;
+    const float y = 2.0f * (qP.xy - qP.wz) * v->X + (qP.ww - qP.xx + qP.yy - qP.zz) * v->Y + 2.0f * (qP.yz + qP.wx) * v->Z;
+    const float z = 2.0f * (qP.xz + qP.wy) * v->X + 2.0f * (qP.yz - qP.wx) * v->Y + (qP.ww - qP.xx - qP.yy + qP.zz) * v->Z;
+
+    v->X = x;
+    v->Y = y;
+    v->Z = z;
+}
