@@ -53,12 +53,10 @@ extern uint8_t __config_end;
 
 #include "config/config_eeprom.h"
 #include "config/feature.h"
-#include "config/parameter_group.h"
-#include "config/parameter_group_ids.h"
 
 #include "drivers/accgyro/accgyro.h"
+#include "drivers/adc.h"
 #include "drivers/buf_writer.h"
-#include "drivers/bus_i2c.h"
 #include "drivers/bus_spi.h"
 #include "drivers/compass/compass.h"
 #include "drivers/display.h"
@@ -67,18 +65,17 @@ extern uint8_t __config_end;
 #include "drivers/io.h"
 #include "drivers/io_impl.h"
 #include "drivers/inverter.h"
-#include "drivers/rx_pwm.h"
 #include "drivers/sdcard.h"
 #include "drivers/sensor.h"
 #include "drivers/serial.h"
 #include "drivers/serial_escserial.h"
-#include "drivers/sonar_hcsr04.h"
+#include "drivers/rangefinder/rangefinder_hcsr04.h"
+#include "drivers/sound_beeper.h"
 #include "drivers/stack_check.h"
 #include "drivers/system.h"
 #include "drivers/transponder_ir.h"
 #include "drivers/time.h"
 #include "drivers/timer.h"
-#include "drivers/vcd.h"
 #include "drivers/light_led.h"
 #include "drivers/camera_control.h"
 #include "drivers/vtx_common.h"
@@ -107,8 +104,6 @@ extern uint8_t __config_end;
 #include "io/asyncfatfs/asyncfatfs.h"
 #include "io/beeper.h"
 #include "io/flashfs.h"
-#include "io/displayport_max7456.h"
-#include "io/displayport_msp.h"
 #include "io/gimbal.h"
 #include "io/gps.h"
 #include "io/ledstrip.h"
@@ -118,13 +113,24 @@ extern uint8_t __config_end;
 #include "io/vtx_control.h"
 #include "io/vtx.h"
 
+#include "pg/adc.h"
+#include "pg/beeper.h"
+#include "pg/beeper_dev.h"
+#include "pg/bus_i2c.h"
+#include "pg/bus_spi.h"
+#include "pg/pg.h"
+#include "pg/pg_ids.h"
+#include "pg/rx_pwm.h"
+
 #include "rx/rx.h"
 #include "rx/spektrum.h"
-#include "rx/frsky_d.h"
+#include "rx/cc2500_frsky_common.h"
+#include "rx/cc2500_frsky_x.h"
 
 #include "scheduler/scheduler.h"
 
 #include "sensors/acceleration.h"
+#include "sensors/adcinternal.h"
 #include "sensors/barometer.h"
 #include "sensors/battery.h"
 #include "sensors/boardalignment.h"
@@ -133,7 +139,7 @@ extern uint8_t __config_end;
 #include "sensors/gyro.h"
 #include "sensors/sensors.h"
 
-#include "telemetry/frsky.h"
+#include "telemetry/frsky_hub.h"
 #include "telemetry/telemetry.h"
 
 
@@ -174,7 +180,7 @@ static const char * const mixerNames[] = {
 static const char * const featureNames[] = {
     "RX_PPM", "", "INFLIGHT_ACC_CAL", "RX_SERIAL", "MOTOR_STOP",
     "SERVO_TILT", "SOFTSERIAL", "GPS", "",
-    "SONAR", "TELEMETRY", "", "3D", "RX_PARALLEL_PWM",
+    "RANGEFINDER", "TELEMETRY", "", "3D", "RX_PARALLEL_PWM",
     "RX_MSP", "RSSI_ADC", "LED_STRIP", "DISPLAY", "OSD",
     "", "CHANNEL_FORWARDING", "TRANSPONDER", "AIRMODE",
     "", "", "RX_SPI", "SOFTSPI", "ESC_SENSOR", "ANTI_GRAVITY", "DYNAMIC_FILTER", NULL
@@ -191,13 +197,13 @@ static const rxFailsafeChannelMode_e rxFailsafeModesTable[RX_FAILSAFE_TYPE_COUNT
 #if defined(USE_SENSOR_NAMES)
 // sync this with sensors_e
 static const char * const sensorTypeNames[] = {
-    "GYRO", "ACC", "BARO", "MAG", "SONAR", "GPS", "GPS+MAG", NULL
+    "GYRO", "ACC", "BARO", "MAG", "RANGEFINDER", "GPS", "GPS+MAG", NULL
 };
 
-#define SENSOR_NAMES_MASK (SENSOR_GYRO | SENSOR_ACC | SENSOR_BARO | SENSOR_MAG)
+#define SENSOR_NAMES_MASK (SENSOR_GYRO | SENSOR_ACC | SENSOR_BARO | SENSOR_MAG | SENSOR_RANGEFINDER)
 
 static const char * const *sensorHardwareNames[] = {
-    lookupTableGyroHardware, lookupTableAccHardware, lookupTableBaroHardware, lookupTableMagHardware
+    lookupTableGyroHardware, lookupTableAccHardware, lookupTableBaroHardware, lookupTableMagHardware, lookupTableRangefinderHardware
 };
 #endif // USE_SENSOR_NAMES
 
@@ -690,7 +696,7 @@ static void cliRxFailsafe(char *cmdline)
 
 static void printAux(uint8_t dumpMask, const modeActivationCondition_t *modeActivationConditions, const modeActivationCondition_t *defaultModeActivationConditions)
 {
-    const char *format = "aux %u %u %u %u %u";
+    const char *format = "aux %u %u %u %u %u %u";
     // print out aux channel settings
     for (uint32_t i = 0; i < MAX_MODE_ACTIVATION_CONDITION_COUNT; i++) {
         const modeActivationCondition_t *mac = &modeActivationConditions[i];
@@ -700,7 +706,8 @@ static void printAux(uint8_t dumpMask, const modeActivationCondition_t *modeActi
             equalsDefault = mac->modeId == macDefault->modeId
                 && mac->auxChannelIndex == macDefault->auxChannelIndex
                 && mac->range.startStep == macDefault->range.startStep
-                && mac->range.endStep == macDefault->range.endStep;
+                && mac->range.endStep == macDefault->range.endStep
+                && mac->modeLogic == macDefault->modeLogic;
             const box_t *box = findBoxByBoxId(macDefault->modeId);
             if (box) {
                 cliDefaultPrintLinef(dumpMask, equalsDefault, format,
@@ -708,7 +715,8 @@ static void printAux(uint8_t dumpMask, const modeActivationCondition_t *modeActi
                     box->permanentId,
                     macDefault->auxChannelIndex,
                     MODE_STEP_TO_CHANNEL_VALUE(macDefault->range.startStep),
-                    MODE_STEP_TO_CHANNEL_VALUE(macDefault->range.endStep)
+                    MODE_STEP_TO_CHANNEL_VALUE(macDefault->range.endStep),
+                    macDefault->modeLogic
                 );
             }
         }
@@ -719,7 +727,8 @@ static void printAux(uint8_t dumpMask, const modeActivationCondition_t *modeActi
                 box->permanentId,
                 mac->auxChannelIndex,
                 MODE_STEP_TO_CHANNEL_VALUE(mac->range.startStep),
-                MODE_STEP_TO_CHANNEL_VALUE(mac->range.endStep)
+                MODE_STEP_TO_CHANNEL_VALUE(mac->range.endStep),
+                mac->modeLogic
             );
         }
     }
@@ -756,10 +765,27 @@ static void cliAux(char *cmdline)
                 }
             }
             ptr = processChannelRangeArgs(ptr, &mac->range, &validArgumentCount);
-
-            if (validArgumentCount != 4) {
+            ptr = nextArg(ptr);
+            if (ptr) {
+                val = atoi(ptr);
+                if (val == MODELOGIC_OR || val == MODELOGIC_AND) {
+                    mac->modeLogic = val;
+                    validArgumentCount++;
+                }
+            }
+            if (validArgumentCount == 4) { // for backwards compatibility
+                mac->modeLogic = MODELOGIC_OR;
+            } else if (validArgumentCount != 5) {
                 memset(mac, 0, sizeof(modeActivationCondition_t));
             }
+            cliPrintLinef( "aux %u %u %u %u %u %u",
+                i,
+                mac->modeId,
+                mac->auxChannelIndex,
+                MODE_STEP_TO_CHANNEL_VALUE(mac->range.startStep),
+                MODE_STEP_TO_CHANNEL_VALUE(mac->range.endStep),
+                mac->modeLogic
+            );
         } else {
             cliShowArgumentRangeError("index", 0, MAX_MODE_ACTIVATION_CONDITION_COUNT - 1);
         }
@@ -1833,7 +1859,7 @@ static void cliFlashRead(char *cmdline)
 #endif
 #endif
 
-#ifdef VTX_CONTROL
+#ifdef USE_VTX_CONTROL
 static void printVtx(uint8_t dumpMask, const vtxConfig_t *vtxConfig, const vtxConfig_t *vtxConfigDefault)
 {
     // print out vtx channel settings
@@ -2010,8 +2036,8 @@ static void cliFeature(char *cmdline)
                     break;
                 }
 #endif
-#ifndef USE_SONAR
-                if (mask & FEATURE_SONAR) {
+#ifndef USE_RANGEFINDER
+                if (mask & FEATURE_RANGEFINDER) {
                     cliPrintLine("unavailable");
                     break;
                 }
@@ -2114,12 +2140,24 @@ static void cliBeeper(char *cmdline)
 }
 #endif
 
-#ifdef USE_RX_FRSKY_D
 void cliFrSkyBind(char *cmdline){
     UNUSED(cmdline);
-    frSkyDBind();
-}
+    switch (rxConfig()->rx_spi_protocol) {
+#ifdef USE_RX_FRSKY_SPI
+    case RX_SPI_FRSKY_D:
+    case RX_SPI_FRSKY_X:
+        frSkySpiBind();
+
+        cliPrint("Binding...");
+
+        break;
 #endif
+    default:
+        cliPrint("Not supported.");
+
+        break;
+    }
+}
 
 static void printMap(uint8_t dumpMask, const rxConfig_t *rxConfig, const rxConfig_t *defaultRxConfig)
 {
@@ -2960,7 +2998,7 @@ static void cliStatus(char *cmdline)
     UNUSED(cmdline);
 
     cliPrintLinef("System Uptime: %d seconds", millis() / 1000);
-    
+
     #ifdef USE_RTC_TIME
     char buf[FORMATTED_DATE_TIME_BUFSIZE];
     dateTime_t dt;
@@ -2973,6 +3011,12 @@ static void cliStatus(char *cmdline)
     cliPrintLinef("Voltage: %d * 0.1V (%dS battery - %s)", getBatteryVoltage(), getBatteryCellCount(), getBatteryStateString());
 
     cliPrintf("CPU Clock=%dMHz", (SystemCoreClock / 1000000));
+
+#ifdef USE_ADC_INTERNAL
+    uint16_t vrefintMv = getVrefMv();
+    uint16_t coretemp = getCoreTemperatureCelsius();
+    cliPrintf(", Vref=%d.%2dV, Core temp=%ddegC", vrefintMv / 1000, (vrefintMv % 1000) / 10, coretemp);
+#endif
 
 #if defined(USE_SENSOR_NAMES)
     const uint32_t detectedSensorsMask = sensorsMask();
@@ -3133,7 +3177,7 @@ const cliResourceValue_t resourceTable[] = {
     { OWNER_PPMINPUT,      PG_PPM_CONFIG, offsetof(ppmConfig_t, ioTag), 0 },
     { OWNER_PWMINPUT,      PG_PWM_CONFIG, offsetof(pwmConfig_t, ioTags[0]), PWM_INPUT_PORT_COUNT },
 #endif
-#ifdef USE_SONAR
+#ifdef USE_RANGEFINDER_HCSR04
     { OWNER_SONAR_TRIGGER, PG_SONAR_CONFIG, offsetof(sonarConfig_t, triggerTag), 0 },
     { OWNER_SONAR_ECHO,    PG_SONAR_CONFIG, offsetof(sonarConfig_t, echoTag),    0 },
 #endif
@@ -3154,7 +3198,7 @@ const cliResourceValue_t resourceTable[] = {
     { OWNER_RX_BIND,       PG_RX_CONFIG, offsetof(rxConfig_t, spektrum_bind_pin_override_ioTag), 0 },
     { OWNER_RX_BIND_PLUG,  PG_RX_CONFIG, offsetof(rxConfig_t, spektrum_bind_plug_ioTag), 0 },
 #endif
-#ifdef TRANSPONDER
+#ifdef USE_TRANSPONDER
     { OWNER_TRANSPONDER,   PG_TRANSPONDER_CONFIG, offsetof(transponderConfig_t, ioTag), 0 },
 #endif
 #ifdef USE_SPI
@@ -3523,7 +3567,7 @@ static void printConfig(char *cmdline, bool doDiff)
         cliPrintHashLine("rxrange");
         printRxRange(dumpMask, rxChannelRangeConfigs_CopyArray, rxChannelRangeConfigs(0));
 
-#ifdef VTX_CONTROL
+#ifdef USE_VTX_CONTROL
         cliPrintHashLine("vtx");
         printVtx(dumpMask, &vtxConfig_Copy, vtxConfig());
 #endif
@@ -3611,7 +3655,7 @@ static void cliHelp(char *cmdline);
 // should be sorted a..z for bsearch()
 const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("adjrange", "configure adjustment ranges", NULL, cliAdjustmentRange),
-    CLI_COMMAND_DEF("aux", "configure modes", NULL, cliAux),
+    CLI_COMMAND_DEF("aux", "configure modes", "<index> <mode> <aux> <start> <end> <logic>", cliAux),
 #ifdef BEEPER
     CLI_COMMAND_DEF("beeper", "turn on/off beeper", "list\r\n"
         "\t<+|->[name]", cliBeeper),
@@ -3643,8 +3687,8 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("flash_write", NULL, "<address> <message>", cliFlashWrite),
 #endif
 #endif
-#ifdef USE_RX_FRSKY_D
-    CLI_COMMAND_DEF("frsky_bind", "initiate binding for FrSky RX", NULL, cliFrSkyBind),
+#ifdef USE_RX_FRSKY_SPI
+    CLI_COMMAND_DEF("frsky_bind", "initiate binding for FrSky SPI RX", NULL, cliFrSkyBind),
 #endif
     CLI_COMMAND_DEF("get", "get variable value", "[name]", cliGet),
 #ifdef USE_GPS
@@ -3697,7 +3741,7 @@ const clicmd_t cmdTable[] = {
     CLI_COMMAND_DEF("tasks", "show task stats", NULL, cliTasks),
 #endif
     CLI_COMMAND_DEF("version", "show version", NULL, cliVersion),
-#ifdef VTX_CONTROL
+#ifdef USE_VTX_CONTROL
     CLI_COMMAND_DEF("vtx", "vtx channels on switch", NULL, cliVtx),
 #endif
 };

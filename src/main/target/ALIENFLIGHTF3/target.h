@@ -63,7 +63,7 @@
 // option to use MPU9150 or MPU9250 integrated AK89xx Mag
 #define USE_MAG
 #define USE_MAG_AK8963
-#define MAG_AK8963_ALIGN        CW0_DEG_FLIP
+#define MAG_AK8963_ALIGN        CW180_DEG_FLIP
 
 #define USE_VCP
 #define USE_UART1 // Not connected - TX (PB6) RX PB7 (AF7)
@@ -111,9 +111,6 @@
 #define ADC_INSTANCE            ADC2
 #define VBAT_ADC_PIN            PA4
 #define VBAT_SCALE_DEFAULT      20
-
-// LED strip configuration.
-#define USE_LED_STRIP
 
 #define BINDPLUG_PIN            PB12
 

@@ -28,8 +28,8 @@
 
 #include "common/axis.h"
 
-#include "config/parameter_group.h"
-#include "config/parameter_group_ids.h"
+#include "pg/pg.h"
+#include "pg/pg_ids.h"
 
 #include "drivers/time.h"
 
@@ -46,7 +46,6 @@
 #include "sensors/compass.h"
 #include "sensors/gyro.h"
 #include "sensors/sensors.h"
-#include "sensors/sonar.h"
 
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
 #include <stdio.h>
@@ -201,9 +200,9 @@ static void imuCalculateAcceleration(uint32_t deltaT)
     const float dT = (float)deltaT * 1e-6f;
 
     t_fp_vector accel_ned;
-    accel_ned.V.X = acc.accSmooth[X];
-    accel_ned.V.Y = acc.accSmooth[Y];
-    accel_ned.V.Z = acc.accSmooth[Z];
+    accel_ned.V.X = acc.accADC[X];
+    accel_ned.V.Y = acc.accADC[Y];
+    accel_ned.V.Z = acc.accADC[Z];
 
     imuTransformVectorBodyToEarth(&accel_ned);
 
@@ -393,7 +392,7 @@ static bool imuIsAccelerometerHealthy(void)
 {
     float accMagnitude = 0;
     for (int axis = 0; axis < 3; axis++) {
-        const float a = acc.accSmooth[axis];
+        const float a = acc.accADC[axis];
         accMagnitude += a * a;
     }
 
@@ -446,10 +445,15 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
 //  printf("[imu]deltaT = %u, imuDeltaT = %u, currentTimeUs = %u, micros64_real = %lu\n", deltaT, imuDeltaT, currentTimeUs, micros64_real());
     deltaT = imuDeltaT;
 #endif
-
+    float gyroAverage[XYZ_AXIS_COUNT];
+    gyroGetAccumulationAverage(gyroAverage);
+    float accAverage[XYZ_AXIS_COUNT];
+    if (!accGetAccumulationAverage(accAverage)) {
+        useAcc = false;
+    }
     imuMahonyAHRSupdate(deltaT * 1e-6f,
-                        DEGREES_TO_RADIANS(gyro.gyroADCf[X]), DEGREES_TO_RADIANS(gyro.gyroADCf[Y]), DEGREES_TO_RADIANS(gyro.gyroADCf[Z]),
-                        useAcc, acc.accSmooth[X], acc.accSmooth[Y], acc.accSmooth[Z],
+                        DEGREES_TO_RADIANS(gyroAverage[X]), DEGREES_TO_RADIANS(gyroAverage[Y]), DEGREES_TO_RADIANS(gyroAverage[Z]),
+                        useAcc, accAverage[X], accAverage[Y], accAverage[Z],
                         useMag, mag.magADC[X], mag.magADC[Y], mag.magADC[Z],
                         useYaw, rawYawError);
 
@@ -474,9 +478,9 @@ void imuUpdateAttitude(timeUs_t currentTimeUs)
         imuCalculateEstimatedAttitude(currentTimeUs);
         IMU_UNLOCK;
     } else {
-        acc.accSmooth[X] = 0;
-        acc.accSmooth[Y] = 0;
-        acc.accSmooth[Z] = 0;
+        acc.accADC[X] = 0;
+        acc.accADC[Y] = 0;
+        acc.accADC[Z] = 0;
     }
 }
 

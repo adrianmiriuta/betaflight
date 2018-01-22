@@ -26,8 +26,6 @@
 #define TARGET_BOARD_IDENTIFIER "MLTY"
 #endif
 
-#define CONFIG_START_FLASH_ADDRESS (0x08080000) //0x08080000 to 0x080A0000 (FLASH_Sector_8)
-
 #define USBD_PRODUCT_STRING "MotoLabF4"
 
 #define LED0_PIN                PC3
@@ -99,11 +97,11 @@
 #define SERIAL_PORT_COUNT       6 //VCP, USART1, USART2, UART4, UART5, USART6
 #else
 #define SERIAL_PORT_COUNT       5 //VCP, USART1, USART2, UART4, UART5
-#define VTX_RTC6705
-#define VTX_RTC6705SOFTSPI
-#define RTC6705_SPIDATA_PIN     PC6
-#define RTC6705_SPILE_PIN       PC7
+#define USE_VTX_RTC6705
+#define USE_VTX_RTC6705_SOFTSPI
+#define RTC6705_SPI_MOSI_PIN    PC6
 #define RTC6705_SPICLK_PIN      PC2
+#define RTC6705_CS_PIN          PC7
 #endif
 
 #define USE_SPI
@@ -137,10 +135,6 @@
 // Reserved pins, not connected
 //#define RSSI_ADC_GPIO_PIN       PC2
 
-#define USE_DSHOT
-#define USE_ESC_TELEMETRY
-#define SENSORS_SET (SENSOR_ACC)
-#define USE_LED_STRIP
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
@@ -158,10 +152,5 @@
 #define TARGET_IO_PORTC 0xffff
 #define TARGET_IO_PORTD (BIT(2))
 
-#ifndef ML_PWM_6
-#define USABLE_TIMER_CHANNEL_COUNT 5
-#define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) )
-#else
 #define USABLE_TIMER_CHANNEL_COUNT 7
 #define USED_TIMERS  ( TIM_N(1) | TIM_N(2) | TIM_N(3) | TIM_N(5) )
-#endif

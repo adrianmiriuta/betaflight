@@ -21,13 +21,13 @@
 
 #include "platform.h"
 
-#if defined(VTX_CONTROL) && defined(VTX_COMMON)
+#if defined(USE_VTX_CONTROL) && defined(USE_VTX_COMMON)
 
 #include "common/maths.h"
 
 #include "config/config_eeprom.h"
-#include "config/parameter_group.h"
-#include "config/parameter_group_ids.h"
+#include "pg/pg.h"
+#include "pg/pg_ids.h"
 
 #include "drivers/buttons.h"
 #include "drivers/light_led.h"
@@ -184,7 +184,7 @@ void vtxCyclePower(const uint8_t powerStep)
  */
 void handleVTXControlButton(void)
 {
-#if defined(VTX_RTC6705) && defined(BUTTON_A_PIN)
+#if defined(USE_VTX_RTC6705) && defined(BUTTON_A_PIN)
     bool buttonWasPressed = false;
     uint32_t start = millis();
     uint32_t ledToggleAt = start;

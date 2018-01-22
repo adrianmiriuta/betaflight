@@ -25,6 +25,8 @@
 #define BEEPER                  PB3
 #define BEEPER_INVERTED
 
+#define USE_DSHOT_DMAR
+
 // ICM20689 interrupt
 #define USE_EXTI
 #define MPU_INT_EXTI            PA8
@@ -139,9 +141,7 @@
 
 #define RSSI_ADC_PIN            PC2
 
-#define USE_LED_STRIP
-
-#define TRANSPONDER
+#define USE_TRANSPONDER
 
 #define DEFAULT_FEATURES        ( FEATURE_TELEMETRY | FEATURE_OSD | FEATURE_AIRMODE )
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL

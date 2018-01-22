@@ -27,7 +27,7 @@ extern "C" {
     #include "common/maths.h"
 
     #include "config/feature.h"
-    #include "config/parameter_group_ids.h"
+    #include "pg/pg_ids.h"
 
     #include "drivers/accgyro/accgyro.h"
     #include "drivers/compass/compass.h"
@@ -59,8 +59,6 @@ extern "C" {
 
     PG_REGISTER(rcControlsConfig_t, rcControlsConfig, PG_RC_CONTROLS_CONFIG, 0);
     PG_REGISTER(barometerConfig_t, barometerConfig, PG_BAROMETER_CONFIG, 0);
-
-    PG_REGISTER_WITH_RESET_TEMPLATE(featureConfig_t, featureConfig, PG_FEATURE_CONFIG, 0);
 
     PG_RESET_TEMPLATE(featureConfig_t, featureConfig,
         .enabledFeatures = 0
@@ -198,7 +196,7 @@ TEST(FlightImuTest, TestSmallAngle)
 // STUBS
 
 extern "C" {
-uint32_t rcModeActivationMask;
+boxBitmask_t rcModeActivationMask;
 float rcCommand[4];
 int16_t rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
 
@@ -239,4 +237,6 @@ uint32_t micros(void) { return 0; }
 bool isBaroCalibrationComplete(void) { return true; }
 void performBaroCalibrationCycle(void) {}
 int32_t baroCalculateAltitude(void) { return 0; }
+bool gyroGetAccumulationAverage(float *) { return false; }
+bool accGetAccumulationAverage(float *) { return false; }
 }

@@ -95,15 +95,10 @@
 #define VBAT_SCALE_DEFAULT      40
 
 
-#undef USE_GPS
-#undef USE_MAG
-#undef USE_SONAR
 #undef USE_SERVOS
 #undef BEEPER
 
 
-#define USE_BLACKBOX
-#define USE_LED_STRIP
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE
 #define BRUSHED_MOTORS
 

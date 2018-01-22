@@ -33,8 +33,8 @@
 #include "common/color.h"
 
 #include "config/feature.h"
-#include "config/parameter_group.h"
-#include "config/parameter_group_ids.h"
+#include "pg/pg.h"
+#include "pg/pg_ids.h"
 
 #include "drivers/accgyro/accgyro.h"
 #include "drivers/sensor.h"
@@ -222,11 +222,11 @@ void mavlinkSendSystemStatus(void)
         // load Maximum usage in percent of the mainloop time, (0%: 0, 100%: 1000) should be always below 1000
         0,
         // voltage_battery Battery voltage, in millivolts (1 = 1 millivolt)
-        (batteryConfig()->voltageMeterSource != VOLTAGE_METER_NONE) ? getBatteryVoltage() * 100 : 0,
+        isBatteryVoltageAvailable() ? getBatteryVoltage() * 100 : 0,
         // current_battery Battery current, in 10*milliamperes (1 = 10 milliampere), -1: autopilot does not measure the current
-        (batteryConfig()->currentMeterSource != CURRENT_METER_NONE) ? getAmperage() : -1,
+        isAmperageAvailable() ? getAmperage() : -1,
         // battery_remaining Remaining battery energy: (0%: 0, 100%: 100), -1: autopilot estimate the remaining battery
-        (batteryConfig()->voltageMeterSource != VOLTAGE_METER_NONE) ? calculateBatteryPercentageRemaining() : 100,
+        isBatteryVoltageAvailable() ? calculateBatteryPercentageRemaining() : 100,
         // drop_rate_comm Communication drops in percent, (0%: 0, 100%: 10'000), (UART, I2C, SPI, CAN), dropped packets on all links (packets that were corrupted on reception on the MAV)
         0,
         // errors_comm Communication errors (UART, I2C, SPI, CAN), dropped packets on all links (packets that were corrupted on reception on the MAV)
@@ -329,8 +329,8 @@ void mavlinkSendPosition(void)
         // alt Altitude in 1E3 meters (millimeters) above MSL
         gpsSol.llh.alt * 1000,
         // relative_alt Altitude above ground in meters, expressed as * 1000 (millimeters)
-#if defined(USE_BARO) || defined(USE_SONAR)
-        (sensors(SENSOR_SONAR) || sensors(SENSOR_BARO)) ? getEstimatedAltitude() * 10 : gpsSol.llh.alt * 1000,
+#if defined(USE_BARO) || defined(USE_RANGEFINDER)
+        (sensors(SENSOR_RANGEFINDER) || sensors(SENSOR_BARO)) ? getEstimatedAltitude() * 10 : gpsSol.llh.alt * 1000,
 #else
         gpsSol.llh.alt * 1000,
 #endif
@@ -396,8 +396,8 @@ void mavlinkSendHUDAndHeartbeat(void)
 #endif
 
     // select best source for altitude
-#if defined(USE_BARO) || defined(USE_SONAR)
-    if (sensors(SENSOR_SONAR) || sensors(SENSOR_BARO)) {
+#if defined(USE_BARO) || defined(USE_RANGEFINDER)
+    if (sensors(SENSOR_RANGEFINDER) || sensors(SENSOR_BARO)) {
         // Baro or sonar generally is a better estimate of altitude than GPS MSL altitude
         mavAltitude = getEstimatedAltitude() / 100.0;
     }
@@ -478,7 +478,7 @@ void mavlinkSendHUDAndHeartbeat(void)
         mavCustomMode = 0;      //Stabilize
         mavModes |= MAV_MODE_FLAG_STABILIZE_ENABLED;
     }
-    if (FLIGHT_MODE(BARO_MODE) || FLIGHT_MODE(SONAR_MODE))
+    if (FLIGHT_MODE(BARO_MODE) || FLIGHT_MODE(RANGEFINDER_MODE))
         mavCustomMode = 2;      //Alt Hold
     if (FLIGHT_MODE(GPS_HOME_MODE))
         mavCustomMode = 6;      //Return to Launch

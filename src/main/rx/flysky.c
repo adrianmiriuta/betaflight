@@ -25,21 +25,24 @@
 
 #include "common/maths.h"
 #include "common/utils.h"
-#include "config/config_eeprom.h"
-#include "config/parameter_group_ids.h"
-#include "fc/config.h"
 
-#include "rx/rx.h"
-#include "rx/rx_spi.h"
-#include "rx/flysky.h"
-#include "rx/flysky_defs.h"
-
-#include "drivers/rx_a7105.h"
+#include "drivers/io.h"
+#include "drivers/rx/rx_a7105.h"
 #include "drivers/system.h"
 #include "drivers/time.h"
-#include "drivers/io.h"
+
+#include "fc/config.h"
+
+#include "rx/flysky_defs.h"
+#include "rx/rx.h"
+#include "rx/rx_spi.h"
+
+#include "pg/pg.h"
+#include "pg/pg_ids.h"
 
 #include "sensors/battery.h"
+
+#include "flysky.h"
 
 #if FLYSKY_CHANNEL_COUNT > MAX_FLYSKY_CHANNEL_COUNT
 #error "FlySky AFHDS protocol support 8 channel max"
@@ -346,7 +349,7 @@ static rx_spi_received_e flySkyReadAndProcess (uint8_t *payload, const uint32_t 
     return result;
 }
 
-void flySkyInit (const struct rxConfig_s *rxConfig, struct rxRuntimeConfig_s *rxRuntimeConfig)
+bool flySkyInit (const struct rxConfig_s *rxConfig, struct rxRuntimeConfig_s *rxRuntimeConfig)
 {
     protocol = rxConfig->rx_spi_protocol;
 
@@ -355,7 +358,7 @@ void flySkyInit (const struct rxConfig_s *rxConfig, struct rxRuntimeConfig_s *rx
     }
 
     IO_t bindPin = IOGetByTag(IO_TAG(BINDPLUG_PIN));
-    IOInit(bindPin, OWNER_RX_SPI_CS, 0);
+    IOInit(bindPin, OWNER_RX_BIND, 0);
     IOConfigGPIO(bindPin, IOCFG_IPU);
 
     uint8_t startRxChannel;
@@ -392,6 +395,8 @@ void flySkyInit (const struct rxConfig_s *rxConfig, struct rxRuntimeConfig_s *rx
     A7105Strobe(A7105_RX); // start listening
 
     resetTimeout(micros());
+
+    return true;
 }
 
 void flySkySetRcDataFromPayload (uint16_t *rcData, const uint8_t *payload)

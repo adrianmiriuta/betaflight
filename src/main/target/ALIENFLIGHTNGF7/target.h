@@ -61,8 +61,7 @@
 #define AK8963_CS_PIN           PC15
 #define AK8963_SPI_INSTANCE     SPI3
 
-#define MAG_HMC5883_ALIGN       CW180_DEG
-#define MAG_AK8963_ALIGN        CW270_DEG
+#define MAG_AK8963_ALIGN        CW180_DEG_FLIP
 
 #define USE_BARO
 #define USE_BARO_MS5611
@@ -169,9 +168,6 @@
 
 #define CURRENT_METER_OFFSET_DEFAULT 2500                      // ACS712/714-30A - 0A = 2.5V
 #define CURRENT_METER_SCALE_DEFAULT -667                       // ACS712/714-30A - 66.666 mV/A inverted mode
-
-// LED strip configuration.
-#define USE_LED_STRIP
 
 #define BINDPLUG_PIN            PB2
 

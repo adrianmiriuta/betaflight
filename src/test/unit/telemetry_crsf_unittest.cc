@@ -34,8 +34,8 @@ extern "C" {
     #include "common/printf.h"
     #include "common/typeconversion.h"
 
-    #include "config/parameter_group.h"
-    #include "config/parameter_group_ids.h"
+    #include "pg/pg.h"
+    #include "pg/pg_ids.h"
 
     #include "drivers/serial.h"
     #include "drivers/system.h"
@@ -336,5 +336,7 @@ int32_t getMAhDrawn(void){
 bool sendMspReply(uint8_t, mspResponseFnPtr) { return false; }
 bool handleMspFrame(uint8_t *, int)  { return false; }
 void crsfScheduleMspResponse(void) {};
+bool isBatteryVoltageAvailable(void) { return true; }
+bool isAmperageAvailable(void) { return true; }
 
 }

@@ -19,13 +19,12 @@
 
 #include "common/time.h"
 
-#include "config/parameter_group.h"
+#include "pg/pg.h"
 
 #include "drivers/io_types.h"
 
 #define STICK_CHANNEL_COUNT 4
 
-#define PWM_RANGE_ZERO 0 // FIXME should all usages of this be changed to use PWM_RANGE_MIN?
 #define PWM_RANGE_MIN 1000
 #define PWM_RANGE_MAX 2000
 #define PWM_RANGE_MIDDLE (PWM_RANGE_MIN + ((PWM_RANGE_MAX - PWM_RANGE_MIN) / 2))
@@ -157,7 +156,7 @@ typedef struct rxRuntimeConfig_s {
     uint16_t            rxRefreshRate;
     rcReadRawDataFnPtr  rcReadRawFn;
     rcFrameStatusFnPtr  rcFrameStatusFn;
-    uint32_t            *channelData;
+    uint16_t            *channelData;
     void                *frameData;
 } rxRuntimeConfig_t;
 
