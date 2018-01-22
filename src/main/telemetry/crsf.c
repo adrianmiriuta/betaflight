@@ -28,8 +28,8 @@
 #include "build/version.h"
 
 #include "config/feature.h"
-#include "config/parameter_group.h"
-#include "config/parameter_group_ids.h"
+#include "pg/pg.h"
+#include "pg/pg_ids.h"
 
 #include "common/crc.h"
 #include "common/maths.h"
@@ -399,7 +399,7 @@ void initCrsfTelemetry(void)
     if (sensors(SENSOR_ACC)) {
         crsfSchedule[index++] = BV(CRSF_FRAME_ATTITUDE_INDEX);
     }
-    if (batteryConfig()->voltageMeterSource != VOLTAGE_METER_NONE || batteryConfig()->currentMeterSource != CURRENT_METER_NONE) {
+    if (isBatteryVoltageAvailable() || isAmperageAvailable()) {
         crsfSchedule[index++] = BV(CRSF_FRAME_BATTERY_SENSOR_INDEX);
     }
     crsfSchedule[index++] = BV(CRSF_FRAME_FLIGHT_MODE_INDEX);

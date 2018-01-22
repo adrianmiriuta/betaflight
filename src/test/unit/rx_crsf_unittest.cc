@@ -26,8 +26,8 @@ extern "C" {
 
     #include "build/debug.h"
 
-    #include "config/parameter_group.h"
-    #include "config/parameter_group_ids.h"
+    #include "pg/pg.h"
+    #include "pg/pg_ids.h"
     #include "common/crc.h"
     #include "common/utils.h"
 
@@ -288,4 +288,6 @@ serialPort_t *telemetrySharedPort = NULL;
 void crsfScheduleDeviceInfoResponse(void) {};
 void crsfScheduleMspResponse(void) {};
 bool bufferMspFrame(uint8_t *, int) {return true;}
+bool isBatteryVoltageAvailable(void) { return true; }
+bool isAmperageAvailable(void) { return true; }
 }

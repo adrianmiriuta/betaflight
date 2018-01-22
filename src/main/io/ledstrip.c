@@ -35,8 +35,8 @@
 #include "common/utils.h"
 
 #include "config/feature.h"
-#include "config/parameter_group.h"
-#include "config/parameter_group_ids.h"
+#include "pg/pg.h"
+#include "pg/pg_ids.h"
 
 #include "drivers/light_ws2811strip.h"
 #include "drivers/serial.h"
@@ -458,7 +458,7 @@ static void applyLedFixedLayers(void)
             hsvColor_t previousColor = ledStripConfig()->colors[(ledGetColor(ledConfig) - 1 + LED_CONFIGURABLE_COLOR_COUNT) % LED_CONFIGURABLE_COLOR_COUNT];
 
             if (ledGetOverlayBit(ledConfig, LED_OVERLAY_THROTTLE)) {   //smooth fade with selected Aux channel of all HSV values from previousColor through color to nextColor
-            	int centerPWM = (PWM_RANGE_MIN + PWM_RANGE_MAX) / 2;
+                int centerPWM = (PWM_RANGE_MIN + PWM_RANGE_MAX) / 2;
                 if (auxInput < centerPWM) {
                     color.h = scaleRange(auxInput, PWM_RANGE_MIN, centerPWM, previousColor.h, color.h);
                     color.s = scaleRange(auxInput, PWM_RANGE_MIN, centerPWM, previousColor.s, color.s);
@@ -578,7 +578,7 @@ static void applyLedWarningLayer(bool updateNow, timeUs_t *timer)
     }
 }
 
-#ifdef VTX_COMMON
+#ifdef USE_VTX_COMMON
 static void applyLedVtxLayer(bool updateNow, timeUs_t *timer)
 {
     static uint16_t frequency = 0;
@@ -1000,7 +1000,7 @@ typedef enum {
     timGps,
 #endif
     timWarning,
-#ifdef VTX_COMMON
+#ifdef USE_VTX_COMMON
     timVtx,
 #endif
     timIndicator,
@@ -1029,7 +1029,7 @@ static applyLayerFn_timed* layerTable[] = {
     [timGps] = &applyLedGpsLayer,
 #endif
     [timWarning] = &applyLedWarningLayer,
-#ifdef VTX_COMMON
+#ifdef USE_VTX_COMMON
     [timVtx] = &applyLedVtxLayer,
 #endif
     [timIndicator] = &applyLedIndicatorLayer,

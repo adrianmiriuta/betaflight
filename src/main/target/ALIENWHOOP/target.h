@@ -55,8 +55,6 @@
 #define LED0_PIN                PC12 // conflicts UART5
 #define LED1_PIN                PD2  // conflicts UART5
 
-#define USE_LED_STRIP
-
 /* Lost Quad Mode and Alerts - RCX03-787 Low Voltage Active Buzzer
  */
 #define BEEPER                 PA2
@@ -200,10 +198,10 @@
 #endif
 
 /* OSD currently dependent upon CMS, SMARTAUDIO, TRAMP
-#undef VTX_COMMON
-#undef VTX_CONTROL
-#undef VTX_SMARTAUDIO
-#undef VTX_TRAMP
+#undef USE_VTX_COMMON
+#undef USE_VTX_CONTROL
+#undef USE_VTX_SMARTAUDIO
+#undef USE_VTX_TRAMP
 */
 
 /* OLED Support

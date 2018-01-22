@@ -92,12 +92,12 @@
 #define SPI3_MISO_PIN           PB4
 #define SPI3_MOSI_PIN           PB5
 
-#define VTX_RTC6705
+#define USE_VTX_RTC6705
 #define VTX_RTC6705_OPTIONAL    // VTX/OSD board is OPTIONAL
 
 // Disabled due to flash size
-#undef VTX_SMARTAUDIO
-#undef VTX_TRAMP
+#undef USE_VTX_SMARTAUDIO
+#undef USE_VTX_TRAMP
 
 #define RTC6705_CS_PIN          PF4
 #define RTC6705_SPI_INSTANCE    SPI3
@@ -156,7 +156,7 @@
 #define WS2811_DMA_HANDLER_IDENTIFER    DMA1_CH2_HANDLER
 #define WS2811_TIMER_GPIO_AF            GPIO_AF_6
 
-#define TRANSPONDER
+#define USE_TRANSPONDER
 
 #define ENABLE_BLACKBOX_LOGGING_ON_SDCARD_BY_DEFAULT
 

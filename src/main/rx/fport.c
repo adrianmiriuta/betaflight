@@ -310,7 +310,7 @@ static uint8_t fportFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig)
 #if defined(USE_TELEMETRY_SMARTPORT)
     } else {
         timeUs_t currentTimeUs = micros();
-        if (clearToSend && cmpTimeUs(currentTimeUs, lastTelemetryFrameReceivedUs) >= FPORT_MIN_TELEMETRY_RESPONSE_DELAY_US) {
+        if (telemetryEnabled && clearToSend && cmpTimeUs(currentTimeUs, lastTelemetryFrameReceivedUs) >= FPORT_MIN_TELEMETRY_RESPONSE_DELAY_US) {
             if (cmpTimeUs(currentTimeUs, lastTelemetryFrameReceivedUs) > FPORT_MAX_TELEMETRY_RESPONSE_DELAY_US) {
                 clearToSend = false;
             }
@@ -338,7 +338,7 @@ static uint8_t fportFrameStatus(rxRuntimeConfig_t *rxRuntimeConfig)
 
 bool fportRxInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig)
 {
-    static uint32_t sbusChannelData[SBUS_MAX_CHANNEL];
+    static uint16_t sbusChannelData[SBUS_MAX_CHANNEL];
     rxRuntimeConfig->channelData = sbusChannelData;
     sbusChannelsInit(rxConfig, rxRuntimeConfig);
 
@@ -358,7 +358,7 @@ bool fportRxInit(const rxConfig_t *rxConfig, rxRuntimeConfig_t *rxRuntimeConfig)
         NULL,
         FPORT_BAUDRATE,
         MODE_RXTX,
-        FPORT_PORT_OPTIONS | (rxConfig->serialrx_inverted ? 0: SERIAL_INVERTED) | (rxConfig->halfDuplex ? SERIAL_BIDIR : 0)
+        FPORT_PORT_OPTIONS | (rxConfig->serialrx_inverted ? SERIAL_INVERTED : 0) | (rxConfig->halfDuplex ? SERIAL_BIDIR : 0)
     );
 
     if (fportPort) {

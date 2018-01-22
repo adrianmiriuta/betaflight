@@ -26,6 +26,8 @@
 #define BEEPER                  PC13
 #define BEEPER_INVERTED
 
+#define USE_DSHOT_DMAR
+
 // *************** Gyro & ACC **********************
 #define USE_SPI
 #define USE_SPI_DEVICE_1
@@ -58,7 +60,7 @@
 #define USE_ACC_SPI_MPU6500
 #define ACC_MPU6500_ALIGN       CW180_DEG
 
-#define MAG
+#define USE_MAG
 #define USE_MAG_HMC5883
 
 // *************** Baro **************************
@@ -122,6 +124,7 @@
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI2
 #define MAX7456_SPI_CS_PIN      PB10
+
 // *************** UART *****************************
 #define USE_VCP
 #define VBUS_SENSING_PIN        PB12
@@ -148,8 +151,9 @@
 #define UART5_TX_PIN            PC12
 
 #define USE_SOFTSERIAL1
+#define USE_SOFTSERIAL2
 
-#define SERIAL_PORT_COUNT       7
+#define SERIAL_PORT_COUNT       8
 
 #define DEFAULT_RX_FEATURE      FEATURE_RX_SERIAL
 #define SERIALRX_PROVIDER       SERIALRX_SBUS
@@ -165,8 +169,7 @@
 #define DEFAULT_FEATURES        (FEATURE_OSD | FEATURE_TELEMETRY | FEATURE_SOFTSERIAL)
 #define DEFAULT_VOLTAGE_METER_SOURCE    VOLTAGE_METER_ADC
 #define DEFAULT_CURRENT_METER_SOURCE    CURRENT_METER_ADC
-
-#define USE_LED_STRIP
+#define CURRENT_METER_SCALE_DEFAULT 179
 
 #define USE_ESCSERIAL
 #define ESCSERIAL_TIMER_TX_PIN PA3
@@ -177,5 +180,5 @@
 #define TARGET_IO_PORTC         0xffff
 #define TARGET_IO_PORTD         (BIT(2))
 
-#define USABLE_TIMER_CHANNEL_COUNT 8
-#define USED_TIMERS             (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(8))
+#define USABLE_TIMER_CHANNEL_COUNT 12
+#define USED_TIMERS             (TIM_N(1)|TIM_N(2)|TIM_N(3)|TIM_N(4)|TIM_N(5)|TIM_N(8)|TIM_N(9))

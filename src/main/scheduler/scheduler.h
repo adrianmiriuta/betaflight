@@ -71,10 +71,10 @@ typedef enum {
 #ifdef USE_BARO
     TASK_BARO,
 #endif
-#ifdef USE_SONAR
-    TASK_SONAR,
+#ifdef USE_RANGEFINDER
+    TASK_RANGEFINDER,
 #endif
-#if defined(USE_BARO) || defined(USE_SONAR)
+#if defined(USE_BARO) || defined(USE_RANGEFINDER)
     TASK_ALTITUDE,
 #endif
 #ifdef USE_DASHBOARD
@@ -86,7 +86,7 @@ typedef enum {
 #ifdef USE_LED_STRIP
     TASK_LEDSTRIP,
 #endif
-#ifdef TRANSPONDER
+#ifdef USE_TRANSPONDER
     TASK_TRANSPONDER,
 #endif
 #ifdef STACK_CHECK
@@ -107,7 +107,7 @@ typedef enum {
 #ifdef USE_CMS
     TASK_CMS,
 #endif
-#ifdef VTX_CONTROL
+#ifdef USE_VTX_CONTROL
     TASK_VTXCTRL,
 #endif
 #ifdef USE_CAMERA_CONTROL
@@ -116,6 +116,10 @@ typedef enum {
 
 #ifdef USE_RCDEVICE
     TASK_RCDEVICE,
+#endif
+
+#ifdef USE_ADC_INTERNAL
+    TASK_ADC_INTERNAL,
 #endif
 
     /* Count of real tasks */

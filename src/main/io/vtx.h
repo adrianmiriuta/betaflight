@@ -21,7 +21,7 @@
 
 #include "platform.h"
 #include "common/time.h"
-#include "config/parameter_group.h"
+#include "pg/pg.h"
 
 typedef struct vtxSettingsConfig_s {
     uint8_t band;           // 1=A, 2=B, 3=E, 4=F(Airwaves/Fatshark), 5=Raceband
@@ -35,4 +35,4 @@ typedef struct vtxSettingsConfig_s {
 PG_DECLARE(vtxSettingsConfig_t, vtxSettingsConfig);
 
 void vtxInit(void);
-void vtxProcessSchedule(timeUs_t currentTimeUs);
+void vtxUpdate(timeUs_t currentTimeUs);

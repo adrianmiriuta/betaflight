@@ -18,7 +18,7 @@
 #pragma once
 
 #include "common/time.h"
-#include "config/parameter_group.h"
+#include "pg/pg.h"
 
 #define OSD_NUM_TIMER_TYPES 3
 extern const char * const osdTimerSourceNames[OSD_NUM_TIMER_TYPES];
@@ -85,6 +85,7 @@ typedef enum {
     OSD_REMAINING_TIME_ESTIMATE,
     OSD_RTC_DATETIME,
     OSD_ADJUSTMENT_RANGE,
+    OSD_CORE_TEMPERATURE,
     OSD_ITEM_COUNT // MUST BE LAST
 } osd_items_e;
 
@@ -159,6 +160,8 @@ typedef struct osdConfig_s {
 extern timeUs_t resumeRefreshAt;
 
 PG_DECLARE(osdConfig_t, osdConfig);
+
+extern uint32_t resumeRefreshAt;
 
 struct displayPort_s;
 void osdInit(struct displayPort_s *osdDisplayPort);

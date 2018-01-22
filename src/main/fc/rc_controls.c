@@ -31,8 +31,8 @@
 #include "common/maths.h"
 
 #include "config/feature.h"
-#include "config/parameter_group.h"
-#include "config/parameter_group_ids.h"
+#include "pg/pg.h"
+#include "pg/pg_ids.h"
 
 #include "cms/cms.h"
 
@@ -326,7 +326,7 @@ void processRcStickPositions(throttleStatus_e throttleStatus)
     }
 #endif
 
-#ifdef VTX_CONTROL
+#ifdef USE_VTX_CONTROL
     if (rcSticks ==  THR_HI + YAW_LO + PIT_CE + ROL_HI) {
         vtxIncrementBand();
     }

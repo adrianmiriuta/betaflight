@@ -35,8 +35,8 @@ extern "C" {
     #include "common/streambuf.h"
     #include "common/typeconversion.h"
 
-    #include "config/parameter_group.h"
-    #include "config/parameter_group_ids.h"
+    #include "pg/pg.h"
+    #include "pg/pg_ids.h"
 
     #include "drivers/nvic.h"
     #include "drivers/serial.h"
@@ -254,9 +254,11 @@ extern "C" {
     uint32_t micros(void) {return dummyTimeUs;}
     serialPort_t *openSerialPort(serialPortIdentifier_e, serialPortFunction_e, serialReceiveCallbackPtr, void *, uint32_t, portMode_e, portOptions_e) {return NULL;}
     serialPortConfig_t *findSerialPortConfig(serialPortFunction_e ) {return NULL;}
+    bool isBatteryVoltageAvailable(void) { return true; }
     uint16_t getBatteryVoltage(void) {
         return testBatteryVoltage;
     }
+    bool isAmperageAvailable(void) { return true; }
     int32_t getAmperage(void) {
         return testAmperage;
     }

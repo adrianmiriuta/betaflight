@@ -27,11 +27,12 @@ extern "C" {
 
     #include "blackbox/blackbox.h"
 
-    #include "config/parameter_group_ids.h"
+    #include "pg/pg_ids.h"
 
     #include "common/time.h"
 
     #include "drivers/max7456_symbols.h"
+    #include "drivers/serial.h"
 
     #include "fc/config.h"
     #include "fc/rc_controls.h"
@@ -51,6 +52,7 @@ extern "C" {
     void osdRefresh(timeUs_t currentTimeUs);
     void osdFormatTime(char * buff, osd_timer_precision_e precision, timeUs_t time);
     void osdFormatTimer(char *buff, bool showSymbol, int timerIndex);
+    int osdConvertTemperatureToSelectedUnit(int tempInDeciDegrees);
 
     uint16_t rssi;
     attitudeEulerAngles_t attitude;
@@ -76,6 +78,7 @@ extern "C" {
     uint32_t simulationMahDrawn;
     int32_t simulationAltitude;
     int32_t simulationVerticalSpeed;
+    uint16_t simulationCoreTemperature;
 }
 
 /* #define DEBUG_OSD */
@@ -95,6 +98,7 @@ void setDefualtSimulationState()
     simulationMahDrawn = 0;
     simulationAltitude = 0;
     simulationVerticalSpeed = 0;
+    simulationCoreTemperature = 0;
 }
 
 /*
@@ -138,10 +142,10 @@ void doTestArm(bool testEmpty = true)
  */
 bool isSomeStatEnabled(void) {
     for (int i = 0; i < OSD_STAT_COUNT; i++) {
-            if (osdConfigMutable()->enabled_stats[i]) {
-                return true;
-            }
+        if (osdConfigMutable()->enabled_stats[i]) {
+            return true;
         }
+    }
     return false;
 }
 
@@ -543,7 +547,7 @@ TEST(OsdTest, TestElementRssi)
     osdRefresh(simulationTime);
 
     // then
-    displayPortTestBufferSubstring(8, 1, "%c0", SYM_RSSI);
+    displayPortTestBufferSubstring(8, 1, "%c 0", SYM_RSSI);
 
     // when
     rssi = 512;
@@ -743,6 +747,48 @@ TEST(OsdTest, TestElementAltitude)
 }
 
 /*
+ * Tests the core temperature OSD element.
+ */
+TEST(OsdTest, TestElementCoreTemperature)
+{
+    // given
+    osdConfigMutable()->item_pos[OSD_CORE_TEMPERATURE] = OSD_POS(1, 8) | VISIBLE_FLAG;
+
+    // and
+    osdConfigMutable()->units = OSD_UNIT_METRIC;
+
+    // and
+    simulationCoreTemperature = 0;
+
+    // when
+    displayClearScreen(&testDisplayPort);
+    osdRefresh(simulationTime);
+
+    // then
+    displayPortTestBufferSubstring(1, 8, "  0C");
+
+    // given
+    simulationCoreTemperature = 33;
+
+    // when
+    displayClearScreen(&testDisplayPort);
+    osdRefresh(simulationTime);
+
+    // then
+    displayPortTestBufferSubstring(1, 8, " 33C");
+
+    // given
+    osdConfigMutable()->units = OSD_UNIT_IMPERIAL;
+
+    // when
+    displayClearScreen(&testDisplayPort);
+    osdRefresh(simulationTime);
+
+    // then
+    displayPortTestBufferSubstring(1, 8, " 91F");
+}
+
+/*
  * Tests the battery notifications shown on the warnings OSD element.
  */
 TEST(OsdTest, TestElementWarningsBattery)
@@ -873,6 +919,16 @@ TEST(OsdTest, TestFormatTimeString)
     EXPECT_EQ(0, strcmp("01:59.00", buff));
 }
 
+TEST(OsdTest, TestConvertTemperatureUnits)
+{
+    /* In Celsius */
+    osdConfigMutable()->units = OSD_UNIT_METRIC;
+    EXPECT_EQ(osdConvertTemperatureToSelectedUnit(330), 330);
+
+    /* In Fahrenheit */
+    osdConfigMutable()->units = OSD_UNIT_IMPERIAL;
+    EXPECT_EQ(osdConvertTemperatureToSelectedUnit(330), 914);
+}
 
 // STUBS
 extern "C" {
@@ -957,4 +1013,6 @@ extern "C" {
     }
 
     uint16_t getRssi(void) { return rssi; }
+
+    uint16_t getCoreTemperatureCelsius(void) { return simulationCoreTemperature; }
 }

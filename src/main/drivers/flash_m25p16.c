@@ -22,11 +22,14 @@
 
 #ifdef USE_FLASH_M25P16
 
-#include "flash.h"
-#include "flash_m25p16.h"
 #include "drivers/bus_spi.h"
+#include "drivers/flash.h"
 #include "drivers/io.h"
 #include "drivers/time.h"
+
+#include "pg/flash.h"
+
+#include "flash_m25p16.h"
 
 #define M25P16_INSTRUCTION_RDID             0x9F
 #define M25P16_INSTRUCTION_READ_BYTES       0x03
@@ -55,9 +58,6 @@
 #define JEDEC_ID_WINBOND_W25Q128       0xEF4018
 #define JEDEC_ID_WINBOND_W25Q256       0xEF4019
 
-#define DISABLE_M25P16       IOHi(bus->busdev_u.spi.csnPin); __NOP()
-#define ENABLE_M25P16        __NOP(); IOLo(bus->busdev_u.spi.csnPin)
-
 static busDevice_t busInstance;
 static busDevice_t *bus;
 static bool isLargeFlash = false;
@@ -78,40 +78,56 @@ static flashGeometry_t geometry = {.pageSize = M25P16_PAGESIZE};
  */
 static bool couldBeBusy = false;
 
+
+static void m25p16_disable(busDevice_t *bus)
+{
+    IOHi(bus->busdev_u.spi.csnPin);
+    __NOP();
+}
+
+static void m25p16_enable(busDevice_t *bus)
+{
+    __NOP();
+    IOLo(bus->busdev_u.spi.csnPin);
+}
+
+static void m25p16_transfer(busDevice_t *bus, const uint8_t *txData, uint8_t *rxData, int len)
+{
+    m25p16_enable(bus);
+    spiTransfer(bus->busdev_u.spi.instance, txData, rxData, len);
+    m25p16_disable(bus);
+}
+
 /**
  * Send the given command byte to the device.
  */
-static void m25p16_performOneByteCommand(uint8_t command)
+static void m25p16_performOneByteCommand(busDevice_t *bus, uint8_t command)
 {
-    ENABLE_M25P16;
+    m25p16_enable(bus);
 
     spiTransferByte(bus->busdev_u.spi.instance, command);
 
-    DISABLE_M25P16;
+    m25p16_disable(bus);
 }
 
 /**
  * The flash requires this write enable command to be sent before commands that would cause
  * a write like program and erase.
  */
-static void m25p16_writeEnable(void)
+static void m25p16_writeEnable(busDevice_t *bus)
 {
-    m25p16_performOneByteCommand(M25P16_INSTRUCTION_WRITE_ENABLE);
+    m25p16_performOneByteCommand(bus, M25P16_INSTRUCTION_WRITE_ENABLE);
 
     // Assume that we're about to do some writing, so the device is just about to become busy
     couldBeBusy = true;
 }
 
-static uint8_t m25p16_readStatus(void)
+static uint8_t m25p16_readStatus(busDevice_t *bus)
 {
     const uint8_t command[2] = { M25P16_INSTRUCTION_READ_STATUS_REG, 0 };
     uint8_t in[2];
 
-    ENABLE_M25P16;
-
-    spiTransfer(bus->busdev_u.spi.instance, command, in, sizeof(command));
-
-    DISABLE_M25P16;
+    m25p16_transfer(bus, command, in, sizeof(command));
 
     return in[1];
 }
@@ -119,7 +135,7 @@ static uint8_t m25p16_readStatus(void)
 bool m25p16_isReady(void)
 {
     // If couldBeBusy is false, don't bother to poll the flash chip for its status
-    couldBeBusy = couldBeBusy && ((m25p16_readStatus() & M25P16_STATUS_FLAG_WRITE_IN_PROGRESS) != 0);
+    couldBeBusy = couldBeBusy && ((m25p16_readStatus(bus) & M25P16_STATUS_FLAG_WRITE_IN_PROGRESS) != 0);
 
     return !couldBeBusy;
 }
@@ -153,12 +169,8 @@ static bool m25p16_readIdentification(void)
     uint8_t in[4];
     in[1] = 0;
 
-    ENABLE_M25P16;
-
-    spiTransfer(bus->busdev_u.spi.instance, out, in, sizeof(out));
-
     // Clearing the CS bit terminates the command early so we don't have to read the chip UID:
-    DISABLE_M25P16;
+    m25p16_transfer(bus, out, in, sizeof(out));
 
     // Manufacturer, memory type, and capacity
     const uint32_t chipID = (in[1] << 16) | (in[2] << 8) | (in[3]);
@@ -206,7 +218,7 @@ static bool m25p16_readIdentification(void)
 
     if (geometry.totalSize > 16 * 1024 * 1024) {
         isLargeFlash = true;
-        m25p16_performOneByteCommand(W25Q256_INSTRUCTION_ENTER_4BYTE_ADDRESS_MODE);
+        m25p16_performOneByteCommand(bus, W25Q256_INSTRUCTION_ENTER_4BYTE_ADDRESS_MODE);
     }
 
     couldBeBusy = true; // Just for luck we'll assume the chip could be busy even though it isn't specced to be
@@ -220,6 +232,7 @@ static bool m25p16_readIdentification(void)
  * Attempts to detect a connected m25p16. If found, true is returned and device capacity can be fetched with
  * m25p16_getGeometry().
  */
+
 bool m25p16_init(const flashConfig_t *flashConfig)
 {
     /*
@@ -241,7 +254,7 @@ bool m25p16_init(const flashConfig_t *flashConfig)
     IOInit(bus->busdev_u.spi.csnPin, OWNER_FLASH_CS, 0);
     IOConfigGPIO(bus->busdev_u.spi.csnPin, SPI_IO_CS_CFG);
 
-    DISABLE_M25P16;
+    m25p16_disable(bus);
 
 #ifndef M25P16_SPI_SHARED
     //Maximum speed for standard READ command is 20mHz, other commands tolerate 25mHz
@@ -272,47 +285,50 @@ void m25p16_eraseSector(uint32_t address)
 
     m25p16_waitForReady(SECTOR_ERASE_TIMEOUT_MILLIS);
 
-    m25p16_writeEnable();
+    m25p16_writeEnable(bus);
 
-    ENABLE_M25P16;
-
-    spiTransfer(bus->busdev_u.spi.instance, out, NULL, isLargeFlash ? 5 : 4);
-
-    DISABLE_M25P16;
+    m25p16_transfer(bus, out, NULL, sizeof(out));
 }
 
 void m25p16_eraseCompletely(void)
 {
     m25p16_waitForReady(BULK_ERASE_TIMEOUT_MILLIS);
 
-    m25p16_writeEnable();
+    m25p16_writeEnable(bus);
 
-    m25p16_performOneByteCommand(M25P16_INSTRUCTION_BULK_ERASE);
+    m25p16_performOneByteCommand(bus, M25P16_INSTRUCTION_BULK_ERASE);
 }
+
+static uint32_t currentWriteAddress;
 
 void m25p16_pageProgramBegin(uint32_t address)
 {
-    uint8_t command[5] = { M25P16_INSTRUCTION_PAGE_PROGRAM };
-
-    m25p16_setCommandAddress(&command[1], address, isLargeFlash);
-
-    m25p16_waitForReady(DEFAULT_TIMEOUT_MILLIS);
-
-    m25p16_writeEnable();
-
-    ENABLE_M25P16;
-
-    spiTransfer(bus->busdev_u.spi.instance, command, NULL, isLargeFlash ? 5 : 4);
+    currentWriteAddress = address;
 }
 
 void m25p16_pageProgramContinue(const uint8_t *data, int length)
 {
+    uint8_t command[5] = { M25P16_INSTRUCTION_PAGE_PROGRAM };
+
+    m25p16_setCommandAddress(&command[1], currentWriteAddress, isLargeFlash);
+
+    m25p16_waitForReady(DEFAULT_TIMEOUT_MILLIS);
+
+    m25p16_writeEnable(bus);
+
+    m25p16_enable(bus);
+
+    spiTransfer(bus->busdev_u.spi.instance, command, NULL, isLargeFlash ? 5 : 4);
+
     spiTransfer(bus->busdev_u.spi.instance, data, NULL, length);
+
+    m25p16_disable(bus);
+
+    currentWriteAddress += length;
 }
 
 void m25p16_pageProgramFinish(void)
 {
-    DISABLE_M25P16;
 }
 
 /**
@@ -357,12 +373,12 @@ int m25p16_readBytes(uint32_t address, uint8_t *buffer, int length)
         return 0;
     }
 
-    ENABLE_M25P16;
+    m25p16_enable(bus);
 
     spiTransfer(bus->busdev_u.spi.instance, command, NULL, isLargeFlash ? 5 : 4);
     spiTransfer(bus->busdev_u.spi.instance, NULL, buffer, length);
 
-    DISABLE_M25P16;
+    m25p16_disable(bus);
 
     return length;
 }

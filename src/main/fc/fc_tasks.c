@@ -71,13 +71,14 @@
 #include "rx/rx.h"
 
 #include "sensors/acceleration.h"
+#include "sensors/adcinternal.h"
 #include "sensors/barometer.h"
 #include "sensors/battery.h"
 #include "sensors/compass.h"
 #include "sensors/esc_sensor.h"
 #include "sensors/gyro.h"
+#include "sensors/rangefinder.h"
 #include "sensors/sensors.h"
-#include "sensors/sonar.h"
 
 #include "scheduler/scheduler.h"
 
@@ -86,10 +87,6 @@
 #ifdef USE_BST
 void taskBstMasterProcess(timeUs_t currentTimeUs);
 #endif
-
-#define TASK_PERIOD_HZ(hz) (1000000 / (hz))
-#define TASK_PERIOD_MS(ms) ((ms) * 1000)
-#define TASK_PERIOD_US(us) (us)
 
 bool taskSerialCheck(timeUs_t currentTimeUs, timeDelta_t currentDeltaTimeUs)
 {
@@ -130,9 +127,7 @@ void taskBatteryAlerts(timeUs_t currentTimeUs)
 #ifndef USE_OSD_SLAVE
 static void taskUpdateAccelerometer(timeUs_t currentTimeUs)
 {
-    UNUSED(currentTimeUs);
-
-    accUpdate(&accelerometerConfigMutable()->accelerometerTrims);
+    accUpdate(currentTimeUs, &accelerometerConfigMutable()->accelerometerTrims);
 }
 
 static void taskUpdateRxMain(timeUs_t currentTimeUs)
@@ -153,9 +148,9 @@ static void taskUpdateRxMain(timeUs_t currentTimeUs)
     }
 #endif
 
-#ifdef USE_SONAR
-    if (sensors(SENSOR_SONAR)) {
-        updateSonarAltHoldState();
+#ifdef USE_RANGEFINDER
+    if (sensors(SENSOR_RANGEFINDER)) {
+        updateRangefinderAltHoldState();
     }
 #endif
 #endif // USE_ALT_HOLD
@@ -185,20 +180,20 @@ static void taskUpdateBaro(timeUs_t currentTimeUs)
 }
 #endif
 
-#if defined(USE_BARO) || defined(USE_SONAR)
+#if defined(USE_BARO) || defined(USE_RANGEFINDER)
 static void taskCalculateAltitude(timeUs_t currentTimeUs)
 {
     if (false
 #if defined(USE_BARO)
         || (sensors(SENSOR_BARO) && isBaroReady())
 #endif
-#if defined(USE_SONAR)
-        || sensors(SENSOR_SONAR)
+#if defined(USE_RANGEFINDER)
+        || sensors(SENSOR_RANGEFINDER)
 #endif
         ) {
         calculateEstimatedAltitude(currentTimeUs);
     }}
-#endif // USE_BARO || USE_SONAR
+#endif // USE_BARO || USE_RANGEFINDER
 
 #ifdef USE_TELEMETRY
 static void taskTelemetry(timeUs_t currentTimeUs)
@@ -210,20 +205,6 @@ static void taskTelemetry(timeUs_t currentTimeUs)
     }
 }
 #endif
-
-#ifdef VTX_CONTROL
-// Everything that listens to VTX devices
-void taskVtxControl(timeUs_t currentTime)
-{
-    if (cliMode)
-        return;
-
-#ifdef VTX_COMMON
-    vtxProcessSchedule(currentTime);
-#endif
-}
-#endif
-
 
 #ifdef USE_CAMERA_CONTROL
 void taskCameraControl(uint32_t currentTime)
@@ -252,7 +233,7 @@ void fcTasksInit(void)
 #endif
     setTaskEnabled(TASK_BATTERY_ALERTS, (useBatteryVoltage || useBatteryCurrent) && useBatteryAlerts);
 
-#ifdef TRANSPONDER
+#ifdef USE_TRANSPONDER
     setTaskEnabled(TASK_TRANSPONDER, feature(FEATURE_TRANSPONDER));
 #endif
 
@@ -294,11 +275,11 @@ void fcTasksInit(void)
 #ifdef USE_BARO
     setTaskEnabled(TASK_BARO, sensors(SENSOR_BARO));
 #endif
-#ifdef USE_SONAR
-    setTaskEnabled(TASK_SONAR, sensors(SENSOR_SONAR));
+#ifdef USE_RANGEFINDER
+    setTaskEnabled(TASK_RANGEFINDER, sensors(SENSOR_RANGEFINDER));
 #endif
-#if defined(USE_BARO) || defined(USE_SONAR)
-    setTaskEnabled(TASK_ALTITUDE, sensors(SENSOR_BARO) || sensors(SENSOR_SONAR));
+#if defined(USE_BARO) || defined(USE_RANGEFINDER)
+    setTaskEnabled(TASK_ALTITUDE, sensors(SENSOR_BARO) || sensors(SENSOR_RANGEFINDER));
 #endif
 #ifdef USE_DASHBOARD
     setTaskEnabled(TASK_DASHBOARD, feature(FEATURE_DASHBOARD));
@@ -318,7 +299,7 @@ void fcTasksInit(void)
 #ifdef USE_LED_STRIP
     setTaskEnabled(TASK_LEDSTRIP, feature(FEATURE_LED_STRIP));
 #endif
-#ifdef TRANSPONDER
+#ifdef USE_TRANSPONDER
     setTaskEnabled(TASK_TRANSPONDER, feature(FEATURE_TRANSPONDER));
 #endif
 #ifdef USE_OSD
@@ -330,6 +311,9 @@ void fcTasksInit(void)
 #ifdef USE_ESC_SENSOR
     setTaskEnabled(TASK_ESC_SENSOR, feature(FEATURE_ESC_SENSOR));
 #endif
+#ifdef USE_ADC_INTERNAL
+    setTaskEnabled(TASK_ADC_INTERNAL, true);
+#endif
 #ifdef USE_CMS
 #ifdef USE_MSP_DISPLAYPORT
     setTaskEnabled(TASK_CMS, true);
@@ -337,8 +321,8 @@ void fcTasksInit(void)
     setTaskEnabled(TASK_CMS, feature(FEATURE_OSD) || feature(FEATURE_DASHBOARD));
 #endif
 #endif
-#ifdef VTX_CONTROL
-#if defined(VTX_RTC6705) || defined(VTX_SMARTAUDIO) || defined(VTX_TRAMP)
+#ifdef USE_VTX_CONTROL
+#if defined(USE_VTX_RTC6705) || defined(USE_VTX_SMARTAUDIO) || defined(USE_VTX_TRAMP)
     setTaskEnabled(TASK_VTXCTRL, true);
 #endif
 #endif
@@ -392,7 +376,7 @@ cfTask_t cfTasks[TASK_COUNT] = {
         .staticPriority = TASK_PRIORITY_MEDIUM,
     },
 
-#ifdef TRANSPONDER
+#ifdef USE_TRANSPONDER
     [TASK_TRANSPONDER] = {
         .taskName = "TRANSPONDER",
         .taskFunc = transponderUpdate,
@@ -494,16 +478,16 @@ cfTask_t cfTasks[TASK_COUNT] = {
     },
 #endif
 
-#ifdef USE_SONAR
-    [TASK_SONAR] = {
-        .taskName = "SONAR",
-        .taskFunc = sonarUpdate,
-        .desiredPeriod = TASK_PERIOD_MS(70),        // 70ms required so that SONAR pulses do not interfere with each other
+#ifdef USE_RANGEFINDER
+    [TASK_RANGEFINDER] = {
+        .taskName = "RANGEFINDER",
+        .taskFunc = rangefinderUpdate,
+        .desiredPeriod = TASK_PERIOD_MS(70), // XXX HCSR04 sonar specific value.
         .staticPriority = TASK_PRIORITY_LOW,
     },
 #endif
 
-#if defined(USE_BARO) || defined(USE_SONAR)
+#if defined(USE_BARO) || defined(USE_RANGEFINDER)
     [TASK_ALTITUDE] = {
         .taskName = "ALTITUDE",
         .taskFunc = taskCalculateAltitude,
@@ -575,10 +559,10 @@ cfTask_t cfTasks[TASK_COUNT] = {
     },
 #endif
 
-#ifdef VTX_CONTROL
+#ifdef USE_VTX_CONTROL
     [TASK_VTXCTRL] = {
         .taskName = "VTXCTRL",
-        .taskFunc = taskVtxControl,
+        .taskFunc = vtxUpdate,
         .desiredPeriod = TASK_PERIOD_HZ(5),          // 5 Hz, 200ms
         .staticPriority = TASK_PRIORITY_IDLE,
     },
@@ -598,6 +582,15 @@ cfTask_t cfTasks[TASK_COUNT] = {
         .taskName = "CAMCTRL",
         .taskFunc = taskCameraControl,
         .desiredPeriod = TASK_PERIOD_HZ(5),
+        .staticPriority = TASK_PRIORITY_IDLE
+    },
+#endif
+
+#ifdef USE_ADC_INTERNAL
+    [TASK_ADC_INTERNAL] = {
+        .taskName = "ADCINTERNAL",
+        .taskFunc = adcInternalProcess,
+        .desiredPeriod = TASK_PERIOD_HZ(1),
         .staticPriority = TASK_PRIORITY_IDLE
     },
 #endif

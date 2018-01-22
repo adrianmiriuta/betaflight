@@ -19,10 +19,12 @@
 
 #pragma once
 
+#include "build/version.h"
+
 // Targets with built-in vtx do not need external vtx
-#if defined(VTX_RTC6705) && !defined(VTX_RTC6705_OPTIONAL)
-#undef VTX_SMARTAUDIO
-#undef VTX_TRAMP
+#if defined(USE_VTX_RTC6705) && !defined(VTX_RTC6705_OPTIONAL)
+#undef USE_VTX_SMARTAUDIO
+#undef USE_VTX_TRAMP
 #endif
 
 #if defined(USE_QUAD_MIXER_ONLY) && defined(USE_SERVOS)
@@ -61,15 +63,30 @@
 #endif
 #endif
 
-// undefine USE_ALT_HOLD if there is no baro or sonar to support it
-#if defined(USE_ALT_HOLD) && !defined(USE_BARO) && !defined(USE_SONAR)
+// undefine USE_ALT_HOLD if there is no baro or rangefinder to support it
+#if defined(USE_ALT_HOLD) && !defined(USE_BARO) && !defined(USE_RANGEFINDER)
 #undef USE_ALT_HOLD
 #endif
 
 /* If either VTX_CONTROL or VTX_COMMON is undefined then remove common code and device drivers */
-#if !defined(VTX_COMMON) || !defined(VTX_CONTROL)
-#undef VTX_COMMON
-#undef VTX_CONTROL
-#undef VTX_TRAMP
-#undef VTX_SMARTAUDIO
+#if !defined(USE_VTX_COMMON) || !defined(USE_VTX_CONTROL)
+#undef USE_VTX_COMMON
+#undef USE_VTX_CONTROL
+#undef USE_VTX_TRAMP
+#undef USE_VTX_SMARTAUDIO
 #endif
+
+#if defined(USE_RX_FRSKY_SPI_D) || defined(USE_RX_FRSKY_SPI_X)
+#define USE_RX_CC2500
+#define USE_RX_FRSKY_SPI
+#endif
+
+#if !defined(STM32F1) && defined(USE_DSHOT)
+#if !defined(USE_DSHOT_DMA) && !defined(USE_DSHOT_DMAR)
+#if !defined(RELEASE_BUILD)
+#define USE_DSHOT_DMAR
+#endif // !RELEASE_BUILD
+#endif // !USE_DSHOT_DMA && !USE_DSHOT_DMAR
+#endif // !STM32F1 && !STM32F3
+#undef USE_DSHOT_DMA
+

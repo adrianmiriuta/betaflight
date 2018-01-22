@@ -21,8 +21,9 @@ extern "C" {
     #include "blackbox/blackbox.h"
     #include "build/debug.h"
     #include "common/maths.h"
-    #include "config/parameter_group.h"
-    #include "config/parameter_group_ids.h"
+    #include "config/feature.h"
+    #include "pg/pg.h"
+    #include "pg/pg_ids.h"
     #include "fc/config.h"
     #include "fc/controlrate_profile.h"
     #include "fc/fc_core.h"
@@ -623,26 +624,26 @@ extern "C" {
     void systemBeep(bool) {}
     void saveConfigAndNotify(void) {}
     void blackboxFinish(void) {}
-    bool isAccelerationCalibrationComplete(void) { return true; }
+    bool accIsCalibrationComplete(void) { return true; }
     bool isBaroCalibrationComplete(void) { return true; }
     bool isGyroCalibrationComplete(void) { return gyroCalibDone; }
     void gyroStartCalibration(bool) {}
     bool isFirstArmingGyroCalibrationRunning(void) { return false; }
     void pidController(const pidProfile_t *, const rollAndPitchTrims_t *, timeUs_t) {}
     void pidStabilisationState(pidStabilisationState_e) {}
-    void mixTable(uint8_t) {};
+    void mixTable(timeUs_t , uint8_t) {};
     void writeMotors(void) {};
     void writeServos(void) {};
     void calculateRxChannelsAndUpdateFailsafe(timeUs_t) {}
     bool isMixerUsingServos(void) { return false; }
-    void gyroUpdate(void) {}
+    void gyroUpdate(timeUs_t) {}
     timeDelta_t getTaskDeltaTime(cfTaskId_e) { return 0; }
     void updateRSSI(timeUs_t) {}
     bool failsafeIsMonitoring(void) { return false; }
     void failsafeStartMonitoring(void) {}
     void failsafeUpdateState(void) {}
     bool failsafeIsActive(void) { return false; }
-    void pidResetErrorGyroState(void) {}
+    void pidResetITerm(void) {}
     void updateAdjustmentStates(void) {}
     void processRcAdjustments(controlRateConfig_t *) {}
     void updateGpsWaypointsAndMode(void) {}
