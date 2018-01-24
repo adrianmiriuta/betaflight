@@ -33,7 +33,7 @@ typedef enum {
 } magSensor_e;
 
 typedef struct mag_s {
-    int32_t magADC[XYZ_AXIS_COUNT];
+    float magADC[XYZ_AXIS_COUNT];
     float magneticDeclination;
 } mag_t;
 
@@ -58,4 +58,3 @@ PG_DECLARE(compassConfig_t, compassConfig);
 bool compassInit(void);
 union flightDynamicsTrims_u;
 void compassUpdate(uint32_t currentTime, union flightDynamicsTrims_u *magZero);
-
