@@ -683,7 +683,7 @@ STATIC_UNIT_TESTED void performGyroCalibration(gyroSensor_t *gyroSensor, uint8_t
                 return;
             }
 
-            if (axis != 2) {
+            if (axis != Z) {
               gyroSensor->gyroDev.gyroZero[axis] = gyroSensor->calibration.sum[axis] / gyroCalculateCalibratingCycles();
             } else {
               gyroSensor->gyroDev.gyroZero[axis] = ((gyroSensor->calibration.sum[axis] / gyroCalculateCalibratingCycles()) - ((float)gyroConfig()->gyro_offset_yaw / 100));
