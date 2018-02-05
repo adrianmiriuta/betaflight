@@ -87,7 +87,6 @@ static float smallAngleCosZ = 0;
 
 static imuRuntimeConfig_t imuRuntimeConfig;
 
-STATIC_UNIT_TESTED float rMat[3][3];
 
 // quaternion of sensor frame relative to earth frame
 STATIC_UNIT_TESTED quaternion q = QUATERNION_INITIALIZE;
@@ -108,27 +107,6 @@ PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
     .accDeadband = {.xy = 40, .z= 40},
     .acc_unarmedcal = 1
 );
-
-STATIC_UNIT_TESTED void imuComputeRotationMatrix(void){
-    imuQuaternionComputeProducts(&q, &qP);
-
-    rMat[0][0] = 1.0f - 2.0f * qP.yy - 2.0f * qP.zz;
-    rMat[0][1] = 2.0f * (qP.xy + -qP.wz);
-    rMat[0][2] = 2.0f * (qP.xz - -qP.wy);
-
-    rMat[1][0] = 2.0f * (qP.xy - -qP.wz);
-    rMat[1][1] = 1.0f - 2.0f * qP.xx - 2.0f * qP.zz;
-    rMat[1][2] = 2.0f * (qP.yz + -qP.wx);
-
-    rMat[2][0] = 2.0f * (qP.xz + -qP.wy);
-    rMat[2][1] = 2.0f * (qP.yz - -qP.wx);
-    rMat[2][2] = 1.0f - 2.0f * qP.xx - 2.0f * qP.yy;
-
-#if defined(SIMULATOR_BUILD) && defined(SKIP_IMU_CALC) && !defined(SET_IMU_FROM_EULER)
-    rMat[1][0] = -2.0f * (qP.xy - -qP.wz);
-    rMat[2][0] = -2.0f * (qP.xz + -qP.wy);
-#endif
-}
 
 /*
 * Calculate RC time constant used in the accZ lpf.
@@ -159,7 +137,6 @@ void imuInit(void)
     smallAngleCosZ = cos_approx(degreesToRadians(imuRuntimeConfig.small_angle));
     accVelScale = 9.80665f / acc.dev.acc_1G / 10000.0f;
 
-    imuComputeRotationMatrix();
 
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_MULTITHREAD)
     if (pthread_mutex_init(&imuUpdateLock, NULL) != 0) {
@@ -178,16 +155,14 @@ void imuResetAccelerationSum(void)
 }
 
 #if defined(USE_ALT_HOLD)
-static void imuTransformVectorBodyToEarth(t_fp_vector * v)
-{
-    /* From body frame to earth frame */
-    const float x = rMat[0][0] * v->V.X + rMat[0][1] * v->V.Y + rMat[0][2] * v->V.Z;
-    const float y = rMat[1][0] * v->V.X + rMat[1][1] * v->V.Y + rMat[1][2] * v->V.Z;
-    const float z = rMat[2][0] * v->V.X + rMat[2][1] * v->V.Y + rMat[2][2] * v->V.Z;
+static void quaternionTransformVectorBodyToEarth(t_fp_vector * v) {
+  const float x = (1.0f - 2.0f * qP.yy - 2.0f * qP.zz) * v->V.X + (2.0f * (qP.xy + -qP.wz)) * v->V.Y + (2.0f * (qP.xz - -qP.wy)) * v->V.Z;
+  const float y = (2.0f * (qP.xy - -qP.wz)) * v->V.X + (1.0f - 2.0f * qP.xx - 2.0f * qP.zz) * v->V.Y + (2.0f * (qP.yz + -qP.wx)) * v->V.Z;
+  const float z = (2.0f * (qP.xz + -qP.wy)) * v->V.X + (2.0f * (qP.yz - -qP.wx)) * v->V.Y + (1.0f - 2.0f * qP.xx - 2.0f * qP.yy) * v->V.Z;
 
-    v->V.X = x;
-    v->V.Y = -y;
-    v->V.Z = z;
+  v->X = x;
+  v->Y = -y;
+  v->Z = z;
 }
 
 // rotate acc into Earth frame and calculate acceleration in it
@@ -204,7 +179,7 @@ static void imuCalculateAcceleration(uint32_t deltaT)
     accel_ned.V.Y = acc.accADC[Y];
     accel_ned.V.Z = acc.accADC[Z];
 
-    imuTransformVectorBodyToEarth(&accel_ned);
+    quaternionTransformVectorBodyToEarth(&accel_ned);
 
     if (imuRuntimeConfig.acc_unarmedcal == 1) {
         if (!ARMING_FLAG(ARMED)) {
@@ -283,17 +258,17 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
         // (hx; hy; 0) - measured mag field vector in EF (assuming Z-component is zero)
         // (bx; 0; 0) - reference mag field vector heading due North in EF (assuming Z-component is zero)
-        const float hx = rMat[0][0] * mx + rMat[0][1] * my + rMat[0][2] * mz;
-        const float hy = rMat[1][0] * mx + rMat[1][1] * my + rMat[1][2] * mz;
+        const float hx = (1.0f - 2.0f * qP.yy - 2.0f * qP.zz) * mx + (2.0f * (qP.xy + -qP.wz)) * my + (2.0f * (qP.xz - -qP.wy)) * mz;
+        const float hy = (2.0f * (qP.xy - -qP.wz)) * mx + (1.0f - 2.0f * qP.xx - 2.0f * qP.zz) * my + (2.0f * (qP.yz + -qP.wx)) * mz;
         const float bx = sqrtf(hx * hx + hy * hy);
 
         // magnetometer error is cross product between estimated magnetic north and measured magnetic north (calculated in EF)
         const float ez_ef = -(hy * bx);
 
         // Rotate mag error vector back to BF and accumulate
-        ex += rMat[2][0] * ez_ef;
-        ey += rMat[2][1] * ez_ef;
-        ez += rMat[2][2] * ez_ef;
+        ex += (2.0f * (qP.xz + -qP.wy)) * ez_ef;
+        ey += (2.0f * (qP.yz - -qP.wx)) * ez_ef;
+        ez += (1.0f - 2.0f * qP.xx - 2.0f * qP.yy) * ez_ef;
     }
 
     // Use measured acceleration vector
@@ -306,9 +281,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         az *= recipNorm;
 
         // Error is sum of cross product between estimated direction and measured direction of gravity
-        ex += (ay * rMat[2][2] - az * rMat[2][1]);
-        ey += (az * rMat[2][0] - ax * rMat[2][2]);
-        ez += (ax * rMat[2][1] - ay * rMat[2][0]);
+        ex += (ay * (1.0f - 2.0f * qP.xx - 2.0f * qP.yy) - az * (2.0f * (qP.yz - -qP.wx));
+        ey += (az * (2.0f * (qP.xz + -qP.wy)) - ax * (1.0f - 2.0f * qP.xx - 2.0f * qP.yy));
+        ez += (ax * (2.0f * (qP.yz - -qP.wx)) - ay * (2.0f * (qP.xz + -qP.wy)));
     }
 
     // Compute and apply integral feedback if enabled
@@ -336,52 +311,34 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     gz += dcmKpGain * ez + integralFBz;
 
     // Integrate rate of change of quaternion
-    gx *= (0.5f * dt);
-    gy *= (0.5f * dt);
-    gz *= (0.5f * dt);
+    quaternion qGyro;
+    qGyro.w = cos_approx((gx + gy + gz) * 0.5f * dt);
+    qGyro.x = sin_approx(gx * 0.5f * dt);
+    qGyro.y = sin_approx(gy * 0.5f * dt);
+    qGyro.z = sin_approx(gz * 0.5f * dt);
 
-    quaternion buffer;
-    buffer.w = q.w;
-    buffer.x = q.x;
-    buffer.y = q.y;
-    buffer.z = q.z;
-
-    q.w += (-buffer.x * gx - buffer.y * gy - buffer.z * gz);
-    q.x += (+buffer.w * gx + buffer.y * gz - buffer.z * gy);
-    q.y += (+buffer.w * gy - buffer.x * gz + buffer.z * gx);
-    q.z += (+buffer.w * gz + buffer.x * gy - buffer.y * gx);
-
-    // Normalise quaternion
-    recipNorm = invSqrt(sq(q.w) + sq(q.x) + sq(q.y) + sq(q.z));
-    q.w *= recipNorm;
-    q.x *= recipNorm;
-    q.y *= recipNorm;
-    q.z *= recipNorm;
-
-    // Pre-compute rotation matrix from quaternion
-    imuComputeRotationMatrix();
+    quaternionMultiply(&q, &qGyro, &q);
+    quaternionNormalize(&q);
+    quaternionComputeProducts(&q, &qP);
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void){
     quaternionProducts buffer;
 
     if (FLIGHT_MODE(HEADFREE_MODE)) {
-       imuQuaternionComputeProducts(&headfree, &buffer);
-
-       attitude.values.roll = lrintf(atan2_approx((+2.0f * (buffer.wx + buffer.yz)), (+1.0f - 2.0f * (buffer.xx + buffer.yy))) * (1800.0f / M_PIf));
-       attitude.values.pitch = lrintf(((0.5f * M_PIf) - acos_approx(+2.0f * (buffer.wy - buffer.xz))) * (1800.0f / M_PIf));
-       attitude.values.yaw = lrintf((-atan2_approx((+2.0f * (buffer.wz + buffer.xy)), (+1.0f - 2.0f * (buffer.yy + buffer.zz))) * (1800.0f / M_PIf)));
+      quaternionComputeProducts(&headfree, &buffer);
     } else {
-       attitude.values.roll = lrintf(atan2_approx(rMat[2][1], rMat[2][2]) * (1800.0f / M_PIf));
-       attitude.values.pitch = lrintf(((0.5f * M_PIf) - acos_approx(-rMat[2][0])) * (1800.0f / M_PIf));
-       attitude.values.yaw = lrintf((-atan2_approx(rMat[1][0], rMat[0][0]) * (1800.0f / M_PIf)));
+      quaternionComputeProducts(&q, &buffer);
     }
+
+    attitude.values.roll = lrintf(atan2_approx((+2.0f * (buffer.wx + buffer.yz)), (+1.0f - 2.0f * (buffer.xx + buffer.yy))) * (1800.0f / M_PIf));
+    attitude.values.pitch = lrintf(((0.5f * M_PIf) - acos_approx(+2.0f * (buffer.wy - buffer.xz))) * (1800.0f / M_PIf));
+    attitude.values.yaw = lrintf((-atan2_approx((+2.0f * (buffer.wz + buffer.xy)), (+1.0f - 2.0f * (buffer.yy + buffer.zz))) * (1800.0f / M_PIf)));
 
     if (attitude.values.yaw < 0)
         attitude.values.yaw += 3600;
 
-    /* Update small angle state */
-    if (rMat[2][2] > smallAngleCosZ) {
+    if (getCosTiltAngle()) > smallAngleCosZ) {
         ENABLE_STATE(SMALL_ANGLE);
     } else {
         DISABLE_STATE(SMALL_ANGLE);
@@ -484,9 +441,8 @@ void imuUpdateAttitude(timeUs_t currentTimeUs)
     }
 }
 
-float getCosTiltAngle(void)
-{
-    return rMat[2][2];
+float getCosTiltAngle(void) {
+    return (1.0f - 2.0f * (qP.xx + qP.yy));
 }
 
 int16_t calculateThrottleAngleCorrection(uint8_t throttle_correction_value)
@@ -496,10 +452,10 @@ int16_t calculateThrottleAngleCorrection(uint8_t throttle_correction_value)
     * small angle < 0.86 deg
     * TODO: Define this small angle in config.
     */
-    if (rMat[2][2] <= 0.015f) {
+    if (getCosTiltAngle() <= 0.015f) {
         return 0;
     }
-    int angle = lrintf(acos_approx(rMat[2][2]) * throttleAngleScale);
+    int angle = lrintf(acos_approx(getCosTiltAngle()) * throttleAngleScale);
     if (angle > 900)
         angle = 900;
     return lrintf(throttle_correction_value * sin_approx(angle / (900.0f * M_PIf / 2.0f)));
@@ -571,22 +527,6 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
     }
 }
 
-void imuQuaternionMultiplication(quaternion *q1, quaternion *q2, quaternion *result) {
-    const float A = (q1->w + q1->x) * (q2->w + q2->x);
-    const float B = (q1->z - q1->y) * (q2->y - q2->z);
-    const float C = (q1->w - q1->x) * (q2->y + q2->z);
-    const float D = (q1->y + q1->z) * (q2->w - q2->x);
-    const float E = (q1->x + q1->z) * (q2->x + q2->y);
-    const float F = (q1->x - q1->z) * (q2->x - q2->y);
-    const float G = (q1->w + q1->y) * (q2->w - q2->z);
-    const float H = (q1->w - q1->y) * (q2->w + q2->z);
-
-    result->w = B + (- E - F + G + H) / 2.0f;
-    result->x = A - (+ E + F + G + H) / 2.0f;
-    result->y = C + (+ E - F + G - H) / 2.0f;
-    result->z = D + (+ E - F - G + H) / 2.0f;
-}
-
 void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
     quaternionProducts buffer;
 
@@ -600,4 +540,15 @@ void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
     v->X = x;
     v->Y = y;
     v->Z = z;
+}
+
+void quaternionMultiply(quaternion *l, quaternion *r, quaternion *o) {
+    const float w = l->w * r->w - l->x * r->x - l->y * r->y - l->z * r->z;
+    const float x = l->x * r->w + l->w * r->x + l->y * r->z - l->z * r->y;
+    const float y = l->w * r->y - l->x * r->z + l->y * r->w + l->z * r->x;
+    const float z = l->w * r->z + l->x * r->y - l->y * r->x + l->z * r->w;
+    o->w = w;
+    o->x = x;
+    o->y = y;
+    o->z = z;
 }
