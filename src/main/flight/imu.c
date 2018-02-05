@@ -89,7 +89,8 @@ static imuRuntimeConfig_t imuRuntimeConfig;
 
 
 // quaternion of sensor frame relative to earth frame
-STATIC_UNIT_TESTED quaternion q = QUATERNION_INITIALIZE;
+STATIC_UNIT_TESTED quaternion qMahonyAHRS = QUATERNION_INITIALIZE;
+STATIC_UNIT_TESTED quaternion qGyroAHRS = QUATERNION_INITIALIZE;
 STATIC_UNIT_TESTED quaternionProducts qP = QUATERNION_PRODUCTS_INITIALIZE;
 // headfree quaternions
 quaternion qHeadfree = QUATERNION_INITIALIZE;
@@ -316,7 +317,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyro.x = sin_approx(gx * 0.5f * dt);
     qGyro.y = sin_approx(gy * 0.5f * dt);
     qGyro.z = sin_approx(gz * 0.5f * dt);
-    quaternionMultiply(&q, &qGyro, &q);
+    quaternionMultiply(&qMahonyAHRS, &qGyro, &qMahonyAHRS);
+    quaternionMultiply(&qGyroAHRS, &qGyro, &qGyroAHRS);
 
     // Ok old bf method
     /*
@@ -325,11 +327,20 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyro.x = gx * 0.5f * dt;
     qGyro.y = gy * 0.5f * dt;
     qGyro.z = gz * 0.5f * dt;
-    quaternionMultiply(&q, &qGyro, &qBuff);
-    quaternionAdd(&q, &qBuff, &q);*/
+    quaternionMultiply(&qMahonyAHRS, &qGyro, &qBuff);
+    quaternionAdd(&qMahonyAHRS, &qBuff, &qMahonyAHRS);*/
 
-    quaternionNormalize(&q);
-    quaternionComputeProducts(&q, &qP);
+    // test only GyroAHRS in acro mode
+    if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)))) {
+      quaternionNormalize(&qGyroAHRS);
+      quaternionComputeProducts(&qGyroAHRS, &qP);
+    } else {
+      quaternionNormalize(&qMahonyAHRS);
+      quaternionComputeProducts(&qMahonyAHRS, &qP);
+    }
+
+
+
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void){
@@ -338,7 +349,11 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void){
     if (FLIGHT_MODE(HEADFREE_MODE)) {
       quaternionComputeProducts(&qHeadfree, &buffer);
     } else {
-      quaternionComputeProducts(&q, &buffer);
+      if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)))) {
+        quaternionComputeProducts(&qGyroAHRS, &buffer);
+      } else {
+        quaternionComputeProducts(&qMahonyAHRS, &buffer);
+      }
     }
 
     attitude.values.roll = lrintf(atan2_approx((+2.0f * (buffer.wx + buffer.yz)), (+1.0f - 2.0f * (buffer.xx + buffer.yy))) * (1800.0f / M_PIf));
@@ -399,12 +414,6 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
         useYaw = true;
     }
 #endif
-
-  // test only gyro attitude in acro mode
-  if ((!FLIGHT_MODE(ANGLE_MODE)&&(!FLIGHT_MODE(HORIZON_MODE)))) {
-    useAcc = false;
-    useMag = false;
-  }
 
 #if defined(SIMULATOR_BUILD) && defined(SKIP_IMU_CALC)
     UNUSED(imuMahonyAHRSupdate);
@@ -492,10 +501,10 @@ void imuSetAttitudeQuat(float w, float x, float y, float z)
 {
     IMU_LOCK;
 
-    q.w = w;
-    q.x = x;
-    q.y = y;
-    q.z = z;
+    qMahonyAHRS.w = w;
+    qMahonyAHRS.x = x;
+    qMahonyAHRS.y = y;
+    qMahonyAHRS.z = z;
 
     imuComputeRotationMatrix();
     imuUpdateEulerAngles();
@@ -531,7 +540,7 @@ void quaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd) {
 bool imuQuaternionHeadfreeOffsetSet(void) {
 
   if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)))) {
-     quaternionCopy(&q, &qOffset);
+     quaternionCopy(&qMahonyAHRS, &qOffset);
      quaternionInverse(&qOffset, &qOffset);
      return(true);
   } else {
@@ -557,8 +566,12 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
 void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
     quaternionProducts buffer;
 
-    quaternionMultiply(&qOffset, &q, &qHeadfree);
-    //quaternionMultiply(&q, &qOffset, &qHeadfree); komisch versatz in drehung nach zeit ???
+    if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)))) {
+      quaternionMultiply(&qOffset, &qGyroAHRS, &qHeadfree);
+    } else {
+      quaternionMultiply(&qOffset, &qMahonyAHRS, &qHeadfree);
+    }
+
     quaternionComputeProducts(&qHeadfree, &buffer);
 
     const float x = (buffer.ww + buffer.xx - buffer.yy - buffer.zz) * v->X + 2.0f * (buffer.xy + buffer.wz) * v->Y + 2.0f * (buffer.xz - buffer.wy) * v->Z;
