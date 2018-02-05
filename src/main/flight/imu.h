@@ -98,3 +98,5 @@ void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def * v);
 void quaternionMultiply(quaternion *l, quaternion *r, quaternion *o);
 void quaternionNormalize(quaternion *q);
 void quaternionAdd(quaternion *l, quaternion *r, quaternion *o);
+void quaternionCopy(quaternion *s, quaternion *d);
+void quaternionInverse(quaternion *i, quaternion *o);

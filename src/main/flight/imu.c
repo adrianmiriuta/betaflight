@@ -92,8 +92,8 @@ static imuRuntimeConfig_t imuRuntimeConfig;
 STATIC_UNIT_TESTED quaternion q = QUATERNION_INITIALIZE;
 STATIC_UNIT_TESTED quaternionProducts qP = QUATERNION_PRODUCTS_INITIALIZE;
 // headfree quaternions
-quaternion headfree = QUATERNION_INITIALIZE;
-quaternion offset = QUATERNION_INITIALIZE;
+quaternion qHeadfree = QUATERNION_INITIALIZE;
+quaternion qOffset = QUATERNION_INITIALIZE;
 
 // absolute angle inclination in multiple of 0.1 degree    180 deg = 1800
 attitudeEulerAngles_t attitude = EULER_INITIALIZE;
@@ -336,7 +336,7 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void){
     quaternionProducts buffer;
 
     if (FLIGHT_MODE(HEADFREE_MODE)) {
-      quaternionComputeProducts(&headfree, &buffer);
+      quaternionComputeProducts(&qHeadfree, &buffer);
     } else {
       quaternionComputeProducts(&q, &buffer);
     }
@@ -399,6 +399,12 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
         useYaw = true;
     }
 #endif
+
+  // test only gyro attitude in acro mode
+  if ((!FLIGHT_MODE(ANGLE_MODE)&&(!FLIGHT_MODE(HORIZON_MODE)))) {
+    useAcc = false;
+    useMag = false;
+  }
 
 #if defined(SIMULATOR_BUILD) && defined(SKIP_IMU_CALC)
     UNUSED(imuMahonyAHRSupdate);
@@ -523,25 +529,33 @@ void quaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd) {
 }
 
 bool imuQuaternionHeadfreeOffsetSet(void) {
-    if ((ABS(attitude.values.roll) < 450)  && (ABS(attitude.values.pitch) < 450)) {
-        const float yaw = -atan2_approx((+2.0f * (qP.wz + qP.xy)), (+1.0f - 2.0f * (qP.yy + qP.zz)));
 
-        offset.w = cos_approx(yaw/2);
-        offset.x = 0;
-        offset.y = 0;
-        offset.z = sin_approx(yaw/2);
+  if ((!FLIGHT_MODE(ANGLE_MODE)&&(!FLIGHT_MODE(HORIZON_MODE)))) {
+     quaternionCopy(&q, &qOffset);
+     quaternionInverse(&qOffset, &qOffset);
+     return(true);
+  }
 
-        return(true);
-    } else {
-        return(false);
-    }
+  if ((ABS(attitude.values.roll) < 450)  && (ABS(attitude.values.pitch) < 450)) {
+      const float yaw = -atan2_approx((+2.0f * (qP.wz + qP.xy)), (+1.0f - 2.0f * (qP.yy + qP.zz)));
+
+      qOffset.w = cos_approx(yaw/2);
+      qOffset.x = 0;
+      qOffset.y = 0;
+      qOffset.z = sin_approx(yaw/2);
+
+      return(true);
+  } else {
+      return(false);
+  }
+
 }
 
 void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
     quaternionProducts buffer;
 
-    quaternionMultiply(&offset, &q, &headfree);
-    quaternionComputeProducts(&headfree, &buffer);
+    quaternionMultiply(&qOffset, &q, &qHeadfree);
+    quaternionComputeProducts(&qHeadfree, &buffer);
 
     const float x = (buffer.ww + buffer.xx - buffer.yy - buffer.zz) * v->X + 2.0f * (buffer.xy + buffer.wz) * v->Y + 2.0f * (buffer.xz - buffer.wy) * v->Z;
     const float y = 2.0f * (buffer.xy - buffer.wz) * v->X + (buffer.ww - buffer.xx + buffer.yy - buffer.zz) * v->Y + 2.0f * (buffer.yz + buffer.wx) * v->Z;
@@ -579,4 +593,22 @@ void quaternionAdd(quaternion *l, quaternion *r, quaternion *o) {
     o->x = l->x + r->x;
     o->y = l->y + r->y;
     o->z = l->z + r->z;
+}
+
+void quaternionCopy(quaternion *s, quaternion *d) {
+    d->w = s->w;
+    d->x = s->x;
+    d->y = s->y;
+    d->z = s->z;
+}
+
+void quaternionInverse(quaternion *i, quaternion *o) {
+    float norm_squared = i->w * i->w + i->x * i->x + i->y * i->y + i->z * i->z;
+    if (norm_squared == 0) {
+      norm_squared = 0.0000001;
+    }
+    o->w = i->w / norm_squared;
+    o->x = i->x * -1 / norm_squared;
+    o->y = i->y * -1 / norm_squared;
+    o->z = i->z * -1 / norm_squared;
 }
