@@ -547,7 +547,7 @@ void quaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd) {
 bool imuQuaternionHeadfreeOffsetSet(void) {
 
   if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)))) {
-    quaternionCopy(&qMahonyAHRS, &qOffset);
+    quaternionCopy(&qGyroAHRS, &qOffset);
     quaternionInverse(&qOffset, &qOffset);
     return(true);
   } else {
