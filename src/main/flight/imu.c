@@ -160,9 +160,9 @@ static void quaternionTransformVectorBodyToEarth(t_fp_vector * v) {
   const float y = (2.0f * (qP.xy - -qP.wz)) * v->V.X + (1.0f - 2.0f * qP.xx - 2.0f * qP.zz) * v->V.Y + (2.0f * (qP.yz + -qP.wx)) * v->V.Z;
   const float z = (2.0f * (qP.xz + -qP.wy)) * v->V.X + (2.0f * (qP.yz - -qP.wx)) * v->V.Y + (1.0f - 2.0f * qP.xx - 2.0f * qP.yy) * v->V.Z;
 
-  v->X = x;
-  v->Y = -y;
-  v->Z = z;
+  v->V.X = x;
+  v->V.Y = -y;
+  v->V.Z = z;
 }
 
 // rotate acc into Earth frame and calculate acceleration in it
@@ -281,7 +281,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         az *= recipNorm;
 
         // Error is sum of cross product between estimated direction and measured direction of gravity
-        ex += (ay * (1.0f - 2.0f * qP.xx - 2.0f * qP.yy) - az * (2.0f * (qP.yz - -qP.wx));
+        ex += (ay * (1.0f - 2.0f * qP.xx - 2.0f * qP.yy) - az * (2.0f * (qP.yz - -qP.wx)));
         ey += (az * (2.0f * (qP.xz + -qP.wy)) - ax * (1.0f - 2.0f * qP.xx - 2.0f * qP.yy));
         ez += (ax * (2.0f * (qP.yz - -qP.wx)) - ay * (2.0f * (qP.xz + -qP.wy)));
     }
@@ -338,7 +338,7 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void){
     if (attitude.values.yaw < 0)
         attitude.values.yaw += 3600;
 
-    if (getCosTiltAngle()) > smallAngleCosZ) {
+    if (getCosTiltAngle() > smallAngleCosZ) {
         ENABLE_STATE(SMALL_ANGLE);
     } else {
         DISABLE_STATE(SMALL_ANGLE);
@@ -530,8 +530,8 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
 void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
     quaternionProducts buffer;
 
-    imuQuaternionMultiplication(&offset, &q, &headfree);
-    imuQuaternionComputeProducts(&headfree, &buffer);
+    quaternionMultiply(&offset, &q, &headfree);
+    quaternionComputeProducts(&headfree, &buffer);
 
     const float x = (buffer.ww + buffer.xx - buffer.yy - buffer.zz) * v->X + 2.0f * (buffer.xy + buffer.wz) * v->Y + 2.0f * (buffer.xz - buffer.wy) * v->Z;
     const float y = 2.0f * (buffer.xy - buffer.wz) * v->X + (buffer.ww - buffer.xx + buffer.yy - buffer.zz) * v->Y + 2.0f * (buffer.yz + buffer.wx) * v->Z;
@@ -551,4 +551,15 @@ void quaternionMultiply(quaternion *l, quaternion *r, quaternion *o) {
     o->x = x;
     o->y = y;
     o->z = z;
+}
+
+void quaternionNormalize(quaternion *q) {
+    float norm = sqrtf(q->w * q->w + q->x * q->x + q->y * q->y + q->z * q->z);
+    if (norm == 0) {
+      norm = 0.0000001;
+    }
+    q->w /= norm;
+    q->x /= norm;
+    q->y /= norm;
+    q->z /= norm;
 }
