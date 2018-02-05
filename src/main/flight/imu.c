@@ -320,7 +320,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     gz += dcmKpGain * ez + integralFBz;
 
     // test new method qMahonyAHRS
-    quaternion qGyro;
+    //quaternion qGyro;
     qGyro.w = cos_approx((gx + gy + gz) * 0.5f * dt);
     qGyro.x = sin_approx(gx * 0.5f * dt);
     qGyro.y = sin_approx(gy * 0.5f * dt);
