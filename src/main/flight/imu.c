@@ -320,13 +320,13 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionMultiply(&q, &qGyro, &q);*/
 
     // Ok old bf method
-    quaternion qdiff, qGyro;
-    qdiff.w = 0;
-    qdiff.x = gx * 0.5f * dt;
-    qdiff.y = gy * 0.5f * dt;
-    qdiff.z = gz * 0.5f * dt;
-    quaternionMultiply(&q, &qdiff, &qGyro);
-    quaternionAdd(&q, &qGyro, &q);
+    quaternion qBuff, qGyro;
+    qGyro.w = 0;
+    qGyro.x = gx * 0.5f * dt;
+    qGyro.y = gy * 0.5f * dt;
+    qGyro.z = gz * 0.5f * dt;
+    quaternionMultiply(&q, &qGyro, &qBuff);
+    quaternionAdd(&q, &qBuff, &q);
 
     quaternionNormalize(&q);
     quaternionComputeProducts(&q, &qP);
