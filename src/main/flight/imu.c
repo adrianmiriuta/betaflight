@@ -306,19 +306,26 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // Calculate kP gain. If we are acquiring initial attitude (not armed and within 20 sec from powerup) scale the kP to converge faster
     const float dcmKpGain = imuRuntimeConfig.dcm_kp * imuGetPGainScaleFactor();
 
+    // test new method qGyroAHRS
+    quaternion qGyro;
+    qGyro.w = cos_approx((gx + gy + gz) * 0.5f * dt);
+    qGyro.x = sin_approx(gx * 0.5f * dt);
+    qGyro.y = sin_approx(gy * 0.5f * dt);
+    qGyro.z = sin_approx(gz * 0.5f * dt);
+    quaternionMultiply(&qGyroAHRS, &qGyro, &qGyroAHRS);
+
     // Apply proportional and integral feedback
     gx += dcmKpGain * ex + integralFBx;
     gy += dcmKpGain * ey + integralFBy;
     gz += dcmKpGain * ez + integralFBz;
 
-    // test new method
+    // test new method qMahonyAHRS
     quaternion qGyro;
     qGyro.w = cos_approx((gx + gy + gz) * 0.5f * dt);
     qGyro.x = sin_approx(gx * 0.5f * dt);
     qGyro.y = sin_approx(gy * 0.5f * dt);
     qGyro.z = sin_approx(gz * 0.5f * dt);
     quaternionMultiply(&qMahonyAHRS, &qGyro, &qMahonyAHRS);
-    quaternionMultiply(&qGyroAHRS, &qGyro, &qGyroAHRS);
 
     // Ok old bf method
     /*
