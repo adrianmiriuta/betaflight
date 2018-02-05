@@ -193,7 +193,7 @@ static void imuTransformVectorBodyToEarth(t_fp_vector * v)
 // rotate acc into Earth frame and calculate acceleration in it
 static void imuCalculateAcceleration(uint32_t deltaT)
 {
-    static int32_t accZoffset = 0;
+    static float accZoffset = 0;
     static float accz_smooth = 0;
 
     // deltaT is measured in us ticks
