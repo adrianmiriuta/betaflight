@@ -310,14 +310,24 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     gy += dcmKpGain * ey + integralFBy;
     gz += dcmKpGain * ez + integralFBz;
 
-    // Integrate rate of change of quaternion
+    // test new method
+    /*
     quaternion qGyro;
     qGyro.w = cos_approx((gx + gy + gz) * 0.5f * dt);
     qGyro.x = sin_approx(gx * 0.5f * dt);
     qGyro.y = sin_approx(gy * 0.5f * dt);
     qGyro.z = sin_approx(gz * 0.5f * dt);
+    quaternionMultiply(&q, &qGyro, &q);*/
 
-    quaternionMultiply(&q, &qGyro, &q);
+    // Ok old bf method
+    quaternion qdiff, qGyro;
+    qdiff.w = 0;
+    qdiff.x = gx * 0.5f * dt;
+    qdiff.y = gy * 0.5f * dt;
+    qdiff.z = gz * 0.5f * dt;
+    quaternionMultiply(&q, &qdiff, &qGyro);
+    quaternionAdd(&q, &qGyro, &q);
+
     quaternionNormalize(&q);
     quaternionComputeProducts(&q, &qP);
 }
@@ -499,7 +509,7 @@ void imuSetHasNewData(uint32_t dt)
 }
 #endif
 
-void imuQuaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd) {
+void quaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd) {
     quatProd->ww = quat->w * quat->w;
     quatProd->wx = quat->w * quat->x;
     quatProd->wy = quat->w * quat->y;
@@ -562,4 +572,11 @@ void quaternionNormalize(quaternion *q) {
     q->x /= norm;
     q->y /= norm;
     q->z /= norm;
+}
+
+void quaternionAdd(quaternion *l, quaternion *r, quaternion *o) {
+    o->w = l->w + r->w;
+    o->x = l->x + r->x;
+    o->y = l->y + r->y;
+    o->z = l->z + r->z;
 }
