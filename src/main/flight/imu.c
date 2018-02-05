@@ -557,8 +557,8 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
 void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
     quaternionProducts buffer;
 
-    //quaternionMultiply(&qOffset, &q, &qHeadfree);
-    quaternionMultiply(&q, &qOffset, &qHeadfree);
+    quaternionMultiply(&qOffset, &q, &qHeadfree);
+    //quaternionMultiply(&q, &qOffset, &qHeadfree); komisch versatz in drehung nach zeit ???
     quaternionComputeProducts(&qHeadfree, &buffer);
 
     const float x = (buffer.ww + buffer.xx - buffer.yy - buffer.zz) * v->X + 2.0f * (buffer.xy + buffer.wz) * v->Y + 2.0f * (buffer.xz - buffer.wy) * v->Z;
