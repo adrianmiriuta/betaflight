@@ -540,25 +540,23 @@ void quaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd) {
 bool imuQuaternionHeadfreeOffsetSet(void) {
 
   if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)))) {
-     quaternionCopy(&qMahonyAHRS, &qOffset);
-     quaternionInverse(&qOffset, &qOffset);
-     return(true);
+    quaternionCopy(&qMahonyAHRS, &qOffset);
+    quaternionInverse(&qOffset, &qOffset);
+    return(true);
   } else {
-
     if ((ABS(attitude.values.roll) < 450)  && (ABS(attitude.values.pitch) < 450)) {
-        //const float yaw = -atan2_approx((+2.0f * (qP.wz + qP.xy)), (+1.0f - 2.0f * (qP.yy + qP.zz)));
-        const float yaw = atan2_approx((+2.0f * (qP.wz + qP.xy)), (+1.0f - 2.0f * (qP.yy + qP.zz)));
+      const float yaw = atan2_approx((+2.0f * (qP.wz + qP.xy)), (+1.0f - 2.0f * (qP.yy + qP.zz)));
 
-        qOffset.w = cos_approx(yaw/2);
-        qOffset.x = 0;
-        qOffset.y = 0;
-        qOffset.z = sin_approx(yaw/2);
+      qOffset.w = cos_approx(yaw/2);
+      qOffset.x = 0;
+      qOffset.y = 0;
+      qOffset.z = sin_approx(yaw/2);
 
-        quaternionInverse(&qOffset, &qOffset);
+      quaternionInverse(&qOffset, &qOffset);
 
-        return(true);
+      return(true);
     } else {
-        return(false);
+      return(false);
     }
   }
 }
