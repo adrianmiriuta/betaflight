@@ -537,12 +537,15 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
   }
 
   if ((ABS(attitude.values.roll) < 450)  && (ABS(attitude.values.pitch) < 450)) {
-      const float yaw = -atan2_approx((+2.0f * (qP.wz + qP.xy)), (+1.0f - 2.0f * (qP.yy + qP.zz)));
+      //const float yaw = -atan2_approx((+2.0f * (qP.wz + qP.xy)), (+1.0f - 2.0f * (qP.yy + qP.zz)));
+      const float yaw = atan2_approx((+2.0f * (qP.wz + qP.xy)), (+1.0f - 2.0f * (qP.yy + qP.zz)));
 
       qOffset.w = cos_approx(yaw/2);
       qOffset.x = 0;
       qOffset.y = 0;
       qOffset.z = sin_approx(yaw/2);
+
+      quaternionInverse(&qOffset, &qOffset);
 
       return(true);
   } else {
@@ -554,7 +557,8 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
 void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
     quaternionProducts buffer;
 
-    quaternionMultiply(&qOffset, &q, &qHeadfree);
+    //quaternionMultiply(&qOffset, &q, &qHeadfree);
+    quaternionMultiply(&q, &qOffset, &qHeadfree);
     quaternionComputeProducts(&qHeadfree, &buffer);
 
     const float x = (buffer.ww + buffer.xx - buffer.yy - buffer.zz) * v->X + 2.0f * (buffer.xy + buffer.wz) * v->Y + 2.0f * (buffer.xz - buffer.wy) * v->Z;
