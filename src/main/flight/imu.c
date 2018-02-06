@@ -557,8 +557,13 @@ void imuQuaternionHeadfreeTransformVectorEarthToBody(quaternion *v) {
 
     quaternionCopy(v, &qBuffer);
     quaternionInverse(&qHeadfree, &qHeadfreeInverse);
-    quaternionMultiply(&qHeadfree, &qBuffer, &qBuffer);
-    quaternionMultiply(&qBuffer, &qHeadfreeInverse, v);
+
+    // Body to earth ... roll invertiert wenn 90° gedreht
+    //quaternionMultiply(&qHeadfree, &qBuffer, &qBuffer);
+    //quaternionMultiply(&qBuffer, &qHeadfreeInverse, v);
+
+    quaternionMultiply(&qHeadfreeInverse, &qBuffer, &qBuffer);
+    quaternionMultiply(&qBuffer, &qHeadfree, v);
 }
 
 /*
