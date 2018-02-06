@@ -557,9 +557,7 @@ void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
     qBuffer.y = v->Y;
     qBuffer.z = v->Z;
 
-    //quaternionMultiply(&qOffset, &q, &qHeadfree); // moved to euler angles calculation
     quaternionInverse(&qHeadfree, &qHeadfreeInverse);
-
     quaternionMultiply(&qHeadfree, &qBuffer, &qBuffer);
     quaternionMultiply(&qBuffer, &qHeadfreeInverse, &qBuffer)
 
@@ -572,7 +570,7 @@ void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
 void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
     quaternionProducts buffer;
 
-    quaternionMultiply(&qOffset, &q, &qHeadfree);
+    quaternionMultiply(&qOffset, &q, &qHeadfree); // moved to euler angles calculation
     quaternionComputeProducts(&qHeadfree, &buffer);
 
     const float x = (buffer.ww + buffer.xx - buffer.yy - buffer.zz) * v->X + 2.0f * (buffer.xy + buffer.wz) * v->Y + 2.0f * (buffer.xz - buffer.wy) * v->Z;
