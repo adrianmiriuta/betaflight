@@ -51,7 +51,6 @@ extern "C" {
     #include "sensors/gyro.h"
     #include "sensors/sensors.h"
 
-    //void imuComputeRotationMatrix(void);
     void imuUpdateEulerAngles(void);
 
     extern quaternion q;

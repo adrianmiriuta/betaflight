@@ -501,7 +501,6 @@ void imuSetAttitudeQuat(float w, float x, float y, float z)
     q.y = y;
     q.z = z;
 
-    //imuComputeRotationMatrix();
     imuUpdateEulerAngles();
 
     IMU_UNLOCK;
