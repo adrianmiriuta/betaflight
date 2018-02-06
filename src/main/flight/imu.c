@@ -336,6 +336,7 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void){
     quaternionProducts buffer;
 
     if (FLIGHT_MODE(HEADFREE_MODE)) {
+        quaternionMultiply(&qOffset, &q, &qHeadfree);
         quaternionComputeProducts(&qHeadfree, &buffer);
     } else {
         quaternionComputeProducts(&q, &buffer);
@@ -549,6 +550,26 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
 }
 
 void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
+    quaternion qBuffer, qHeadfreeInverse;
+
+    qBuffer.w = 0;
+    qBuffer.x = v->X;
+    qBuffer.y = v->Y;
+    qBuffer.z = v->Z;
+
+    //quaternionMultiply(&qOffset, &q, &qHeadfree); // moved to euler angles calculation
+    quaternionInverse(&qHeadfree, &qHeadfreeInverse);
+
+    quaternionMultiply(&qHeadfree, &qBuffer, &qBuffer);
+    quaternionMultiply(&qBuffer, &qHeadfreeInverse, &qBuffer)
+
+    v->X = qBuffer.x;
+    v->Y = qBuffer.y;
+    v->Z = qBuffer.z;
+}
+
+/*
+void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
     quaternionProducts buffer;
 
     quaternionMultiply(&qOffset, &q, &qHeadfree);
@@ -561,7 +582,7 @@ void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
     v->X = x;
     v->Y = y;
     v->Z = z;
-}
+}*/
 
 void quaternionMultiply(quaternion *l, quaternion *r, quaternion *o) {
     const float w = l->w * r->w - l->x * r->x - l->y * r->y - l->z * r->z;
