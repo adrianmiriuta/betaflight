@@ -559,7 +559,7 @@ void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
 
     quaternionInverse(&qHeadfree, &qHeadfreeInverse);
     quaternionMultiply(&qHeadfree, &qBuffer, &qBuffer);
-    quaternionMultiply(&qBuffer, &qHeadfreeInverse, &qBuffer)
+    quaternionMultiply(&qBuffer, &qHeadfreeInverse, &qBuffer);
 
     v->X = qBuffer.x;
     v->Y = qBuffer.y;
