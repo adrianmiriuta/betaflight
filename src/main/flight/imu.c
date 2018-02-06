@@ -555,10 +555,10 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
 void imuQuaternionHeadfreeTransformVectorEarthToBody(quaternion *v) {
     quaternion qBuffer, qHeadfreeInverse;
 
-    quaternionCopy(&v, &qBuffer);
+    quaternionCopy(v, &qBuffer);
     quaternionInverse(&qHeadfree, &qHeadfreeInverse);
     quaternionMultiply(&qHeadfree, &qBuffer, &qBuffer);
-    quaternionMultiply(&qBuffer, &qHeadfreeInverse, &v);
+    quaternionMultiply(&qBuffer, &qHeadfreeInverse, v);
 }
 
 /*
