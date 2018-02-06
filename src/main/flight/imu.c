@@ -155,6 +155,7 @@ void imuResetAccelerationSum(void)
 }
 
 #if defined(USE_ALT_HOLD)
+// todo change with quaternion products
 static void quaternionTransformVectorBodyToEarth(t_fp_vector * v) {
   const float x = (1.0f - 2.0f * qP.yy - 2.0f * qP.zz) * v->V.X + (2.0f * (qP.xy + -qP.wz)) * v->V.Y + (2.0f * (qP.xz - -qP.wy)) * v->V.Z;
   const float y = (2.0f * (qP.xy - -qP.wz)) * v->V.X + (1.0f - 2.0f * qP.xx - 2.0f * qP.zz) * v->V.Y + (2.0f * (qP.yz + -qP.wx)) * v->V.Z;
@@ -400,12 +401,14 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
         useYaw = true;
     }
 #endif
-
+  /*
+  // todo
+  // problems with attitude on mode change
   // test only gyro attitude in acro mode
   if ((!FLIGHT_MODE(ANGLE_MODE)&&(!FLIGHT_MODE(HORIZON_MODE)))) {
     useAcc = false;
     useMag = false;
-  }
+  }*/
 
 #if defined(SIMULATOR_BUILD) && defined(SKIP_IMU_CALC)
     UNUSED(imuMahonyAHRSupdate);
