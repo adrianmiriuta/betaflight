@@ -330,7 +330,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionAdd(&q, &qBuff, &q);*/
 
     quaternionNormalize(&q);
-    //quaternionComputeProducts(&q, &qP);
+    quaternionComputeProducts(&q, &qP);
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void){
