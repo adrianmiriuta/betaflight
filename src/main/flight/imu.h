@@ -93,7 +93,7 @@ void imuSetHasNewData(uint32_t dt);
 
 void quaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd);
 bool imuQuaternionHeadfreeOffsetSet(void);
-void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def * v);
+void imuQuaternionHeadfreeTransformVectorEarthToBody(quaternion * v);
 
 void quaternionMultiply(quaternion *l, quaternion *r, quaternion *o);
 void quaternionNormalize(quaternion *q);
