@@ -552,21 +552,13 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
   }
 }
 
-void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
+void imuQuaternionHeadfreeTransformVectorEarthToBody(quaternion *v) {
     quaternion qBuffer, qHeadfreeInverse;
 
-    qBuffer.w = 0;
-    qBuffer.x = v->X;
-    qBuffer.y = v->Y;
-    qBuffer.z = v->Z;
-
+    quaternionCopy(&v, &qBuffer);
     quaternionInverse(&qHeadfree, &qHeadfreeInverse);
     quaternionMultiply(&qHeadfree, &qBuffer, &qBuffer);
-    quaternionMultiply(&qBuffer, &qHeadfreeInverse, &qBuffer);
-
-    v->X = qBuffer.x;
-    v->Y = qBuffer.y;
-    v->Z = qBuffer.z;
+    quaternionMultiply(&qBuffer, &qHeadfreeInverse, &v);
 }
 
 /*
