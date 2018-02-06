@@ -336,9 +336,9 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void){
     quaternionProducts buffer;
 
     if (FLIGHT_MODE(HEADFREE_MODE)) {
-      quaternionComputeProducts(&qHeadfree, &buffer);
+        quaternionComputeProducts(&qHeadfree, &buffer);
     } else {
-      quaternionComputeProducts(&q, &buffer);
+        quaternionComputeProducts(&q, &buffer);
     }
 
     attitude.values.roll = lrintf(atan2_approx((+2.0f * (buffer.wx + buffer.yz)), (+1.0f - 2.0f * (buffer.xx + buffer.yy))) * (1800.0f / M_PIf));
@@ -529,24 +529,18 @@ void quaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd) {
 }
 
 bool imuQuaternionHeadfreeOffsetSet(void) {
-
   if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)))) {
-     quaternionCopy(&q, &qOffset);
-     quaternionInverse(&qOffset, &qOffset);
-     return(true);
+      quaternionCopy(&q, &qOffset);
+      quaternionInverse(&qOffset, &qOffset);
+      return(true);
   } else {
-
-    if ((ABS(attitude.values.roll) < 450)  && (ABS(attitude.values.pitch) < 450)) {
-        //const float yaw = -atan2_approx((+2.0f * (qP.wz + qP.xy)), (+1.0f - 2.0f * (qP.yy + qP.zz)));
+      if ((ABS(attitude.values.roll) < 450)  && (ABS(attitude.values.pitch) < 450)) {
         const float yaw = atan2_approx((+2.0f * (qP.wz + qP.xy)), (+1.0f - 2.0f * (qP.yy + qP.zz)));
-
         qOffset.w = cos_approx(yaw/2);
         qOffset.x = 0;
         qOffset.y = 0;
         qOffset.z = sin_approx(yaw/2);
-
         quaternionInverse(&qOffset, &qOffset);
-
         return(true);
     } else {
         return(false);
@@ -558,7 +552,6 @@ void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
     quaternionProducts buffer;
 
     quaternionMultiply(&qOffset, &q, &qHeadfree);
-    //quaternionMultiply(&q, &qOffset, &qHeadfree); komisch versatz in drehung nach zeit ???
     quaternionComputeProducts(&qHeadfree, &buffer);
 
     const float x = (buffer.ww + buffer.xx - buffer.yy - buffer.zz) * v->X + 2.0f * (buffer.xy + buffer.wz) * v->Y + 2.0f * (buffer.xz - buffer.wy) * v->Z;
