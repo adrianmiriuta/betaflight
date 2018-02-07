@@ -173,8 +173,6 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .gyro_filter_q = 0,
     .gyro_filter_r = 0,
     .gyro_filter_p = 0,
-    .gyro_offset_roll = 0,
-    .gyro_offset_pitch = 0,
     .gyro_offset_yaw = 0,
 );
 
