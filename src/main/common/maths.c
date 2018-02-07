@@ -367,17 +367,17 @@ void quaternionTransformVectorEarthToBody(quaternion *qVector, quaternion *qRefe
     quaternionMultiply(&qVectorBuffer, qReference, qVector);
 }
 
-void quaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd) {
-    quatProd->ww = quat->w * quat->w;
-    quatProd->wx = quat->w * quat->x;
-    quatProd->wy = quat->w * quat->y;
-    quatProd->wz = quat->w * quat->z;
-    quatProd->xx = quat->x * quat->x;
-    quatProd->xy = quat->x * quat->y;
-    quatProd->xz = quat->x * quat->z;
-    quatProd->yy = quat->y * quat->y;
-    quatProd->yz = quat->y * quat->z;
-    quatProd->zz = quat->z * quat->z;
+void quaternionComputeProducts(quaternion *qIn, quaternionProducts *qPout) {
+    qPout->ww = qIn->w * qIn->w;
+    qPout->wx = qIn->w * qIn->x;
+    qPout->wy = qIn->w * qIn->y;
+    qPout->wz = qIn->w * qIn->z;
+    qPout->xx = qIn->x * qIn->x;
+    qPout->xy = qIn->x * qIn->y;
+    qPout->xz = qIn->x * qIn->z;
+    qPout->yy = qIn->y * qIn->y;
+    qPout->yz = qIn->y * qIn->z;
+    qPout->zz = qIn->z * qIn->z;
 }
 
 void quaternionMultiply(quaternion *l, quaternion *r, quaternion *o) {
