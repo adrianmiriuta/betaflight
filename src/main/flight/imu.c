@@ -317,6 +317,40 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionMultiply(&qAttitude, &qDiff, &qBuff);
     quaternionAdd(&qAttitude, &qBuff, &qAttitude);*/
 
+
+    /*
+    // qAcc Ok MDPI paper very quick transition on pitch +-90° no singulryties?!?!?!?
+    quaternion qAcc;
+    t_fp_vector_def vAcc;
+
+    vAcc.X = ax;
+    vAcc.Y = ay;
+    vAcc.Z = az;
+
+    // quaternionTransformVectorEarthToBody(&vAcc); // zero kein zucker
+    // quaternionTransformVectorBodyToEarth(&vAcc); // zappelt rum
+    vectorNormalize(&vAcc);
+
+    if (az >= 0) {
+      qAcc.w =  sqrtf((vAcc.Z + 1) * 0.5);
+      qAcc.x = vAcc.Y/(2.0 * qAcc.w);
+      qAcc.y =  -vAcc.X/(2.0 * qAcc.w);
+      qAcc.z = 0;
+    } else {
+      const float X = sqrtf((1 - vAcc.Z) * 0.5);
+      qAcc.w = vAcc.Y/(2.0 * X);
+      qAcc.x = X;
+      qAcc.y = 0;
+      qAcc.z = -vAcc.X/(2.0 * X);
+    }
+
+
+    quaternion qAccInverse;
+    quaternionInverse(&qAcc, &qAccInverse);
+    */
+
+
+
     quaternionNormalize(&qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 }
