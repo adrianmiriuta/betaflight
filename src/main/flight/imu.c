@@ -165,7 +165,6 @@ static void imuCalculateAcceleration(uint32_t deltaT)
     const float dT = (float)deltaT * 1e-6f;
 
     quaternion accel_ned;
-    //accel_ned.w = 0;
     accel_ned.x = acc.accADC[X];
     accel_ned.y = acc.accADC[Y];
     accel_ned.z = acc.accADC[Z];

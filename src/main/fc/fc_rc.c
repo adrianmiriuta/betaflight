@@ -343,7 +343,6 @@ void updateRcCommands(void)
     if (FLIGHT_MODE(HEADFREE_MODE)) {
         static quaternion  rcCommandBuff;
 
-        //rcCommandBuff.w = 0;
         rcCommandBuff.x = rcCommand[ROLL];
         rcCommandBuff.y = rcCommand[PITCH];
         if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)))) {
