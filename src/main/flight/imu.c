@@ -299,13 +299,14 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     gy += dcmKpGain * ey + integralFBy;
     gz += dcmKpGain * ez + integralFBz;
 
+    /*
     // test new method
     quaternion qDiff;
     qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
     qDiff.x = sin_approx(gx * 0.5f * dt);
     qDiff.y = sin_approx(gy * 0.5f * dt);
     qDiff.z = sin_approx(gz * 0.5f * dt);
-    quaternionMultiply(&qAttitude, &qDiff, &qAttitude);
+    quaternionMultiply(&qAttitude, &qDiff, &qAttitude);*/
 
     // Ok old bf method
     /*
@@ -318,7 +319,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionAdd(&qAttitude, &qBuff, &qAttitude);*/
 
 
-    /*
+
     // qAcc Ok MDPI paper very quick transition on pitch +-90° no singulryties?!?!?!?
     quaternion qAcc;
     t_fp_vector_def vAcc;
@@ -344,11 +345,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qAcc.z = -vAcc.X/(2.0 * X);
     }
 
-
-    quaternion qAccInverse;
-    quaternionInverse(&qAcc, &qAccInverse);
-    */
-
+    quaternionCopy(&qAcc, &qAttitude);
 
 
     quaternionNormalize(&qAttitude);
