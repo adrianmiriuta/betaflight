@@ -300,21 +300,21 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     gz += dcmKpGain * ez + integralFBz;
 
     // test new method
-    quaternion qGyro;
-    qGyro.w = cos_approx((gx + gy + gz) * 0.5f * dt);
-    qGyro.x = sin_approx(gx * 0.5f * dt);
-    qGyro.y = sin_approx(gy * 0.5f * dt);
-    qGyro.z = sin_approx(gz * 0.5f * dt);
-    quaternionMultiply(&qAttitude, &qGyro, &qAttitude);
+    quaternion qDiff;
+    qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
+    qDiff.x = sin_approx(gx * 0.5f * dt);
+    qDiff.y = sin_approx(gy * 0.5f * dt);
+    qDiff.z = sin_approx(gz * 0.5f * dt);
+    quaternionMultiply(&qAttitude, &qDiff, &qAttitude);
 
     // Ok old bf method
     /*
-    quaternion qBuff, qGyro;
-    qGyro.w = 0;
-    qGyro.x = gx * 0.5f * dt;
-    qGyro.y = gy * 0.5f * dt;
-    qGyro.z = gz * 0.5f * dt;
-    quaternionMultiply(&qAttitude, &qGyro, &qBuff);
+    quaternion qBuff, qDiff;
+    qDiff.w = 0;
+    qDiff.x = gx * 0.5f * dt;
+    qDiff.y = gy * 0.5f * dt;
+    qDiff.z = gz * 0.5f * dt;
+    quaternionMultiply(&qAttitude, &qDiff, &qBuff);
     quaternionAdd(&qAttitude, &qBuff, &qAttitude);*/
 
     quaternionNormalize(&qAttitude);
