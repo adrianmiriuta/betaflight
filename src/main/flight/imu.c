@@ -331,11 +331,11 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     vAcc.z = az;
     quaternionNormalize(&vAcc);
 
-    const float alpha = atan2_approx(y/z)/2;
-    qAcc.w = cos_approx(alpha);
+    const float yz2 = atan2_approx(y/z)/2;
+    qAcc.w = cos_approx(yz2);
     qAcc.x = 0;
     qAcc.y = 0;
-    qAcc.z = sin_approx(alpha);
+    qAcc.z = sin_approx(yz2);
 
     /*
     if (az >= 0) {
