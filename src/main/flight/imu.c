@@ -218,6 +218,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
                                 bool useMag, float mx, float my, float mz,
                                 bool useYaw, float yawError)
 {
+    /*
     static float integralFBx = 0.0f,  integralFBy = 0.0f, integralFBz = 0.0f;    // integral error terms scaled by Ki
 
     // Calculate general spin rate (rad/s)
@@ -298,6 +299,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     gx += dcmKpGain * ex + integralFBx;
     gy += dcmKpGain * ey + integralFBy;
     gz += dcmKpGain * ez + integralFBz;
+    */
 
     /*
     // test new method
@@ -321,8 +323,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     // qAcc Ok MDPI paper very quick transition on pitch +-90° no singulryties?!?!?!?
-    quaternion qAcc;
-    quaternion vAcc;
+    quaternion vAcc, qAcc;
 
     vAcc.w = 0;
     vAcc.x = ax;
@@ -330,6 +331,13 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     vAcc.z = az;
     quaternionNormalize(&vAcc);
 
+    const float alpha = atan2_approx(y/z)/2;
+    qAcc.w = cos_approx(alpha);
+    qAcc.x = 0;
+    qAcc.y = 0;
+    qAcc.z = sin_approx(alpha);
+
+    /*
     if (az >= 0) {
       qAcc.w =  sqrtf((vAcc.z + 1) * 0.5);
       qAcc.x = vAcc.y/(2.0 * qAcc.w);
@@ -341,7 +349,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qAcc.x = X;
       qAcc.y = 0;
       qAcc.z = -vAcc.x/(2.0 * X);
-    }
+    } */
     quaternionCopy(&qAcc, &qAttitude);
 
 
