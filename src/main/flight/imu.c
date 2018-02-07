@@ -324,13 +324,11 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternion qAcc;
     t_fp_vector_def vAcc;
 
+    vAcc.w = 0;
     vAcc.X = ax;
     vAcc.Y = ay;
     vAcc.Z = az;
-
-    // quaternionTransformVectorEarthToBody(&vAcc); // zero kein zucker
-    // quaternionTransformVectorBodyToEarth(&vAcc); // zappelt rum
-    vectorNormalize(&vAcc);
+    quaternionNormalize(&vAcc);
 
     if (az >= 0) {
       qAcc.w =  sqrtf((vAcc.Z + 1) * 0.5);
@@ -344,8 +342,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qAcc.y = 0;
       qAcc.z = -vAcc.X/(2.0 * X);
     }
-
     quaternionCopy(&qAcc, &qAttitude);
+
 
 
     quaternionNormalize(&qAttitude);
