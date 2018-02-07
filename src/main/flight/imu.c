@@ -322,7 +322,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // qAcc Ok MDPI paper very quick transition on pitch +-90° no singulryties?!?!?!?
     quaternion qAcc;
-    t_fp_vector_def vAcc;
+    quaternion vAcc;
 
     vAcc.w = 0;
     vAcc.X = ax;
