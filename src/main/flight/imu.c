@@ -342,10 +342,17 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     quaternion qAccPitch;
     const float xz2 = atan2_approx(vAcc.x,vAcc.z)/2;
-    qAccPitch.w = cos_approx(xz2);
-    qAccPitch.x = 0;
-    qAccPitch.y = sin_approx(xz2);
-    qAccPitch.z = 0;
+    if (yz2 > 0.1) {
+        qAccPitch.w = cos_approx(xz2);
+        qAccPitch.x = 0;
+        qAccPitch.y = sin_approx(xz2);
+        qAccPitch.z = 0;
+    } else {
+        qAccPitch.w = 1;
+        qAccPitch.x = 0;
+        qAccPitch.y = 0;
+        qAccPitch.z = 0;
+    }
 
     /*
     if (az >= 0) {
