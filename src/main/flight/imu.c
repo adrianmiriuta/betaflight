@@ -389,14 +389,6 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
         useYaw = true;
     }
 #endif
-  /*
-  // todo
-  // problems with attitude on mode change
-  // test only gyro attitude in acro mode
-  if ((!FLIGHT_MODE(ANGLE_MODE)&&(!FLIGHT_MODE(HORIZON_MODE)))) {
-    useAcc = false;
-    useMag = false;
-  }*/
 
 #if defined(SIMULATOR_BUILD) && defined(SKIP_IMU_CALC)
     UNUSED(imuMahonyAHRSupdate);
@@ -508,12 +500,6 @@ void imuSetHasNewData(uint32_t dt)
 
 
 bool quaternionHeadfreeOffsetSet(void) {
-  // todo
-  /*if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)))) {
-      quaternionCopy(&qAttitude, &qOffset);
-      quaternionInverse(&qOffset, &qOffset);
-      return(true);
-  } else {*/
       if ((ABS(attitude.values.roll) < 450)  && (ABS(attitude.values.pitch) < 450)) {
         const float yaw = atan2_approx((+2.0f * (qPattitude.wz + qPattitude.xy)), (+1.0f - 2.0f * (qPattitude.yy + qPattitude.zz)));
         qOffset.w = cos_approx(yaw/2);
@@ -525,7 +511,6 @@ bool quaternionHeadfreeOffsetSet(void) {
     } else {
         return(false);
     }
-  //}
 }
 
 void quaternionTransformVectorBodyToEarth(quaternion *qVector, quaternion *qReference) {
