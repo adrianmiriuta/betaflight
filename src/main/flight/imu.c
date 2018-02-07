@@ -90,7 +90,7 @@ static imuRuntimeConfig_t imuRuntimeConfig;
 
 // quaternion of sensor frame relative to earth frame
 STATIC_UNIT_TESTED quaternion qAttitude = QUATERNION_INITIALIZE;
-STATIC_UNIT_TESTED quaternionProducts qPattitude = QUATERNION_PRODUCTS_INITIALIZE;
+STATIC_UNIT_TESTED quaternionProducts qpAttitude = QUATERNION_PRODUCTS_INITIALIZE;
 // headfree quaternions
 quaternion qHeadfree = QUATERNION_INITIALIZE;
 quaternion qOffset = QUATERNION_INITIALIZE;
@@ -247,17 +247,17 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
         // (hx; hy; 0) - measured mag field vector in EF (assuming Z-component is zero)
         // (bx; 0; 0) - reference mag field vector heading due North in EF (assuming Z-component is zero)
-        const float hx = (1.0f - 2.0f * qPattitude.yy - 2.0f * qPattitude.zz) * mx + (2.0f * (qPattitude.xy + -qPattitude.wz)) * my + (2.0f * (qPattitude.xz - -qPattitude.wy)) * mz;
-        const float hy = (2.0f * (qPattitude.xy - -qPattitude.wz)) * mx + (1.0f - 2.0f * qPattitude.xx - 2.0f * qPattitude.zz) * my + (2.0f * (qPattitude.yz + -qPattitude.wx)) * mz;
+        const float hx = (1.0f - 2.0f * qpAttitude.yy - 2.0f * qpAttitude.zz) * mx + (2.0f * (qpAttitude.xy + -qpAttitude.wz)) * my + (2.0f * (qpAttitude.xz - -qpAttitude.wy)) * mz;
+        const float hy = (2.0f * (qpAttitude.xy - -qpAttitude.wz)) * mx + (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.zz) * my + (2.0f * (qpAttitude.yz + -qpAttitude.wx)) * mz;
         const float bx = sqrtf(hx * hx + hy * hy);
 
         // magnetometer error is cross product between estimated magnetic north and measured magnetic north (calculated in EF)
         const float ez_ef = -(hy * bx);
 
         // Rotate mag error vector back to BF and accumulate
-        ex += (2.0f * (qPattitude.xz + -qPattitude.wy)) * ez_ef;
-        ey += (2.0f * (qPattitude.yz - -qPattitude.wx)) * ez_ef;
-        ez += (1.0f - 2.0f * qPattitude.xx - 2.0f * qPattitude.yy) * ez_ef;
+        ex += (2.0f * (qpAttitude.xz + -qpAttitude.wy)) * ez_ef;
+        ey += (2.0f * (qpAttitude.yz - -qpAttitude.wx)) * ez_ef;
+        ez += (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) * ez_ef;
     }
 
     // Use measured acceleration vector
@@ -270,9 +270,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         az *= recipNorm;
 
         // Error is sum of cross product between estimated direction and measured direction of gravity
-        ex += (ay * (1.0f - 2.0f * qPattitude.xx - 2.0f * qPattitude.yy) - az * (2.0f * (qPattitude.yz - -qPattitude.wx)));
-        ey += (az * (2.0f * (qPattitude.xz + -qPattitude.wy)) - ax * (1.0f - 2.0f * qPattitude.xx - 2.0f * qPattitude.yy));
-        ez += (ax * (2.0f * (qPattitude.yz - -qPattitude.wx)) - ay * (2.0f * (qPattitude.xz + -qPattitude.wy)));
+        ex += (ay * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - az * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
+        ey += (az * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - ax * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
+        ez += (ax * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - ay * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
     }
 
     // Compute and apply integral feedback if enabled
@@ -318,7 +318,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionAdd(&qAttitude, &qBuff, &qAttitude);*/
 
     quaternionNormalize(&qAttitude);
-    quaternionComputeProducts(&qAttitude, &qPattitude);
+    quaternionComputeProducts(&qAttitude, &qpAttitude);
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void){
@@ -442,7 +442,7 @@ void imuUpdateAttitude(timeUs_t currentTimeUs)
 }
 
 float getCosTiltAngle(void) {
-    return (1.0f - 2.0f * (qPattitude.xx + qPattitude.yy));
+    return (1.0f - 2.0f * (qpAttitude.xx + qpAttitude.yy));
 }
 
 int16_t calculateThrottleAngleCorrection(uint8_t throttle_correction_value)
@@ -500,7 +500,7 @@ void imuSetHasNewData(uint32_t dt)
 
 bool quaternionHeadfreeOffsetSet(void) {
       if ((ABS(attitude.values.roll) < 450)  && (ABS(attitude.values.pitch) < 450)) {
-        const float yaw = atan2_approx((+2.0f * (qPattitude.wz + qPattitude.xy)), (+1.0f - 2.0f * (qPattitude.yy + qPattitude.zz)));
+        const float yaw = atan2_approx((+2.0f * (qpAttitude.wz + qpAttitude.xy)), (+1.0f - 2.0f * (qpAttitude.yy + qpAttitude.zz)));
         qOffset.w = cos_approx(yaw/2);
         qOffset.x = 0;
         qOffset.y = 0;
