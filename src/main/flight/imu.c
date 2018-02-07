@@ -331,11 +331,21 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     vAcc.z = az;
     quaternionNormalize(&vAcc);
 
+
+    // introduce zminvalue inflexion points
+    quaternion qAccRoll;
     const float yz2 = atan2_approx(vAcc.y,vAcc.z)/2;
-    qAcc.w = cos_approx(yz2);
-    qAcc.x = 0;
-    qAcc.y = 0;
-    qAcc.z = sin_approx(yz2);
+    qAccRoll.w = cos_approx(yz2);
+    qAccRoll.x = sin_approx(yz2);
+    qAccRoll.y = 0;
+    qAccRoll.z = 0;
+
+    quaternion qAccPitch;
+    const float yz2 = atan2_approx(vAcc.x,vAcc.z)/2;
+    qAccPitch.w = cos_approx(yz2);
+    qAccPitch.x = 0;
+    qAccPitch.y = sin_approx(yz2);
+    qAccPitch.z = 0;
 
     /*
     if (az >= 0) {
@@ -350,7 +360,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qAcc.y = 0;
       qAcc.z = -vAcc.x/(2.0 * X);
     } */
-    quaternionCopy(&qAcc, &qAttitude);
+    quaternionCopy(&qAccPitch, &qAttitude);
 
 
 
