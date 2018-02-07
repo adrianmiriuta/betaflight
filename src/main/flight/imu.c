@@ -347,6 +347,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccPitch.y = sin_approx(xz2);
     qAccPitch.z = 0;
 
+    quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc);
+
     /*
     if (az >= 0) {
       qAcc.w =  sqrtf((vAcc.z + 1) * 0.5);
@@ -360,7 +362,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qAcc.y = 0;
       qAcc.z = -vAcc.x/(2.0 * X);
     } */
-    quaternionCopy(&qAccPitch, &qAttitude);
+    quaternionCopy(&qAcc, &qAttitude);
 
 
 
