@@ -321,7 +321,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 }
 
-STATIC_UNIT_TESTED void imuUpdateEulerAngles(void){
+STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
     quaternionProducts buffer;
 
     if (FLIGHT_MODE(HEADFREE_MODE)) {
