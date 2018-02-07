@@ -155,17 +155,6 @@ void imuResetAccelerationSum(void)
 }
 
 #if defined(USE_ALT_HOLD)
-// todo change with quaternion products
-static void quaternionTransformVectorBodyToEarth(t_fp_vector * v) {
-  const float x = (1.0f - 2.0f * qPattitude.yy - 2.0f * qPattitude.zz) * v->V.X + (2.0f * (qPattitude.xy + -qPattitude.wz)) * v->V.Y + (2.0f * (qPattitude.xz - -qPattitude.wy)) * v->V.Z;
-  const float y = (2.0f * (qPattitude.xy - -qPattitude.wz)) * v->V.X + (1.0f - 2.0f * qPattitude.xx - 2.0f * qPattitude.zz) * v->V.Y + (2.0f * (qPattitude.yz + -qPattitude.wx)) * v->V.Z;
-  const float z = (2.0f * (qPattitude.xz + -qPattitude.wy)) * v->V.X + (2.0f * (qPattitude.yz - -qPattitude.wx)) * v->V.Y + (1.0f - 2.0f * qPattitude.xx - 2.0f * qPattitude.yy) * v->V.Z;
-
-  v->V.X = x;
-  v->V.Y = -y;
-  v->V.Z = z;
-}
-
 // rotate acc into Earth frame and calculate acceleration in it
 static void imuCalculateAcceleration(uint32_t deltaT)
 {
@@ -175,28 +164,28 @@ static void imuCalculateAcceleration(uint32_t deltaT)
     // deltaT is measured in us ticks
     const float dT = (float)deltaT * 1e-6f;
 
-    t_fp_vector accel_ned;
-    accel_ned.V.X = acc.accADC[X];
-    accel_ned.V.Y = acc.accADC[Y];
-    accel_ned.V.Z = acc.accADC[Z];
-
-    quaternionTransformVectorBodyToEarth(&accel_ned);
+    quaternion accel_ned;
+    accel_ned.w = 0;
+    accel_ned.x = acc.accADC[X];
+    accel_ned.y = acc.accADC[Y];
+    accel_ned.z = acc.accADC[Z];
+    quaternionTransformVectorBodyToEarth(&accel_ned, &qAttitude);
 
     if (imuRuntimeConfig.acc_unarmedcal == 1) {
         if (!ARMING_FLAG(ARMED)) {
             accZoffset -= accZoffset / 64;
-            accZoffset += accel_ned.V.Z;
+            accZoffset += accel_ned.z;
         }
-        accel_ned.V.Z -= accZoffset / 64;  // compensate for gravitation on z-axis
+        accel_ned.z -= accZoffset / 64;  // compensate for gravitation on z-axis
     } else {
-        accel_ned.V.Z -= acc.dev.acc_1G;
+        accel_ned.z -= acc.dev.acc_1G;
     }
 
-    accz_smooth = accz_smooth + (dT / (fc_acc + dT)) * (accel_ned.V.Z - accz_smooth); // low pass filter
+    accz_smooth = accz_smooth + (dT / (fc_acc + dT)) * (accel_ned.z - accz_smooth); // low pass filter
 
     // apply Deadband to reduce integration drift and vibration influence
-    accSum[X] += applyDeadband(lrintf(accel_ned.V.X), imuRuntimeConfig.accDeadband.xy);
-    accSum[Y] += applyDeadband(lrintf(accel_ned.V.Y), imuRuntimeConfig.accDeadband.xy);
+    accSum[X] += applyDeadband(lrintf(accel_ned.x), imuRuntimeConfig.accDeadband.xy);
+    accSum[Y] += applyDeadband(lrintf(accel_ned.y), imuRuntimeConfig.accDeadband.xy);
     accSum[Z] += applyDeadband(lrintf(accz_smooth), imuRuntimeConfig.accDeadband.z);
 
     // sum up Values for later integration to get velocity and distance
