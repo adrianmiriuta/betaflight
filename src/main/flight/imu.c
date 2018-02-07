@@ -165,7 +165,7 @@ static void imuCalculateAcceleration(uint32_t deltaT)
     const float dT = (float)deltaT * 1e-6f;
 
     quaternion accel_ned;
-    accel_ned.w = 0;
+    //accel_ned.w = 0;
     accel_ned.x = acc.accADC[X];
     accel_ned.y = acc.accADC[Y];
     accel_ned.z = acc.accADC[Z];
@@ -531,6 +531,7 @@ bool quaternionHeadfreeOffsetSet(void) {
 
 void quaternionTransformVectorBodyToEarth(quaternion *qVector, quaternion *qReference) {
     quaternion qVectorBuffer, qReferenceInverse;
+    qVector->w = 0;
 
     quaternionCopy(qVector, &qVectorBuffer);
     quaternionInverse(qReference, &qReferenceInverse);
@@ -540,6 +541,7 @@ void quaternionTransformVectorBodyToEarth(quaternion *qVector, quaternion *qRefe
 
 void quaternionTransformVectorEarthToBody(quaternion *qVector, quaternion *qReference) {
     quaternion qVectorBuffer, qReferenceInverse;
+    qVector->w = 0;
 
     quaternionCopy(qVector, &qVectorBuffer);
     quaternionInverse(qReference, &qReferenceInverse);
