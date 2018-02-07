@@ -325,22 +325,22 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternion vAcc;
 
     vAcc.w = 0;
-    vAcc.X = ax;
-    vAcc.Y = ay;
-    vAcc.Z = az;
+    vAcc.x = ax;
+    vAcc.y = ay;
+    vAcc.z = az;
     quaternionNormalize(&vAcc);
 
     if (az >= 0) {
-      qAcc.w =  sqrtf((vAcc.Z + 1) * 0.5);
-      qAcc.x = vAcc.Y/(2.0 * qAcc.w);
-      qAcc.y =  -vAcc.X/(2.0 * qAcc.w);
+      qAcc.w =  sqrtf((vAcc.z + 1) * 0.5);
+      qAcc.x = vAcc.y/(2.0 * qAcc.w);
+      qAcc.y =  -vAcc.x/(2.0 * qAcc.w);
       qAcc.z = 0;
     } else {
-      const float X = sqrtf((1 - vAcc.Z) * 0.5);
-      qAcc.w = vAcc.Y/(2.0 * X);
+      const float X = sqrtf((1 - vAcc.z) * 0.5);
+      qAcc.w = vAcc.y/(2.0 * X);
       qAcc.x = X;
       qAcc.y = 0;
-      qAcc.z = -vAcc.X/(2.0 * X);
+      qAcc.z = -vAcc.x/(2.0 * X);
     }
     quaternionCopy(&qAcc, &qAttitude);
 
