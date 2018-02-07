@@ -50,6 +50,7 @@ typedef union {
 #define EULER_INITIALIZE  { { 0, 0, 0 } }
 
 extern attitudeEulerAngles_t attitude;
+extern quaternion qHeadfree;
 
 typedef struct accDeadband_s {
     uint8_t xy;                 // set the acc deadband for xy-Axis
@@ -91,10 +92,11 @@ void imuSetHasNewData(uint32_t dt);
 #endif
 #endif
 
-void quaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd);
-bool imuQuaternionHeadfreeOffsetSet(void);
-void imuQuaternionHeadfreeTransformVectorEarthToBody(quaternion * v);
 
+bool quaternionHeadfreeOffsetSet(void);
+void quaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd);
+void quaternionTransformVectorBodyToEarth(quaternion *qVector, quaternion *qReference);
+void quaternionTransformVectorEarthToBody(quaternion *qVector, quaternion *qReference);
 void quaternionMultiply(quaternion *l, quaternion *r, quaternion *o);
 void quaternionNormalize(quaternion *q);
 void quaternionAdd(quaternion *l, quaternion *r, quaternion *o);

@@ -89,8 +89,8 @@ static imuRuntimeConfig_t imuRuntimeConfig;
 
 
 // quaternion of sensor frame relative to earth frame
-STATIC_UNIT_TESTED quaternion q = QUATERNION_INITIALIZE;
-STATIC_UNIT_TESTED quaternionProducts qP = QUATERNION_PRODUCTS_INITIALIZE;
+STATIC_UNIT_TESTED quaternion qAttitude = QUATERNION_INITIALIZE;
+STATIC_UNIT_TESTED quaternionProducts qPattitude = QUATERNION_PRODUCTS_INITIALIZE;
 // headfree quaternions
 quaternion qHeadfree = QUATERNION_INITIALIZE;
 quaternion qOffset = QUATERNION_INITIALIZE;
@@ -157,9 +157,9 @@ void imuResetAccelerationSum(void)
 #if defined(USE_ALT_HOLD)
 // todo change with quaternion products
 static void quaternionTransformVectorBodyToEarth(t_fp_vector * v) {
-  const float x = (1.0f - 2.0f * qP.yy - 2.0f * qP.zz) * v->V.X + (2.0f * (qP.xy + -qP.wz)) * v->V.Y + (2.0f * (qP.xz - -qP.wy)) * v->V.Z;
-  const float y = (2.0f * (qP.xy - -qP.wz)) * v->V.X + (1.0f - 2.0f * qP.xx - 2.0f * qP.zz) * v->V.Y + (2.0f * (qP.yz + -qP.wx)) * v->V.Z;
-  const float z = (2.0f * (qP.xz + -qP.wy)) * v->V.X + (2.0f * (qP.yz - -qP.wx)) * v->V.Y + (1.0f - 2.0f * qP.xx - 2.0f * qP.yy) * v->V.Z;
+  const float x = (1.0f - 2.0f * qPattitude.yy - 2.0f * qPattitude.zz) * v->V.X + (2.0f * (qPattitude.xy + -qPattitude.wz)) * v->V.Y + (2.0f * (qPattitude.xz - -qPattitude.wy)) * v->V.Z;
+  const float y = (2.0f * (qPattitude.xy - -qPattitude.wz)) * v->V.X + (1.0f - 2.0f * qPattitude.xx - 2.0f * qPattitude.zz) * v->V.Y + (2.0f * (qPattitude.yz + -qPattitude.wx)) * v->V.Z;
+  const float z = (2.0f * (qPattitude.xz + -qPattitude.wy)) * v->V.X + (2.0f * (qPattitude.yz - -qPattitude.wx)) * v->V.Y + (1.0f - 2.0f * qPattitude.xx - 2.0f * qPattitude.yy) * v->V.Z;
 
   v->V.X = x;
   v->V.Y = -y;
@@ -259,17 +259,17 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
         // (hx; hy; 0) - measured mag field vector in EF (assuming Z-component is zero)
         // (bx; 0; 0) - reference mag field vector heading due North in EF (assuming Z-component is zero)
-        const float hx = (1.0f - 2.0f * qP.yy - 2.0f * qP.zz) * mx + (2.0f * (qP.xy + -qP.wz)) * my + (2.0f * (qP.xz - -qP.wy)) * mz;
-        const float hy = (2.0f * (qP.xy - -qP.wz)) * mx + (1.0f - 2.0f * qP.xx - 2.0f * qP.zz) * my + (2.0f * (qP.yz + -qP.wx)) * mz;
+        const float hx = (1.0f - 2.0f * qPattitude.yy - 2.0f * qPattitude.zz) * mx + (2.0f * (qPattitude.xy + -qPattitude.wz)) * my + (2.0f * (qPattitude.xz - -qPattitude.wy)) * mz;
+        const float hy = (2.0f * (qPattitude.xy - -qPattitude.wz)) * mx + (1.0f - 2.0f * qPattitude.xx - 2.0f * qPattitude.zz) * my + (2.0f * (qPattitude.yz + -qPattitude.wx)) * mz;
         const float bx = sqrtf(hx * hx + hy * hy);
 
         // magnetometer error is cross product between estimated magnetic north and measured magnetic north (calculated in EF)
         const float ez_ef = -(hy * bx);
 
         // Rotate mag error vector back to BF and accumulate
-        ex += (2.0f * (qP.xz + -qP.wy)) * ez_ef;
-        ey += (2.0f * (qP.yz - -qP.wx)) * ez_ef;
-        ez += (1.0f - 2.0f * qP.xx - 2.0f * qP.yy) * ez_ef;
+        ex += (2.0f * (qPattitude.xz + -qPattitude.wy)) * ez_ef;
+        ey += (2.0f * (qPattitude.yz - -qPattitude.wx)) * ez_ef;
+        ez += (1.0f - 2.0f * qPattitude.xx - 2.0f * qPattitude.yy) * ez_ef;
     }
 
     // Use measured acceleration vector
@@ -282,9 +282,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         az *= recipNorm;
 
         // Error is sum of cross product between estimated direction and measured direction of gravity
-        ex += (ay * (1.0f - 2.0f * qP.xx - 2.0f * qP.yy) - az * (2.0f * (qP.yz - -qP.wx)));
-        ey += (az * (2.0f * (qP.xz + -qP.wy)) - ax * (1.0f - 2.0f * qP.xx - 2.0f * qP.yy));
-        ez += (ax * (2.0f * (qP.yz - -qP.wx)) - ay * (2.0f * (qP.xz + -qP.wy)));
+        ex += (ay * (1.0f - 2.0f * qPattitude.xx - 2.0f * qPattitude.yy) - az * (2.0f * (qPattitude.yz - -qPattitude.wx)));
+        ey += (az * (2.0f * (qPattitude.xz + -qPattitude.wy)) - ax * (1.0f - 2.0f * qPattitude.xx - 2.0f * qPattitude.yy));
+        ez += (ax * (2.0f * (qPattitude.yz - -qPattitude.wx)) - ay * (2.0f * (qPattitude.xz + -qPattitude.wy)));
     }
 
     // Compute and apply integral feedback if enabled
@@ -317,7 +317,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyro.x = sin_approx(gx * 0.5f * dt);
     qGyro.y = sin_approx(gy * 0.5f * dt);
     qGyro.z = sin_approx(gz * 0.5f * dt);
-    quaternionMultiply(&q, &qGyro, &q);
+    quaternionMultiply(&qAttitude, &qGyro, &qAttitude);
 
     // Ok old bf method
     /*
@@ -326,21 +326,21 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyro.x = gx * 0.5f * dt;
     qGyro.y = gy * 0.5f * dt;
     qGyro.z = gz * 0.5f * dt;
-    quaternionMultiply(&q, &qGyro, &qBuff);
-    quaternionAdd(&q, &qBuff, &q);*/
+    quaternionMultiply(&qAttitude, &qGyro, &qBuff);
+    quaternionAdd(&qAttitude, &qBuff, &qAttitude);*/
 
-    quaternionNormalize(&q);
-    quaternionComputeProducts(&q, &qP);
+    quaternionNormalize(&qAttitude);
+    quaternionComputeProducts(&qAttitude, &qPattitude);
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void){
     quaternionProducts buffer;
 
     if (FLIGHT_MODE(HEADFREE_MODE)) {
-        quaternionMultiply(&qOffset, &q, &qHeadfree);
+        quaternionMultiply(&qOffset, &qAttitude, &qHeadfree);
         quaternionComputeProducts(&qHeadfree, &buffer);
     } else {
-        quaternionComputeProducts(&q, &buffer);
+        quaternionComputeProducts(&qAttitude, &buffer);
     }
 
     attitude.values.roll = lrintf(atan2_approx((+2.0f * (buffer.wx + buffer.yz)), (+1.0f - 2.0f * (buffer.xx + buffer.yy))) * (1800.0f / M_PIf));
@@ -462,7 +462,7 @@ void imuUpdateAttitude(timeUs_t currentTimeUs)
 }
 
 float getCosTiltAngle(void) {
-    return (1.0f - 2.0f * (qP.xx + qP.yy));
+    return (1.0f - 2.0f * (qPattitude.xx + qPattitude.yy));
 }
 
 int16_t calculateThrottleAngleCorrection(uint8_t throttle_correction_value)
@@ -496,10 +496,10 @@ void imuSetAttitudeQuat(float w, float x, float y, float z)
 {
     IMU_LOCK;
 
-    q.w = w;
-    q.x = x;
-    q.y = y;
-    q.z = z;
+    qAttitude.w = w;
+    qAttitude.x = x;
+    qAttitude.y = y;
+    qAttitude.z = z;
 
     imuUpdateEulerAngles();
 
@@ -518,28 +518,16 @@ void imuSetHasNewData(uint32_t dt)
 }
 #endif
 
-void quaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd) {
-    quatProd->ww = quat->w * quat->w;
-    quatProd->wx = quat->w * quat->x;
-    quatProd->wy = quat->w * quat->y;
-    quatProd->wz = quat->w * quat->z;
-    quatProd->xx = quat->x * quat->x;
-    quatProd->xy = quat->x * quat->y;
-    quatProd->xz = quat->x * quat->z;
-    quatProd->yy = quat->y * quat->y;
-    quatProd->yz = quat->y * quat->z;
-    quatProd->zz = quat->z * quat->z;
-}
 
-bool imuQuaternionHeadfreeOffsetSet(void) {
+bool quaternionHeadfreeOffsetSet(void) {
   // todo
   /*if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)))) {
-      quaternionCopy(&q, &qOffset);
+      quaternionCopy(&qAttitude, &qOffset);
       quaternionInverse(&qOffset, &qOffset);
       return(true);
   } else {*/
       if ((ABS(attitude.values.roll) < 450)  && (ABS(attitude.values.pitch) < 450)) {
-        const float yaw = atan2_approx((+2.0f * (qP.wz + qP.xy)), (+1.0f - 2.0f * (qP.yy + qP.zz)));
+        const float yaw = atan2_approx((+2.0f * (qPattitude.wz + qPattitude.xy)), (+1.0f - 2.0f * (qPattitude.yy + qPattitude.zz)));
         qOffset.w = cos_approx(yaw/2);
         qOffset.x = 0;
         qOffset.y = 0;
@@ -552,35 +540,36 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
   //}
 }
 
-void imuQuaternionHeadfreeTransformVectorEarthToBody(quaternion *v) {
-    quaternion qBuffer, qHeadfreeInverse;
+void quaternionTransformVectorBodyToEarth(quaternion *qVector, quaternion *qReference) {
+    quaternion qVectorBuffer, qReferenceInverse;
 
-    quaternionCopy(v, &qBuffer);
-    quaternionInverse(&qHeadfree, &qHeadfreeInverse);
-
-    // Body to earth ... roll invertiert wenn 90° gedreht
-    //quaternionMultiply(&qHeadfree, &qBuffer, &qBuffer);
-    //quaternionMultiply(&qBuffer, &qHeadfreeInverse, v);
-
-    quaternionMultiply(&qHeadfreeInverse, &qBuffer, &qBuffer);
-    quaternionMultiply(&qBuffer, &qHeadfree, v);
+    quaternionCopy(qVector, &qVectorBuffer);
+    quaternionInverse(qReference, &qReferenceInverse);
+    quaternionMultiply(qReference, &qVectorBuffer, &qVectorBuffer);
+    quaternionMultiply(&qVectorBuffer, &qReferenceInverse, qVector);
 }
 
-/*
-void imuQuaternionHeadfreeTransformVectorEarthToBody(t_fp_vector_def *v) {
-    quaternionProducts buffer;
+void quaternionTransformVectorEarthToBody(quaternion *qVector, quaternion *qReference) {
+    quaternion qVectorBuffer, qReferenceInverse;
 
-    quaternionMultiply(&qOffset, &q, &qHeadfree); // moved to euler angles calculation
-    quaternionComputeProducts(&qHeadfree, &buffer);
+    quaternionCopy(qVector, &qVectorBuffer);
+    quaternionInverse(qReference, &qReferenceInverse);
+    quaternionMultiply(&qReferenceInverse, &qVectorBuffer, &qVectorBuffer);
+    quaternionMultiply(&qVectorBuffer, qReference, qVector);
+}
 
-    const float x = (buffer.ww + buffer.xx - buffer.yy - buffer.zz) * v->X + 2.0f * (buffer.xy + buffer.wz) * v->Y + 2.0f * (buffer.xz - buffer.wy) * v->Z;
-    const float y = 2.0f * (buffer.xy - buffer.wz) * v->X + (buffer.ww - buffer.xx + buffer.yy - buffer.zz) * v->Y + 2.0f * (buffer.yz + buffer.wx) * v->Z;
-    const float z = 2.0f * (buffer.xz + buffer.wy) * v->X + 2.0f * (buffer.yz - buffer.wx) * v->Y + (buffer.ww - buffer.xx - buffer.yy + buffer.zz) * v->Z;
-
-    v->X = x;
-    v->Y = y;
-    v->Z = z;
-}*/
+void quaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd) {
+    quatProd->ww = quat->w * quat->w;
+    quatProd->wx = quat->w * quat->x;
+    quatProd->wy = quat->w * quat->y;
+    quatProd->wz = quat->w * quat->z;
+    quatProd->xx = quat->x * quat->x;
+    quatProd->xy = quat->x * quat->y;
+    quatProd->xz = quat->x * quat->z;
+    quatProd->yy = quat->y * quat->y;
+    quatProd->yz = quat->y * quat->z;
+    quatProd->zz = quat->z * quat->z;
+}
 
 void quaternionMultiply(quaternion *l, quaternion *r, quaternion *o) {
     const float w = l->w * r->w - l->x * r->x - l->y * r->y - l->z * r->z;
