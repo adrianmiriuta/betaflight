@@ -162,7 +162,7 @@ typedef struct {
 } quaternionProducts;
 #define QUATERNION_PRODUCTS_INITIALIZE  {.ww=1, .wx=0, .wy=0, .wz=0, .xx=0, .xy=0, .xz=0, .yy=0, .yz=0, .zz=0}
 
-void quaternionComputeProducts(quaternion *quat, quaternionProducts *quatProd);
+void quaternionComputeProducts(quaternion *qIn, quaternionProducts *qPout);
 void quaternionTransformVectorBodyToEarth(quaternion *qVector, quaternion *qReference);
 void quaternionTransformVectorEarthToBody(quaternion *qVector, quaternion *qReference);
 void quaternionMultiply(quaternion *l, quaternion *r, quaternion *o);
