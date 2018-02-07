@@ -331,7 +331,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     vAcc.z = az;
     quaternionNormalize(&vAcc);
 
-    const float yz2 = atan2_approx(y/z)/2;
+    const float yz2 = atan2_approx(vAcc.y,vAcc.z)/2;
     qAcc.w = cos_approx(yz2);
     qAcc.x = 0;
     qAcc.y = 0;
