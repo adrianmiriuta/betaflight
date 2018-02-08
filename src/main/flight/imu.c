@@ -355,7 +355,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.z = sin_approx(yaw/2);
 
     quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc);
-    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
+    quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);
 
     /*
     if (az >= 0) {
