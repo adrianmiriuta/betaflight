@@ -393,10 +393,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);
 
 /*
-    float quaternionDotProduct(quaternion *l, quaternion *r) {
-        return l->w * r->w + l->x * r->x + l->y * r->y + l->z * r->z;
-    }
-
     void quaternionMinimumDistance(quaternion *a, quaternion *b) {
         if (quaternionDotProduct(a, b) < 0) {
             b->w = b->w * -1;
