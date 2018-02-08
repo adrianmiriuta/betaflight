@@ -380,11 +380,12 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     //quaternionCopy(&qAccPitch, &qAcc); //test restrain cconstant .... idiot !
 
-    quaternionCopy(&qAcc, &qAttitude);
+    //quaternionCopy(&qAcc, &qAttitude);
 
-    //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.99);
+    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.991);
 
     quaternionNormalize(&qAttitude);
+    quaternionCopy(&qAttitude, &qGyro);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 }
 
