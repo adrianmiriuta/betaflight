@@ -27,6 +27,7 @@
 #include "build/debug.h"
 
 #include "common/axis.h"
+#include "common/maths.h"
 
 #include "pg/pg.h"
 #include "pg/pg_ids.h"
