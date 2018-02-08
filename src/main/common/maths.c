@@ -426,3 +426,41 @@ void quaternionInverse(quaternion *i, quaternion *o) {
     o->y = i->y * -1 / norm_squared;
     o->z = i->z * -1 / norm_squared;
 }
+
+float quaternionDotProduct(quaternion *l, quaternion *r) {
+    return l->w * r->w + l->x * r->x + l->y * r->y + l->z * r->z;
+}
+
+void quaternionSlerp(quaternion *l, quaternion *r, quaternion *o, float weight) {
+    float dot = quaternionDotProduct(l, r);
+    if (dot > 0.9995) {
+        o->w = l->w + (r->w - l->w) * weight;
+        o->x = l->x + (r->x - l->x) * weight;
+        o->y = l->y + (r->y - l->y) * weight;
+        o->z = l->z + (r->z - l->z) * weight;
+        quaternionNormalize(o);
+        return;
+    }
+
+    if (dot > 1){
+        dot = 1;
+    }
+    else if (dot < -1){
+        dot = -1;
+    }
+
+    float theta_0 = acos_approx(dot);
+    float theta = (0. < theta_0 && theta_0 < M_PIf_half) ? theta_0 * weight : (theta_0 - M_PIf) * weight;
+
+    o->w = r->w - l->w * dot;
+    o->x = r->x - l->x * dot;
+    o->y = r->y - l->y * dot;
+    o->z = r->z - l->z * dot;
+
+    quaternionNormalize(o);
+
+    o->w = l->w * cos_approx(theta) + o->w * sin_approx(theta);
+    o->x = l->x * cos_approx(theta) + o->x * sin_approx(theta);
+    o->y = l->y * cos_approx(theta) + o->y * sin_approx(theta);
+    o->z = l->z * cos_approx(theta) + o->z * sin_approx(theta);
+}
