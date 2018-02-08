@@ -345,19 +345,19 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     vAcc.z = az;
     quaternionNormalize(&vAcc);
 
-    quaternionCopy(&qAcc, &qAccOld);
+    //quaternionCopy(&qAcc, &qAccOld);
 
 
     // introduce zminvalue inflexion points
     quaternion qAccRoll;
-    const float yz2 = atan2_approx(vAcc.y,vAcc.z)/2;
+    const float yz2 = atan2_approx(vAcc.y,sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z))/2;
     qAccRoll.w = cos_approx(yz2);
     qAccRoll.x = sin_approx(yz2);
     qAccRoll.y = 0;
     qAccRoll.z = 0;
 
     quaternion qAccPitch;
-    const float xz2 = -atan2_approx(vAcc.x,vAcc.z)/2;
+    const float xz2 = atan2_approx(-vAcc.x,vAcc.z)/2;
     //const float xz2 = -acos_approx(vAcc.z / sqrtf(vAcc.z * vAcc.z + vAcc.x * vAcc.x) )/2;
     qAccPitch.w = cos_approx(xz2);
     qAccPitch.x = 0;
@@ -406,7 +406,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     }
 
 
-    quaternionMinimumDistance(&qAccOld, &qAcc);
+    //quaternionMinimumDistance(&qAccOld, &qAcc);
 
 
     quaternionCopy(&qAcc, &qAttitude);
