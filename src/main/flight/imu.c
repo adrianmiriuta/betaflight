@@ -90,7 +90,9 @@ static imuRuntimeConfig_t imuRuntimeConfig;
 
 // quaternion of sensor frame relative to earth frame
 STATIC_UNIT_TESTED quaternion qAttitude = QUATERNION_INITIALIZE;
+STATIC_UNIT_TESTED quaternion qGyro = QUATERNION_INITIALIZE;
 STATIC_UNIT_TESTED quaternionProducts qpAttitude = QUATERNION_PRODUCTS_INITIALIZE;
+STATIC_UNIT_TESTED quaternionProducts qpGyro = QUATERNION_PRODUCTS_INITIALIZE;
 // headfree quaternions
 quaternion qHeadfree = QUATERNION_INITIALIZE;
 quaternion qOffset = QUATERNION_INITIALIZE;
@@ -322,6 +324,18 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
 
+
+    // test new method
+    quaternion qDiff;
+    qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
+    qDiff.x = sin_approx(gx * 0.5f * dt);
+    qDiff.y = sin_approx(gy * 0.5f * dt);
+    qDiff.z = sin_approx(gz * 0.5f * dt);
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    quaternionNormalize(&qGyro);
+    quaternionComputeProducts(&qGyro, &qpGyro);
+
+
     // qAcc Ok MDPI paper very quick transition on pitch +-90° no singulryties?!?!?!?
     quaternion vAcc, qAcc;
 
@@ -330,7 +344,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     vAcc.y = ay;
     vAcc.z = az;
     quaternionNormalize(&vAcc);
-
 
     // introduce zminvalue inflexion points
     quaternion qAccRoll;
@@ -348,7 +361,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccPitch.z = 0;
 
     quaternion qGyroYaw;
-    const float yaw = atan2_approx((+2.0f * (qpAttitude.wz + qpAttitude.xy)), (+1.0f - 2.0f * (qpAttitude.yy + qpAttitude.zz)));
+    const float yaw = atan2_approx((+2.0f * (qpGyro.wz + qpGyro.xy)), (+1.0f - 2.0f * (qpGyro.yy + qpGyro.zz)));
     qGyroYaw.w = cos_approx(yaw/2);
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
