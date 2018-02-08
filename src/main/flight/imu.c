@@ -337,7 +337,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     // qAcc Ok MDPI paper very quick transition on pitch +-90° no singulryties?!?!?!?
-    quaternion vAcc, qAcc;
+    quaternion vAcc, qAcc, qAccOld;
 
     vAcc.w = 0;
     vAcc.x = ax;
@@ -345,7 +345,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     vAcc.z = az;
     quaternionNormalize(&vAcc);
 
-    /*
+    quaternionCopy(&qAcc, &qAccOld);
+
+
     // introduce zminvalue inflexion points
     quaternion qAccRoll;
     const float yz2 = atan2_approx(vAcc.y,vAcc.z)/2;
@@ -361,9 +363,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccPitch.x = 0;
     qAccPitch.y = sin_approx(xz2);
     qAccPitch.z = 0;
-    */
 
 
+
+/*
     if (vAcc.z >= 0) {
       qAcc.w =  sqrtf((vAcc.z + 1) * 0.5);
       qAcc.x = vAcc.y/(2.0 * qAcc.w);
@@ -375,7 +378,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qAcc.x = X;
       qAcc.y = 0;
       qAcc.z = -vAcc.x/(2.0 * X);
-    }
+    }*/
+
 
     quaternion qGyroYaw;
     const float yaw = atan2_approx((+2.0f * (qpGyro.wz + qpGyro.xy)), (+1.0f - 2.0f * (qpGyro.yy + qpGyro.zz)));
@@ -384,10 +388,25 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.y = 0;
     qGyroYaw.z = sin_approx(yaw/2);
 
-    //quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc);
+    quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc);
     quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);
 
 
+    float quaternionDotProduct(quaternion *l, quaternion *r) {
+        return l->w * r->w + l->x * r->x + l->y * r->y + l->z * r->z;
+    }
+
+    void quaternionMinimumDistance(quaternion *a, quaternion *b) {
+        if (quaternionDotProduct(a, b) < 0) {
+            b->w = b->w * -1;
+            b->x = b->x * -1;
+            b->y = b->y * -1;
+            b->z = b->z * -1;
+        }
+    }
+
+
+    quaternionMinimumDistance(&qAccOld, &qAcc);
 
 
     quaternionCopy(&qAcc, &qAttitude);
