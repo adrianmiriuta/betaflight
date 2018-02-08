@@ -351,7 +351,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // introduce zminvalue inflexion points
     quaternion qAccRoll;
     //const float yz2 = atan2_approx(vAcc.y,vAcc.z)/2;
-    const float xz2 = atan2_approx(vAcc.y, sqrtf(vAcc.x * vAcc.x + vAcc.z * vAcc.z) )/2;
+    const float yz2 = atan2_approx(vAcc.y, sqrtf(vAcc.x * vAcc.x + vAcc.z * vAcc.z) )/2;
     qAccRoll.w = cos_approx(yz2);
     qAccRoll.x = sin_approx(yz2);
     qAccRoll.y = 0;
