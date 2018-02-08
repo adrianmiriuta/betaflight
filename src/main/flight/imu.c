@@ -419,7 +419,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         }
 
         float theta_0 = acos_approx(dot);
-        float theta = (0. < theta_0 && theta_0 < M_PIf_half) ? theta_0 * weight : (theta_0 - M_PIf) * weight;
+        float theta = (0. < theta_0 && theta_0 < M_PIf2) ? theta_0 * weight : (theta_0 - M_PIf) * weight;
 
         o->w = r->w - l->w * dot;
         o->x = r->x - l->x * dot;
