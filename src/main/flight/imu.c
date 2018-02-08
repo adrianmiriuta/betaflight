@@ -336,7 +336,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionComputeProducts(&qGyro, &qpGyro);
 
 
-    // qAcc Ok MDPI paper very quick transition on pitch +-90° no singulryties?!?!?!?
+    // eigen
     quaternion vAcc, qAcc, qAccOld;
 
     vAcc.w = 0;
@@ -403,7 +403,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
 
-    quaternionSlerp(&qGyro, &qAcc, &qAttitude, 99);
+    quaternionSlerp(&qGyro, &qAcc, &qAttitude, 0.99);
     quaternionNormalize(&qAttitude);
     quaternionCopy(&qAttitude, &qGyro);
 
