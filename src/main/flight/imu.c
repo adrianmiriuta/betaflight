@@ -350,18 +350,20 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // introduce zminvalue inflexion points
     quaternion qAccRoll;
-    const float yz2 = atan2_approx(vAcc.y,vAcc.z)/2; // ROT xyz
-    qAccRoll.w = cos_approx(yz2);
-    qAccRoll.x = sin_approx(yz2);
+    const float roll2 = atan2_approx(vAcc.y,vAcc.z)/2; // ROT xyz
+    qAccRoll.w = cos_approx(roll2);
+    qAccRoll.x = sin_approx(roll2);
     qAccRoll.y = 0;
     qAccRoll.z = 0;
 
     quaternion qAccPitch;
     //const float xz2 = atan2_approx(-vAcc.x, sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
-    const float xz2 = acos_approx(sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z)/sqrtf(vAcc.x * vAcc.x + vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
-    qAccPitch.w = cos_approx(xz2);
+    const float pitch2 = acos_approx(sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z)/sqrtf(vAcc.x * vAcc.x + vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
+    constrainf(pitch2, -M_PIf_half, M_PIf_half);
+
+    qAccPitch.w = cos_approx(pitch2);
     qAccPitch.x = 0;
-    qAccPitch.y = sin_approx(xz2);
+    qAccPitch.y = sin_approx(pitch2);
     qAccPitch.z = 0;
 
 
@@ -389,7 +391,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.z = sin_approx(yaw/2);
 
     quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
-    //quaternionMultiply(&qAccPitch, &qAccRoll, &qAcc);
+
     //quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);
 
 /*
