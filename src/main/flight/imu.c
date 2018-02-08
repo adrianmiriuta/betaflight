@@ -389,10 +389,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.z = sin_approx(yaw/2);
 
     quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc);
-    quaternionMultiply(&qAccPitch, &qAcc, &qAcc);
+    //quaternionMultiply(&qAccPitch, &qAcc, &qAcc);
     //quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);
 
-
+/*
     float quaternionDotProduct(quaternion *l, quaternion *r) {
         return l->w * r->w + l->x * r->x + l->y * r->y + l->z * r->z;
     }
@@ -404,7 +404,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
             b->y = b->y * -1;
             b->z = b->z * -1;
         }
-    }
+    }*/
 
 
     //quaternionMinimumDistance(&qAccOld, &qAcc);
