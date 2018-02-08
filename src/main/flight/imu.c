@@ -357,9 +357,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccRoll.z = 0;
 
     quaternion qAccPitch;
-    //const float xz2 = atan2_approx(-vAcc.x, sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
-    const float pitch2 = acos_approx(sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z)/sqrtf(vAcc.x * vAcc.x + vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
-    //constrainf(pitch2, -M_PIf2, M_PIf2);
+    const float pitch2 = atan2_approx(-vAcc.x, sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
+    //const float pitch2 = acos_approx(sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z)/sqrtf(vAcc.x * vAcc.x + vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
+    constrainf(pitch2, -M_PIf4, M_PIf4);
 
     qAccPitch.w = cos_approx(pitch2);
     qAccPitch.x = 0;
