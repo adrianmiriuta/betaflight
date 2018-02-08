@@ -407,7 +407,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     }*/
 
 
-    quaternionMinimumDistance(&qAccOld, &qAcc);
+    //quaternionMinimumDistance(&qAccOld, &qAcc);
 
 
     quaternionCopy(&qAcc, &qAttitude);
