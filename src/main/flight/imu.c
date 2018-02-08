@@ -361,12 +361,12 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
 
-/*
+
     quaternionInverse(&qAcc, &qAccInverse);
 
     quaternion qGyroYaw;
-    quaternionMultiply(&qAccInverse, &qGyro, &qGyroYaw);
-    quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);*/
+    quaternionMultiply(&qGyro, &qAccInverse, &qGyroYaw);
+    quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);
 
     /*
     const float yaw = atan2_approx((+2.0f * (qpGyro.wz + qpGyro.xy)), (+1.0f - 2.0f * (qpGyro.yy + qpGyro.zz)));
