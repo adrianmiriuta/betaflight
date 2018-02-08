@@ -403,7 +403,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
 
-    quaternionSlerp(&qGyro, &qAcc, &qAttitude, 0.99);
+    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.99);
     quaternionNormalize(&qAttitude);
     quaternionCopy(&qAttitude, &qGyro);
 
