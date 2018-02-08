@@ -345,7 +345,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     vAcc.z = az;
     quaternionNormalize(&vAcc);
 
-    //quaternionCopy(&qAcc, &qAccOld);
+    quaternionCopy(&qAcc, &qAccOld);
 
 
     // introduce zminvalue inflexion points
@@ -407,7 +407,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     }*/
 
 
-    //quaternionMinimumDistance(&qAccOld, &qAcc);
+    quaternionMinimumDistance(&qAccOld, &qAcc);
 
 
     quaternionCopy(&qAcc, &qAttitude);
