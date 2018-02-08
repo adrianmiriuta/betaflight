@@ -350,16 +350,15 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // introduce zminvalue inflexion points
     quaternion qAccRoll;
-    const float yz2 = atan2_approx(vAcc.y,vAcc.z)/2;
-    //const float yz2 = atan2_approx(vAcc.y, sqrtf(vAcc.x * vAcc.x + vAcc.z * vAcc.z) )/2;
+    const float yz2 = atan2_approx(vAcc.y,vAcc.z)/2; // ROT xyz
     qAccRoll.w = cos_approx(yz2);
     qAccRoll.x = sin_approx(yz2);
     qAccRoll.y = 0;
     qAccRoll.z = 0;
 
     quaternion qAccPitch;
-    //const float xz2 = atan2_approx(-vAcc.x,vAcc.z)/2;
-    const float xz2 = atan2_approx(-vAcc.x, sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2;
+    //const float xz2 = atan2_approx(-vAcc.x, sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
+    const float xz2 = -acos_approx(sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z), sqrtf(vAcc.x * vAcc.x + vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
     qAccPitch.w = cos_approx(xz2);
     qAccPitch.x = 0;
     qAccPitch.y = sin_approx(xz2);
