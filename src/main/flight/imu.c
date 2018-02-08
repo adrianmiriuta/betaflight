@@ -357,9 +357,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccRoll.z = 0;
 
     quaternion qAccPitch;
-    const float pitch2 = atan2_approx(-vAcc.x, sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
+    float pitch2 = atan2_approx(-vAcc.x, sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
     //const float pitch2 = acos_approx(sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z)/sqrtf(vAcc.x * vAcc.x + vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
-    constrainf(pitch2, -M_PIf5, M_PIf5);
+    constrainf(pitch2, -M_PIf4, M_PIf4);
 
     qAccPitch.w = cos_approx(pitch2);
     qAccPitch.x = 0;
@@ -390,9 +390,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.y = 0;
     qGyroYaw.z = sin_approx(yaw/2);
 
-    //quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
+    quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
 
-    quaternionCopy(&qPitch, &qAcc); //test
+    //quaternionCopy(&qAccPitch, &qAcc); //test restrain cconstant .... idiot !
 
     //quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);
 
