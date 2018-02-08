@@ -31,6 +31,7 @@
 #define M_PIf2       3.14159265358979323846f/2.0
 #define M_PIf4       3.14159265358979323846f/4.0
 #define M_PIf5       3.14159265358979323846f/5.0
+#define M_PIf8       3.14159265358979323846f/8.0
 
 #define RAD    (M_PIf / 180.0f)
 #define DEGREES_TO_DECIDEGREES(angle) (angle * 10)
