@@ -337,18 +337,13 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     // eigen
-    quaternion vAcc, qAcc, qAccOld;
-
+    quaternion vAcc, qAcc, qAccInverse;
     vAcc.w = 0;
     vAcc.x = ax;
     vAcc.y = ay;
     vAcc.z = az;
     quaternionNormalize(&vAcc);
 
-    quaternionCopy(&qAcc, &qAccOld);
-
-
-    // introduce zminvalue inflexion points
     quaternion qAccRoll;
     float roll2 = atan2_approx(vAcc.y,vAcc.z)/2; // ROT xyz
     qAccRoll.w = cos_approx(roll2);
@@ -358,62 +353,36 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     quaternion qAccPitch;
     float pitch2 = atan2_approx(-vAcc.x, sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
-    //const float pitch2 = acos_approx(sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z)/sqrtf(vAcc.x * vAcc.x + vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // ROT xyz
     pitch2 = constrainf(pitch2, -M_PIf4, M_PIf4);
-
     qAccPitch.w = cos_approx(pitch2);
     qAccPitch.x = 0;
     qAccPitch.y = sin_approx(pitch2);
     qAccPitch.z = 0;
 
+    quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
 
-
-/*
-    if (vAcc.z >= 0) {
-      qAcc.w =  sqrtf((vAcc.z + 1) * 0.5);
-      qAcc.x = vAcc.y/(2.0 * qAcc.w);
-      qAcc.y =  -vAcc.x/(2.0 * qAcc.w);
-      qAcc.z = 0;
-    } else {
-      const float X = sqrtf((1 - vAcc.z) * 0.5);
-      qAcc.w = vAcc.y/(2.0 * X);
-      qAcc.x = X;
-      qAcc.y = 0;
-      qAcc.z = -vAcc.x/(2.0 * X);
-    }*/
-
+    quaternionInverse(&qAcc, &qAccInverse);
 
     quaternion qGyroYaw;
+    quaternionMultiply(&qAccInverse, &qGyro, &qGyroYaw);
+    quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);
+
+    /*
     const float yaw = atan2_approx((+2.0f * (qpGyro.wz + qpGyro.xy)), (+1.0f - 2.0f * (qpGyro.yy + qpGyro.zz)));
     qGyroYaw.w = cos_approx(yaw/2);
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
-    qGyroYaw.z = sin_approx(yaw/2);
+    qGyroYaw.z = sin_approx(yaw/2);*/
 
-    quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
+
 
     //quaternionCopy(&qAccPitch, &qAcc); //test restrain cconstant .... idiot !
 
-    quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);
+    quaternionCopy(&qAcc, &qAttitude);
 
+    //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.99);
 
-
-    //quaternionMinimumDistance(&qAccOld, &qAcc);
-
-
-
-
-    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.99);
     quaternionNormalize(&qAttitude);
-    quaternionCopy(&qAttitude, &qGyro);
-
-
-
-
-
-    //quaternionCopy(&qAcc, &qAttitude);
-
-    //quaternionNormalize(&qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 }
 
