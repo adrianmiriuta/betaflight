@@ -361,19 +361,20 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
 
-
+    //introduces roll pitch drift !
+    /*
     quaternionInverse(&qAcc, &qAccInverse);
-
     quaternion qGyroYaw;
     quaternionMultiply(&qGyro, &qAccInverse, &qGyroYaw);
-    quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);
+    quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);*/
 
-    /*
+
     const float yaw = atan2_approx((+2.0f * (qpGyro.wz + qpGyro.xy)), (+1.0f - 2.0f * (qpGyro.yy + qpGyro.zz)));
     qGyroYaw.w = cos_approx(yaw/2);
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
-    qGyroYaw.z = sin_approx(yaw/2);*/
+    qGyroYaw.z = sin_approx(yaw/2);
+    quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);
 
 
 
