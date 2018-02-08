@@ -345,7 +345,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionNormalize(&vAcc);
 
     quaternion qAccRoll;
-    float roll2 = atan2_approx(vAcc.y,vAcc.z)/2; // ROT xyz
+    float u = 0.1f;
+    //float roll2 = atan2_approx(vAcc.y,vAcc.z)/2; // ROT xyz
+    float roll2 = atan2_approx(vAcc.y,copysign(1.0,vAcc.z)*sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2; // ROT xyz
     qAccRoll.w = cos_approx(roll2);
     qAccRoll.x = sin_approx(roll2);
     qAccRoll.y = 0;
@@ -374,18 +376,17 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
     qGyroYaw.z = sin_approx(yaw/2);
-    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
+    //quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
 
 
+    //quaternionCopy(&qAccRoll, &qAttitude);
+    //quaternionCopy(&qAccPitch, &qAcc);
+    quaternionCopy(&qAcc, &qAttitude);
 
-    //quaternionCopy(&qAccPitch, &qAcc); //test restrain cconstant .... idiot !
-
-    //quaternionCopy(&qAcc, &qAttitude);
-
-    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.981);
+    //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.981);
 
     quaternionNormalize(&qAttitude);
-    quaternionCopy(&qAttitude, &qGyro);
+    //quaternionCopy(&qAttitude, &qGyro);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 }
 
