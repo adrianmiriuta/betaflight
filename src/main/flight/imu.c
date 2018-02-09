@@ -387,12 +387,12 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     //quaternionCopy(&qAccRoll, &qAttitude);
     //quaternionCopy(&qAccPitch, &qAcc);
-    //quaternionCopy(&qAcc, &qAttitude);
+    quaternionCopy(&qAcc, &qAttitude);
 
-    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.999);
+    //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.999);
 
     quaternionNormalize(&qAttitude);
-    quaternionCopy(&qAttitude, &qGyro);
+    //quaternionCopy(&qAttitude, &qGyro);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 }
 
