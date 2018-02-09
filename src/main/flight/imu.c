@@ -255,9 +255,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         const float ez_ef = -(hy * bx);
 
         // Rotate mag error vector back to BF and accumulate
-        ex += (2.0f * (qpAttitude.xz + -qpAttitude.wy)) * ez_ef;
-        ey += (2.0f * (qpAttitude.yz - -qpAttitude.wx)) * ez_ef;
-        ez += (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) * ez_ef;
+        ex += (2.0f * (qpAttitude.xz - qpAttitude.wy)) * ez_ef;
+        ey += (2.0f * (qpAttitude.yz + qpAttitude.wx)) * ez_ef;
+        ez += (1.0f - 2.0f * (qpAttitude.xx + qpAttitude.yy)) * ez_ef;
     }
 
     // Use measured acceleration vector
