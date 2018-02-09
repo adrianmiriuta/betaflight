@@ -345,7 +345,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionNormalize(&vAcc);
 
     quaternion qAccRoll;
-    float u = 0.001f;
+    float u = 0.1f;
     //float roll2 = atan2_approx(vAcc.y,vAcc.z)/2; // mmax v1 ROT xyz
     //float roll2 = atan2_approx(vAcc.y,sqrtf(vAcc.z*vAcc.z + vAcc.x*vAcc.x))/2; // mmax v2 ROT xyz only z>0 no inverted position
     float roll2 = atan2_approx(vAcc.y,copysign(1.0,vAcc.z)*sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2; // AN3461 xyz
