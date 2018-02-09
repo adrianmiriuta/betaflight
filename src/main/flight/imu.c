@@ -382,7 +382,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
     qGyroYaw.z = sin_approx(yaw/2);
-    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
+    //quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
 
 
     //quaternionCopy(&qAccRoll, &qAttitude);
