@@ -247,8 +247,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
         // (hx; hy; 0) - measured mag field vector in EF (assuming Z-component is zero)
         // (bx; 0; 0) - reference mag field vector heading due North in EF (assuming Z-component is zero)
-        const float hx = (1.0f - 2.0f * qpAttitude.yy - 2.0f * qpAttitude.zz) * mx + (2.0f * (qpAttitude.xy + -qpAttitude.wz)) * my + (2.0f * (qpAttitude.xz - -qpAttitude.wy)) * mz;
-        const float hy = (2.0f * (qpAttitude.xy - -qpAttitude.wz)) * mx + (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.zz) * my + (2.0f * (qpAttitude.yz + -qpAttitude.wx)) * mz;
+        const float hx = (1.0f - 2.0f * (qpAttitude.yy + qpAttitude.zz)) * mx + (2.0f * (qpAttitude.xy - qpAttitude.wz)) * my + (2.0f * (qpAttitude.xz + qpAttitude.wy)) * mz;
+        const float hy = (2.0f * (qpAttitude.xy + qpAttitude.wz)) * mx + (1.0f - 2.0f * (qpAttitude.xx + qpAttitude.zz)) * my + (2.0f * (qpAttitude.yz - qpAttitude.wx)) * mz;
         const float bx = sqrtf(hx * hx + hy * hy);
 
         // magnetometer error is cross product between estimated magnetic north and measured magnetic north (calculated in EF)
@@ -270,9 +270,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         az *= recipNorm;
 
         // Error is sum of cross product between estimated direction and measured direction of gravity
-        ex += (ay * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - az * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
-        ey += (az * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - ax * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
-        ez += (ax * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - ay * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
+        ex += (ay * (1.0f - 2.0f * (qpAttitude.xx + qpAttitude.yy)) - az * (2.0f * (qpAttitude.yz + qpAttitude.wx)));
+        ey += (az * (2.0f * (qpAttitude.xz - qpAttitude.wy)) - ax * (1.0f - 2.0f * (qpAttitude.xx + qpAttitude.yy)));
+        ez += (ax * (2.0f * (qpAttitude.yz + qpAttitude.wx)) - ay * (2.0f * (qpAttitude.xz - qpAttitude.wy)));
     }
 
     // Compute and apply integral feedback if enabled
@@ -505,7 +505,7 @@ bool quaternionHeadfreeOffsetSet(void) {
         qOffset.x = 0;
         qOffset.y = 0;
         qOffset.z = sin_approx(yaw/2);
-        
+
         quaternionInverse(&qOffset, &qOffset);
         return(true);
     } else {
