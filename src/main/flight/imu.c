@@ -345,10 +345,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionNormalize(&vAcc);
 
     quaternion qAccRoll;
-    float u = 0.001f;
-    float roll2 = atan2_approx(vAcc.y,vAcc.z)/2; // mmax v1 ROT xyz
+    float u = 0.999f;
+    //float roll2 = atan2_approx(vAcc.y,vAcc.z)/2; // mmax v1 ROT xyz
     //float roll2 = atan2_approx(vAcc.y,sqrtf(vAcc.z*vAcc.z + vAcc.x*vAcc.x))/2; // mmax v2 ROT xyz only z>0 no inverted position
-    //float roll2 = atan2_approx(vAcc.y,copysign(1.0,vAcc.z)*sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2; // AN3461 xyz
+    float roll2 = atan2_approx(vAcc.y,copysign(1.0,vAcc.z)*sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2; // AN3461 xyz
     //float roll2 = atan(vAcc.y/copysign(1.0,vAcc.z)*sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2; // AN3461 xyz
     //float roll2 = atan(vAcc.y/vAcc.z)/2; // mmax v1 ROT xyz
 
@@ -382,17 +382,17 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
     qGyroYaw.z = sin_approx(yaw/2);
-    //quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
+    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
 
 
     //quaternionCopy(&qAccRoll, &qAttitude);
     //quaternionCopy(&qAccPitch, &qAcc);
-    quaternionCopy(&qAcc, &qAttitude);
+    //quaternionCopy(&qAcc, &qAttitude);
 
-    //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.981);
+    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.981);
 
     quaternionNormalize(&qAttitude);
-    //quaternionCopy(&qAttitude, &qGyro);
+    quaternionCopy(&qAttitude, &qGyro);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 }
 
