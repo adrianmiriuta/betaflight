@@ -244,7 +244,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
         // For magnetometer correction we make an assumption that magnetic field is perpendicular to gravity (ignore Z-component in EF).
         // This way magnetic field will only affect heading and wont mess roll/pitch angles
-
         // (hx; hy; 0) - measured mag field vector in EF (assuming Z-component is zero)
         // (bx; 0; 0) - reference mag field vector heading due North in EF (assuming Z-component is zero)
         const float hx = (1.0f - 2.0f * (qpAttitude.yy + qpAttitude.zz)) * mx + (2.0f * (qpAttitude.xy - qpAttitude.wz)) * my + (2.0f * (qpAttitude.xz + qpAttitude.wy)) * mz;
@@ -325,8 +324,9 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
     attitude.values.pitch = lrintf(((0.5f * M_PIf) - acos_approx(+2.0f * (buffer.wy - buffer.xz))) * (1800.0f / M_PIf));
     attitude.values.yaw = lrintf((-atan2_approx((+2.0f * (buffer.wz + buffer.xy)), (+1.0f - 2.0f * (buffer.yy + buffer.zz))) * (1800.0f / M_PIf)));
 
-    if (attitude.values.yaw < 0)
+    if (attitude.values.yaw < 0) {
         attitude.values.yaw += 3600;
+    }
 
     if (getCosTiltAngle() > smallAngleCosZ) {
         ENABLE_STATE(SMALL_ANGLE);
