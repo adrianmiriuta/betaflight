@@ -352,7 +352,7 @@ void quaternionTransformVectorBodyToEarth(quaternion *qVector, quaternion *qRefe
     qVector->w = 0;
 
     quaternionCopy(qVector, &qVectorBuffer);
-    quaternionInverse(qReference, &qReferenceInverse);
+    quaternionConjugate(qReference, &qReferenceInverse);
     quaternionMultiply(qReference, &qVectorBuffer, &qVectorBuffer);
     quaternionMultiply(&qVectorBuffer, &qReferenceInverse, qVector);
 }
@@ -362,7 +362,7 @@ void quaternionTransformVectorEarthToBody(quaternion *qVector, quaternion *qRefe
     qVector->w = 0;
 
     quaternionCopy(qVector, &qVectorBuffer);
-    quaternionInverse(qReference, &qReferenceInverse);
+    quaternionConjugate(qReference, &qReferenceInverse);
     quaternionMultiply(&qReferenceInverse, &qVectorBuffer, &qVectorBuffer);
     quaternionMultiply(&qVectorBuffer, qReference, qVector);
 }
@@ -425,4 +425,11 @@ void quaternionInverse(quaternion *i, quaternion *o) {
     o->x = i->x * -1 / norm_squared;
     o->y = i->y * -1 / norm_squared;
     o->z = i->z * -1 / norm_squared;
+}
+
+void quaternionConjugate(quaternion *i, quaternion *o) {
+    o->w = i->w;
+    o->x = i->x * -1;
+    o->y = i->y * -1;
+    o->z = i->z * -1;
 }

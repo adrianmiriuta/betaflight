@@ -170,3 +170,4 @@ void quaternionNormalize(quaternion *q);
 void quaternionAdd(quaternion *l, quaternion *r, quaternion *o);
 void quaternionCopy(quaternion *s, quaternion *d);
 void quaternionInverse(quaternion *i, quaternion *o);
+void quaternionConjugate(quaternion *i, quaternion *o);

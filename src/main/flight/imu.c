@@ -496,7 +496,7 @@ bool quaternionHeadfreeOffsetSet(void) {
         qOffset.y = 0;
         qOffset.z = sin_approx(yaw/2);
 
-        quaternionInverse(&qOffset, &qOffset);
+        quaternionConjugate(&qOffset, &qOffset);
         return(true);
     } else {
         return(false);
