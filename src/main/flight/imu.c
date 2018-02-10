@@ -299,24 +299,14 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     gy += dcmKpGain * ey + integralFBy;
     gz += dcmKpGain * ez + integralFBz;
 
-    // test new method
+    // integrate difference
     quaternion qDiff;
     qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
     qDiff.x = sin_approx(gx * 0.5f * dt);
     qDiff.y = sin_approx(gy * 0.5f * dt);
     qDiff.z = sin_approx(gz * 0.5f * dt);
+
     quaternionMultiply(&qAttitude, &qDiff, &qAttitude);
-
-    // Ok old bf method
-    /*
-    quaternion qBuff, qDiff;
-    qDiff.w = 0;
-    qDiff.x = gx * 0.5f * dt;
-    qDiff.y = gy * 0.5f * dt;
-    qDiff.z = gz * 0.5f * dt;
-    quaternionMultiply(&qAttitude, &qDiff, &qBuff);
-    quaternionAdd(&qAttitude, &qBuff, &qAttitude);*/
-
     quaternionNormalize(&qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 }
