@@ -489,6 +489,7 @@ void imuSetHasNewData(uint32_t dt)
 #endif
 
 bool quaternionHeadfreeOffsetSet(void) {
+      // HEADADJ allowed for tilt below 37°
       if ((ABS(getCosTiltAngle()) > 0.8)) {
         const float yaw = atan2_approx((+2.0f * (qpAttitude.wz + qpAttitude.xy)), (+1.0f - 2.0f * (qpAttitude.yy + qpAttitude.zz)));
         qOffset.w = cos_approx(yaw/2);
