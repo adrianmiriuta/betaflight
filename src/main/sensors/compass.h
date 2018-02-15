@@ -60,4 +60,3 @@ bool compassIsHealthy(void);
 void compassUpdate(timeUs_t currentTime);
 bool compassInit(void);
 union flightDynamicsTrims_u;
-void compassUpdate(uint32_t currentTime, union flightDynamicsTrims_u *magZero);
