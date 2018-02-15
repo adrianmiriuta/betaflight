@@ -40,6 +40,7 @@
 #include "config/feature.h"
 #include "pg/pg.h"
 #include "pg/pg_ids.h"
+#include "pg/beeper.h"
 
 #include "drivers/accgyro/accgyro.h"
 #include "drivers/bus_i2c.h"
@@ -473,6 +474,7 @@ static bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProce
 #ifdef BEEPER
     case MSP_BEEPER_CONFIG:
         sbufWriteU32(dst, getBeeperOffMask());
+        sbufWriteU8(dst, beeperConfig()->dshotBeaconTone);
         break;
 #endif
 
@@ -755,7 +757,7 @@ static bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 
             // Write arming disable flags
             // 1 byte, flag count
-            sbufWriteU8(dst, NUM_ARMING_DISABLE_FLAGS);
+            sbufWriteU8(dst, ARMING_DISABLE_FLAGS_COUNT);
             // 4 bytes, flags
             const uint32_t armingDisableFlags = getArmingDisableFlags();
             sbufWriteU32(dst, armingDisableFlags);
@@ -875,13 +877,13 @@ static bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 
     case MSP_ARMING_CONFIG:
         sbufWriteU8(dst, armingConfig()->auto_disarm_delay);
-        sbufWriteU8(dst, armingConfig()->disarm_kill_switch);
+        sbufWriteU8(dst, 0);
         sbufWriteU8(dst, imuConfig()->small_angle);
         break;
 
     case MSP_RC_TUNING:
-        sbufWriteU8(dst, currentControlRateProfile->rcRate8);
-        sbufWriteU8(dst, currentControlRateProfile->rcExpo8);
+        sbufWriteU8(dst, currentControlRateProfile->rcRates[FD_ROLL]);
+        sbufWriteU8(dst, currentControlRateProfile->rcExpo[FD_ROLL]);
         for (int i = 0 ; i < 3; i++) {
             sbufWriteU8(dst, currentControlRateProfile->rates[i]); // R,P,Y see flight_dynamics_index_t
         }
@@ -889,8 +891,10 @@ static bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU8(dst, currentControlRateProfile->thrMid8);
         sbufWriteU8(dst, currentControlRateProfile->thrExpo8);
         sbufWriteU16(dst, currentControlRateProfile->tpa_breakpoint);
-        sbufWriteU8(dst, currentControlRateProfile->rcYawExpo8);
-        sbufWriteU8(dst, currentControlRateProfile->rcYawRate8);
+        sbufWriteU8(dst, currentControlRateProfile->rcExpo[FD_YAW]);
+        sbufWriteU8(dst, currentControlRateProfile->rcRates[FD_YAW]);
+        sbufWriteU8(dst, currentControlRateProfile->rcRates[FD_PITCH]);
+        sbufWriteU8(dst, currentControlRateProfile->rcExpo[FD_PITCH]);
         break;
 
     case MSP_PID:
@@ -1011,7 +1015,7 @@ static bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
         sbufWriteU16(dst, rxConfig()->rx_max_usec);
         sbufWriteU8(dst, rxConfig()->rcInterpolation);
         sbufWriteU8(dst, rxConfig()->rcInterpolationInterval);
-        sbufWriteU16(dst, rxConfig()->airModeActivateThreshold);
+        sbufWriteU16(dst, rxConfig()->airModeActivateThreshold * 10 + 1000);
         sbufWriteU8(dst, rxConfig()->rx_spi_protocol);
         sbufWriteU32(dst, rxConfig()->rx_spi_id);
         sbufWriteU8(dst, rxConfig()->rx_spi_rf_channel_count);
@@ -1209,11 +1213,11 @@ static bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
 #if defined(USE_VTX_COMMON)
     case MSP_VTX_CONFIG:
         {
-            uint8_t deviceType = vtxCommonGetDeviceType();
-            if (deviceType != VTXDEV_UNKNOWN) {
+            const vtxDevice_t *vtxDevice = vtxCommonDevice();
+            if (vtxDevice) {
                 uint8_t pitmode=0;
-                vtxCommonGetPitMode(&pitmode);
-                sbufWriteU8(dst, deviceType);
+                vtxCommonGetPitMode(vtxDevice, &pitmode);
+                sbufWriteU8(dst, vtxCommonGetDeviceType(vtxDevice));
                 sbufWriteU8(dst, vtxSettingsConfig()->band);
                 sbufWriteU8(dst, vtxSettingsConfig()->channel);
                 sbufWriteU8(dst, vtxSettingsConfig()->power);
@@ -1412,7 +1416,7 @@ static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         break;
     case MSP_SET_ARMING_CONFIG:
         armingConfigMutable()->auto_disarm_delay = sbufReadU8(src);
-        armingConfigMutable()->disarm_kill_switch = sbufReadU8(src);
+        sbufReadU8(src); // reserved
         if (sbufBytesRemaining(src)) {
           imuConfigMutable()->small_angle = sbufReadU8(src);
         }
@@ -1473,24 +1477,45 @@ static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 
     case MSP_SET_RC_TUNING:
         if (sbufBytesRemaining(src) >= 10) {
-            currentControlRateProfile->rcRate8 = sbufReadU8(src);
-            currentControlRateProfile->rcExpo8 = sbufReadU8(src);
-            for (int i = 0; i < 3; i++) {
-                value = sbufReadU8(src);
-                currentControlRateProfile->rates[i] = MIN(value, i == FD_YAW ? CONTROL_RATE_CONFIG_YAW_RATE_MAX : CONTROL_RATE_CONFIG_ROLL_PITCH_RATE_MAX);
+            value = sbufReadU8(src);
+            if (currentControlRateProfile->rcRates[FD_PITCH] == currentControlRateProfile->rcRates[FD_ROLL]) {
+                currentControlRateProfile->rcRates[FD_PITCH] = value;
             }
+            currentControlRateProfile->rcRates[FD_ROLL] = value;
+
+            value = sbufReadU8(src);
+            if (currentControlRateProfile->rcExpo[FD_PITCH] == currentControlRateProfile->rcExpo[FD_ROLL]) {
+                currentControlRateProfile->rcExpo[FD_PITCH] = value;
+            }
+            currentControlRateProfile->rcExpo[FD_ROLL] = value;
+
+            for (int i = 0; i < 3; i++) {
+                currentControlRateProfile->rates[i] = sbufReadU8(src);
+            }
+
             value = sbufReadU8(src);
             currentControlRateProfile->dynThrPID = MIN(value, CONTROL_RATE_CONFIG_TPA_MAX);
             currentControlRateProfile->thrMid8 = sbufReadU8(src);
             currentControlRateProfile->thrExpo8 = sbufReadU8(src);
             currentControlRateProfile->tpa_breakpoint = sbufReadU16(src);
+
             if (sbufBytesRemaining(src) >= 1) {
-                currentControlRateProfile->rcYawExpo8 = sbufReadU8(src);
+                currentControlRateProfile->rcExpo[FD_YAW] = sbufReadU8(src);
             }
+
             if (sbufBytesRemaining(src) >= 1) {
-                currentControlRateProfile->rcYawRate8 = sbufReadU8(src);
+                currentControlRateProfile->rcRates[FD_YAW] = sbufReadU8(src);
             }
-            generateThrottleCurve();
+
+            if (sbufBytesRemaining(src) >= 1) {
+                currentControlRateProfile->rcRates[FD_PITCH] = sbufReadU8(src);
+            }
+
+            if (sbufBytesRemaining(src) >= 1) {
+                currentControlRateProfile->rcExpo[FD_PITCH] = sbufReadU8(src);
+            }
+
+            initRcProcessing();
         } else {
             return MSP_RESULT_ERROR;
         }
@@ -1705,8 +1730,9 @@ static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 #ifdef USE_VTX_COMMON
     case MSP_SET_VTX_CONFIG:
         {
-            if (vtxCommonDeviceRegistered()) {
-                if (vtxCommonGetDeviceType() != VTXDEV_UNKNOWN) {
+            vtxDevice_t *vtxDevice = vtxCommonDevice();
+            if (vtxDevice) {
+                if (vtxCommonGetDeviceType(vtxDevice) != VTXDEV_UNKNOWN) {
                     uint16_t newFrequency = sbufReadU16(src);
                     if (newFrequency <= VTXCOMMON_MSP_BANDCHAN_CHKVAL) {  //value is band and channel
                         const uint8_t newBand = (newFrequency / 8) + 1;
@@ -1724,9 +1750,9 @@ static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
                         // Delegate pitmode to vtx directly
                         const uint8_t newPitmode = sbufReadU8(src);
                         uint8_t currentPitmode = 0;
-                        vtxCommonGetPitMode(&currentPitmode);
+                        vtxCommonGetPitMode(vtxDevice, &currentPitmode);
                         if (currentPitmode != newPitmode) {
-                            vtxCommonSetPitMode(newPitmode);
+                            vtxCommonSetPitMode(vtxDevice, newPitmode);
                         }
                     }
                 }
@@ -1816,6 +1842,9 @@ static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
     case MSP_SET_BEEPER_CONFIG:
         beeperOffClearAll();
         setBeeperOffMask(sbufReadU32(src));
+        if (sbufBytesRemaining(src) >= 1) {
+            beeperConfigMutable()->dshotBeaconTone = sbufReadU8(src);
+        }
         break;
 #endif
 
@@ -1849,7 +1878,7 @@ static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         if (sbufBytesRemaining(src) >= 4) {
             rxConfigMutable()->rcInterpolation = sbufReadU8(src);
             rxConfigMutable()->rcInterpolationInterval = sbufReadU8(src);
-            rxConfigMutable()->airModeActivateThreshold = sbufReadU16(src);
+            rxConfigMutable()->airModeActivateThreshold = (sbufReadU16(src) - 1000) / 10;
         }
         if (sbufBytesRemaining(src) >= 6) {
             rxConfigMutable()->rx_spi_protocol = sbufReadU8(src);

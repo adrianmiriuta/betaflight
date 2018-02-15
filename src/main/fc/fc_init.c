@@ -87,6 +87,8 @@
 #include "pg/bus_i2c.h"
 #include "pg/bus_spi.h"
 #include "pg/flash.h"
+#include "pg/pinio.h"
+#include "pg/piniobox.h"
 #include "pg/pg.h"
 #include "pg/rx_pwm.h"
 #include "pg/sdcard.h"
@@ -112,6 +114,7 @@
 #include "io/transponder_ir.h"
 #include "io/osd.h"
 #include "io/osd_slave.h"
+#include "io/piniobox.h"
 #include "io/displayport_msp.h"
 #include "io/vtx.h"
 #include "io/vtx_rtc6705.h"
@@ -217,8 +220,8 @@ void spiPreInit(void)
 #ifdef USE_MAX7456
     spiPreInitCsOutPU(IO_TAG(MAX7456_SPI_CS_PIN)); // XXX 3.2 workaround for Kakute F4. See comment for spiPreInitCSOutPU.
 #endif
-#ifdef USE_SDCARD
-    spiPreInitCs(IO_TAG(SDCARD_SPI_CS_PIN));
+#ifdef USE_SDCARD 
+    spiPreInitCs(sdcardConfig()->chipSelectTag);
 #endif
 #ifdef USE_BARO_SPI_BMP280
     spiPreInitCs(IO_TAG(BMP280_CS_PIN));
@@ -533,6 +536,14 @@ void init(void)
     servosFilterInit();
 #endif
 
+#ifdef USE_PINIO
+    pinioInit(pinioConfig());
+#endif
+
+#ifdef USE_PINIOBOX
+    pinioBoxInit(pinioBoxConfig());
+#endif
+
     LED1_ON;
     LED0_OFF;
     LED2_OFF;
@@ -664,9 +675,13 @@ void init(void)
 
 #ifdef USE_SDCARD
     if (blackboxConfig()->device == BLACKBOX_DEVICE_SDCARD) {
-        sdcardInsertionDetectInit();
-        sdcard_init(sdcardConfig()->useDma);
-        afatfs_init();
+        if (sdcardConfig()->enabled) {
+            sdcardInsertionDetectInit();
+            sdcard_init(sdcardConfig());
+            afatfs_init();
+        } else {
+            blackboxConfigMutable()->device = BLACKBOX_DEVICE_NONE;
+        }
     }
 #endif
 
@@ -700,7 +715,7 @@ void init(void)
 
 #ifdef USE_VTX_RTC6705
 #ifdef VTX_RTC6705_OPTIONAL
-    if (!vtxCommonDeviceRegistered()) // external VTX takes precedence when configured.
+    if (!vtxCommonDevice()) // external VTX takes precedence when configured.
 #endif
     {
         vtxRTC6705Init();

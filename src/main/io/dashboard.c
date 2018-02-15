@@ -46,6 +46,7 @@
 #include "config/feature.h"
 #include "pg/pg.h"
 #include "pg/pg_ids.h"
+#include "pg/dashboard.h"
 
 #include "fc/config.h"
 #include "fc/controlrate_profile.h"
@@ -70,14 +71,6 @@
 #include "sensors/compass.h"
 #include "sensors/gyro.h"
 #include "sensors/sensors.h"
-
-
-PG_REGISTER_WITH_RESET_TEMPLATE(dashboardConfig_t, dashboardConfig, PG_DASHBOARD_CONFIG, 0);
-
-PG_RESET_TEMPLATE(dashboardConfig_t, dashboardConfig,
-    .device = I2C_DEV_TO_CFG(DASHBOARD_I2C_INSTANCE),
-    .address = DASHBOARD_I2C_ADDRESS,
-);
 
 #define MICROSECONDS_IN_A_SECOND (1000 * 1000)
 
@@ -325,9 +318,19 @@ static void showProfilePage(void)
     i2c_OLED_send_string(bus, lineBuffer);
 
     const controlRateConfig_t *controlRateConfig = controlRateProfiles(currentRateProfileIndex);
-    tfp_sprintf(lineBuffer, "RCE: %d, RCR: %d",
-        controlRateConfig->rcExpo8,
-        controlRateConfig->rcRate8
+    tfp_sprintf(lineBuffer, "RRr:%d PRR:%d YRR:%d",
+        controlRateConfig->rcRates[FD_ROLL],
+        controlRateConfig->rcRates[FD_PITCH],
+        controlRateConfig->rcRates[FD_YAW]
+    );
+    padLineBuffer();
+    i2c_OLED_set_line(bus, rowIndex++);
+    i2c_OLED_send_string(bus, lineBuffer);
+
+    tfp_sprintf(lineBuffer, "RE:%d PE:%d YE:%d",
+        controlRateConfig->rcExpo[FD_ROLL],
+        controlRateConfig->rcExpo[FD_PITCH],
+        controlRateConfig->rcExpo[FD_YAW]
     );
     padLineBuffer();
     i2c_OLED_set_line(bus, rowIndex++);

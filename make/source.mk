@@ -34,6 +34,7 @@ COMMON_SRC = \
             drivers/exti.c \
             drivers/io.c \
             drivers/light_led.c \
+            drivers/pinio.c \
             drivers/resource.c \
             drivers/rcc.c \
             drivers/serial.c \
@@ -56,6 +57,7 @@ COMMON_SRC = \
             interface/msp.c \
             interface/msp_box.c \
             io/beeper.c \
+            io/piniobox.c \
             io/serial.c \
             io/statusindicator.c \
             io/transponder_ir.c \
@@ -65,7 +67,10 @@ COMMON_SRC = \
             pg/beeper_dev.c \
             pg/bus_i2c.c \
             pg/bus_spi.c \
+            pg/dashboard.c \
             pg/max7456.c \
+            pg/pinio.c \
+            pg/piniobox.c \
             pg/pg.c \
             pg/rx_pwm.c \
             pg/sdcard.c \
@@ -88,7 +93,6 @@ FC_SRC = \
             drivers/accgyro/gyro_sync.c \
             drivers/pwm_esc_detect.c \
             drivers/pwm_output.c \
-            drivers/rx/rx_nrf24l01.c \
             drivers/rx/rx_spi.c \
             drivers/rx/rx_xn297.c \
             drivers/rx/rx_pwm.c \
@@ -102,8 +106,10 @@ FC_SRC = \
             flight/failsafe.c \
             flight/imu.c \
             flight/mixer.c \
+            flight/mixer_tricopter.c \
             flight/pid.c \
             flight/servos.c \
+            flight/servos_tricopter.c \
             interface/cli.c \
             interface/settings.c \
             io/serial_4way.c \
@@ -112,11 +118,6 @@ FC_SRC = \
             rx/ibus.c \
             rx/jetiexbus.c \
             rx/msp.c \
-            rx/nrf24_cx10.c \
-            rx/nrf24_inav.c \
-            rx/nrf24_h8_3d.c \
-            rx/nrf24_syma.c \
-            rx/nrf24_v202.c \
             rx/pwm.c \
             rx/rx.c \
             rx/rx_spi.c \
@@ -146,6 +147,7 @@ FC_SRC = \
             cms/cms_menu_ledstrip.c \
             cms/cms_menu_misc.c \
             cms/cms_menu_osd.c \
+            cms/cms_menu_power.c \
             cms/cms_menu_vtx_rtc6705.c \
             cms/cms_menu_vtx_smartaudio.c \
             cms/cms_menu_vtx_tramp.c \
@@ -316,6 +318,7 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             cms/cms_menu_ledstrip.c \
             cms/cms_menu_misc.c \
             cms/cms_menu_osd.c \
+            cms/cms_menu_power.c \
             cms/cms_menu_vtx_rtc6705.c \
             cms/cms_menu_vtx_smartaudio.c \
             cms/cms_menu_vtx_tramp.c \
@@ -325,6 +328,7 @@ SIZE_OPTIMISED_SRC := $(SIZE_OPTIMISED_SRC) \
             io/vtx_smartaudio.c \
             io/vtx_tramp.c \
             io/vtx_control.c \
+            io/spektrum_vtx_control.c \
             pg/pg.h
 
 # F4 and F7 optimizations
@@ -368,7 +372,7 @@ endif
 SRC += $(COMMON_SRC)
 
 #excludes
-SRC   := $(filter-out ${MCU_EXCLUDES}, $(SRC))
+SRC   := $(filter-out $(MCU_EXCLUDES), $(SRC))
 
 ifneq ($(filter SDCARD,$(FEATURES)),)
 SRC += \

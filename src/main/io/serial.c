@@ -457,11 +457,13 @@ void serialInit(bool softserialEnabled, serialPortIdentifier_e serialPortToDisab
 
         if ((serialPortUsageList[index].identifier == SERIAL_PORT_SOFTSERIAL1
 #ifdef USE_SOFTSERIAL1
-            && !(softserialEnabled && serialPinConfig()->ioTagTx[RESOURCE_SOFT_OFFSET + SOFTSERIAL1])
+            && !(softserialEnabled && (serialPinConfig()->ioTagTx[RESOURCE_SOFT_OFFSET + SOFTSERIAL1] ||
+                serialPinConfig()->ioTagRx[RESOURCE_SOFT_OFFSET + SOFTSERIAL1]))
 #endif
            ) || (serialPortUsageList[index].identifier == SERIAL_PORT_SOFTSERIAL2
 #ifdef USE_SOFTSERIAL2
-            && !(softserialEnabled && serialPinConfig()->ioTagTx[RESOURCE_SOFT_OFFSET + SOFTSERIAL2])
+            && !(softserialEnabled && (serialPinConfig()->ioTagTx[RESOURCE_SOFT_OFFSET + SOFTSERIAL2] ||
+                serialPinConfig()->ioTagRx[RESOURCE_SOFT_OFFSET + SOFTSERIAL2]))
 #endif
             )) {
             serialPortUsageList[index].identifier = SERIAL_PORT_NONE;
@@ -500,20 +502,6 @@ void waitForSerialPortToFinishTransmitting(serialPort_t *serialPort)
     while (!isSerialTransmitBufferEmpty(serialPort)) {
         delay(10);
     };
-}
-
-void serialEvaluateNonMspData(serialPort_t *serialPort, uint8_t receivedChar)
-{
-#ifndef USE_CLI
-    UNUSED(serialPort);
-#else
-    if (receivedChar == '#') {
-        cliEnter(serialPort);
-    }
-#endif
-    if (receivedChar == serialConfig()->reboot_character) {
-        systemResetToBootloader();
-    }
 }
 
 #if defined(USE_GPS) || ! defined(SKIP_SERIAL_PASSTHROUGH)

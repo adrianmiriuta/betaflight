@@ -63,6 +63,18 @@
 #endif
 #endif
 
+// If USE_SERIALRX_SPEKTRUM was dropped by a target, drop all related options
+#ifndef USE_SERIALRX_SPEKTRUM
+#undef USE_SPEKTRUM_BIND
+#undef USE_SPEKTRUM_BIND_PLUG
+#undef USE_SPEKTRUM_REAL_RSSI
+#undef USE_SPEKTRUM_FAKE_RSSI
+#undef USE_SPEKTRUM_RSSI_PERCENT_CONVERSION
+#undef USE_SPEKTRUM_VTX_CONTROL
+#undef USE_SPEKTRUM_VTX_TELEMETRY
+#undef USE_SPEKTRUM_CMS_TELEMETRY
+#endif
+
 // undefine USE_ALT_HOLD if there is no baro or rangefinder to support it
 #if defined(USE_ALT_HOLD) && !defined(USE_BARO) && !defined(USE_RANGEFINDER)
 #undef USE_ALT_HOLD
@@ -81,12 +93,7 @@
 #define USE_RX_FRSKY_SPI
 #endif
 
-#if !defined(STM32F1) && defined(USE_DSHOT)
-#if !defined(USE_DSHOT_DMA) && !defined(USE_DSHOT_DMAR)
-#if !defined(RELEASE_BUILD)
-#define USE_DSHOT_DMAR
-#endif // !RELEASE_BUILD
-#endif // !USE_DSHOT_DMA && !USE_DSHOT_DMAR
-#endif // !STM32F1 && !STM32F3
-#undef USE_DSHOT_DMA
-
+// Burst dshot to default off if not configured explicitly by target
+#ifndef ENABLE_DSHOT_DMAR
+#define ENABLE_DSHOT_DMAR false
+#endif

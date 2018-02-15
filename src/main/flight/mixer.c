@@ -49,6 +49,7 @@
 #include "flight/failsafe.h"
 #include "flight/imu.h"
 #include "flight/mixer.h"
+#include "flight/mixer_tricopter.h"
 #include "flight/pid.h"
 
 #include "rx/rx.h"
@@ -92,6 +93,9 @@ void pgResetFn_motorConfig(motorConfig_t *motorConfig)
     motorConfig->maxthrottle = 2000;
     motorConfig->mincommand = 1000;
     motorConfig->digitalIdleOffsetValue = 450;
+#ifdef USE_DSHOT_DMAR
+    motorConfig->dev.useBurstDshot = ENABLE_DSHOT_DMAR;
+#endif
 
     int motorIndex = 0;
     for (int i = 0; i < USABLE_TIMER_CHANNEL_COUNT && motorIndex < MAX_SUPPORTED_MOTORS; i++) {
@@ -105,8 +109,6 @@ void pgResetFn_motorConfig(motorConfig_t *motorConfig)
 PG_REGISTER_ARRAY(motorMixer_t, MAX_SUPPORTED_MOTORS, customMotorMixer, PG_MOTOR_MIXER, 0);
 
 #define PWM_RANGE_MID 1500
-
-#define TRICOPTER_ERROR_RATE_YAW_SATURATED 75 // rate at which tricopter yaw axis becomes saturated, determined experimentally by TriFlight
 
 static FAST_RAM uint8_t motorCount;
 static FAST_RAM float motorMixRange;
@@ -341,10 +343,19 @@ bool areMotorsRunning(void)
     return motorsRunning;
 }
 
+bool mixerIsTricopter(void)
+{
+#ifdef USE_SERVOS
+    return (currentMixerMode == MIXER_TRI || currentMixerMode == MIXER_CUSTOM_TRI);
+#else
+    return false;
+#endif
+}
+
 bool mixerIsOutputSaturated(int axis, float errorRate)
 {
-    if (axis == FD_YAW && (currentMixerMode == MIXER_TRI || currentMixerMode == MIXER_CUSTOM_TRI)) {
-        return errorRate > TRICOPTER_ERROR_RATE_YAW_SATURATED;
+    if (axis == FD_YAW && mixerIsTricopter()) {
+        return mixerTricopterIsServoSaturated(errorRate);
     } else {
         return motorMixRange >= 1.0f;
     }
@@ -404,6 +415,9 @@ void mixerInit(mixerMode_e mixerMode)
     currentMixerMode = mixerMode;
 
     initEscEndpoints();
+    if (mixerIsTricopter()) {
+        mixerTricopterInit();
+    }
 }
 
 #ifndef USE_QUAD_MIXER_ONLY
@@ -641,8 +655,11 @@ static void applyMixToMotors(float motorMix[MAX_SUPPORTED_MOTORS])
 {
     // Now add in the desired throttle, but keep in a range that doesn't clip adjusted
     // roll/pitch/yaw. This could move throttle down, but also up for those low throttle flips.
-    for (uint32_t i = 0; i < motorCount; i++) {
+    for (int i = 0; i < motorCount; i++) {
         float motorOutput = motorOutputMin + (motorOutputRange * (motorOutputMixSign * motorMix[i] + throttle * currentMixer[i].throttle));
+        if (mixerIsTricopter()) {
+            motorOutput += mixerTricopterMotorCorrection(i);
+        }
         if (failsafeIsActive()) {
             if (isMotorProtocolDshot()) {
                 motorOutput = (motorOutput < motorRangeMin) ? disarmMotorOutput : motorOutput; // Prevent getting into special reserved range
@@ -680,11 +697,11 @@ void mixTable(timeUs_t currentTimeUs, uint8_t vbatPidCompensation)
 
     // Calculate and Limit the PIDsum
     const float scaledAxisPidRoll =
-        constrainf(axisPID_P[FD_ROLL] + axisPID_I[FD_ROLL] + axisPID_D[FD_ROLL], -currentPidProfile->pidSumLimit, currentPidProfile->pidSumLimit) / PID_MIXER_SCALING;
+        constrainf(axisPIDSum[FD_ROLL], -currentPidProfile->pidSumLimit, currentPidProfile->pidSumLimit) / PID_MIXER_SCALING;
     const float scaledAxisPidPitch =
-        constrainf(axisPID_P[FD_PITCH] + axisPID_I[FD_PITCH] + axisPID_D[FD_PITCH], -currentPidProfile->pidSumLimit, currentPidProfile->pidSumLimit) / PID_MIXER_SCALING;
+        constrainf(axisPIDSum[FD_PITCH], -currentPidProfile->pidSumLimit, currentPidProfile->pidSumLimit) / PID_MIXER_SCALING;
     float scaledAxisPidYaw =
-        constrainf(axisPID_P[FD_YAW] + axisPID_I[FD_YAW], -currentPidProfile->pidSumLimitYaw, currentPidProfile->pidSumLimitYaw) / PID_MIXER_SCALING;
+        constrainf(axisPIDSum[FD_YAW], -currentPidProfile->pidSumLimitYaw, currentPidProfile->pidSumLimitYaw) / PID_MIXER_SCALING;
     if (!mixerConfig()->yaw_motors_reversed) {
         scaledAxisPidYaw = -scaledAxisPidYaw;
     }

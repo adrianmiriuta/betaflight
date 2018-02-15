@@ -15,6 +15,9 @@
  * along with Cleanflight.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+typedef struct dashboardConfig_s {
+    I2CDevice device;
+    uint8_t   address;
+} dashboardConfig_t;
 
-#include "stm32f7xx.h"
+PG_DECLARE(dashboardConfig_t, dashboardConfig);

@@ -28,7 +28,7 @@
 #define BEEPER_INVERTED
 #define BEEPER_PWM_HZ             3800 // Beeper PWM frequency in Hz
 
-#define USE_DSHOT_DMAR
+#define ENABLE_DSHOT_DMAR         true
 
 #define INVERTER_PIN_UART1        PC0 // PC0 used as inverter select GPIO
 
@@ -61,7 +61,6 @@
 #define MPU6500_SPI_INSTANCE    SPI1
 
 
-#define USE_OSD
 #define USE_MAX7456
 #define MAX7456_SPI_INSTANCE    SPI3
 #define MAX7456_SPI_CS_PIN      PA15
@@ -78,9 +77,7 @@
 // Divide to under 25MHz for normal operation:
 #define SDCARD_SPI_FULL_SPEED_CLOCK_DIVIDER  4 // 21MHz
 #define SDCARD_DMA_CHANNEL_TX                DMA1_Stream4
-#define SDCARD_DMA_CHANNEL_TX_COMPLETE_FLAG  DMA_FLAG_TCIF4
-#define SDCARD_DMA_CLK                       RCC_AHB1Periph_DMA1
-#define SDCARD_DMA_CHANNEL                   DMA_Channel_0
+#define SDCARD_DMA_CHANNEL                   0
 
 #define USE_FLASHFS
 #define USE_FLASH_M25P16

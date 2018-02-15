@@ -64,6 +64,8 @@ extern "C" {
     gpsSolutionData_t gpsSol;
     uint32_t targetPidLooptime;
     bool cmsInMenu = false;
+    float axisPID_P[3], axisPID_I[3], axisPID_D[3], axisPIDSum[3];
+    rxRuntimeConfig_t rxRuntimeConfig = {};
 }
 
 uint32_t simulationFeatureFlags = 0;
@@ -634,7 +636,7 @@ extern "C" {
     void mixTable(timeUs_t , uint8_t) {};
     void writeMotors(void) {};
     void writeServos(void) {};
-    void calculateRxChannelsAndUpdateFailsafe(timeUs_t) {}
+    bool calculateRxChannelsAndUpdateFailsafe(timeUs_t) { return true; }
     bool isMixerUsingServos(void) { return false; }
     void gyroUpdate(timeUs_t) {}
     timeDelta_t getTaskDeltaTime(cfTaskId_e) { return 0; }
@@ -667,4 +669,5 @@ extern "C" {
     void dashboardEnablePageCycling(void) {}
     void dashboardDisablePageCycling(void) {}
     bool quaternionHeadfreeOffsetSet(void) { return true; }
+    void rescheduleTask(cfTaskId_e, uint32_t) {}
 }

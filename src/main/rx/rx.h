@@ -43,7 +43,8 @@
 typedef enum {
     RX_FRAME_PENDING = 0,
     RX_FRAME_COMPLETE = (1 << 0),
-    RX_FRAME_FAILSAFE = (1 << 1)
+    RX_FRAME_FAILSAFE = (1 << 1),
+    RX_FRAME_PROCESSING_REQUIRED = (1 << 2),
 } rxFrameState_e;
 
 typedef enum {
@@ -138,7 +139,7 @@ typedef struct rxConfig_s {
     uint8_t rcInterpolationChannels;
     uint8_t rcInterpolationInterval;
     uint8_t fpvCamAngleDegrees;             // Camera angle to be scaled into rc commands
-    uint16_t airModeActivateThreshold;      // Throttle setpoint where airmode gets activated
+    uint8_t airModeActivateThreshold;       // Throttle setpoint percent where airmode gets activated
 
     uint16_t rx_min_usec;
     uint16_t rx_max_usec;
@@ -150,25 +151,27 @@ PG_DECLARE(rxConfig_t, rxConfig);
 struct rxRuntimeConfig_s;
 typedef uint16_t (*rcReadRawDataFnPtr)(const struct rxRuntimeConfig_s *rxRuntimeConfig, uint8_t chan); // used by receiver driver to return channel data
 typedef uint8_t (*rcFrameStatusFnPtr)(struct rxRuntimeConfig_s *rxRuntimeConfig);
+typedef bool (*rcProcessFrameFnPtr)(const struct rxRuntimeConfig_s *rxRuntimeConfig);
 
 typedef struct rxRuntimeConfig_s {
     uint8_t             channelCount; // number of RC channels as reported by current input driver
     uint16_t            rxRefreshRate;
     rcReadRawDataFnPtr  rcReadRawFn;
     rcFrameStatusFnPtr  rcFrameStatusFn;
+    rcProcessFrameFnPtr rcProcessFrameFn;
     uint16_t            *channelData;
     void                *frameData;
 } rxRuntimeConfig_t;
 
-typedef enum rssiSource_e {
+typedef enum {
     RSSI_SOURCE_NONE = 0,
     RSSI_SOURCE_ADC,
     RSSI_SOURCE_RX_CHANNEL,
     RSSI_SOURCE_RX_PROTOCOL,
     RSSI_SOURCE_MSP,
-} rssiSource_t;
+} rssiSource_e;
 
-extern rssiSource_t rssiSource;
+extern rssiSource_e rssiSource;
 
 extern rxRuntimeConfig_t rxRuntimeConfig; //!!TODO remove this extern, only needed once for channelCount
 
@@ -176,14 +179,14 @@ void rxInit(void);
 bool rxUpdateCheck(timeUs_t currentTimeUs, timeDelta_t currentDeltaTimeUs);
 bool rxIsReceivingSignal(void);
 bool rxAreFlightChannelsValid(void);
-void calculateRxChannelsAndUpdateFailsafe(timeUs_t currentTimeUs);
+bool calculateRxChannelsAndUpdateFailsafe(timeUs_t currentTimeUs);
 
 void parseRcChannels(const char *input, rxConfig_t *rxConfig);
 
-void setRssiFiltered(const uint16_t newRssi, const rssiSource_t source);
-void setRssiUnfiltered(const uint16_t rssiValue, const rssiSource_t source);
-void setRssiMsp(const uint8_t newMspRssi);
-void updateRSSI(const timeUs_t currentTimeUs);
+void setRssiFiltered(uint16_t newRssi, rssiSource_e source);
+void setRssiUnfiltered(uint16_t rssiValue, rssiSource_e source);
+void setRssiMsp(uint8_t newMspRssi);
+void updateRSSI(timeUs_t currentTimeUs);
 uint16_t getRssi(void);
 
 void resetAllRxChannelRangeConfigurations(rxChannelRangeConfig_t *rxChannelRangeConfig);

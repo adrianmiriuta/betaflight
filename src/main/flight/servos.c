@@ -232,6 +232,10 @@ void servosInit(void)
     for (uint8_t i = 0; i < MAX_SUPPORTED_SERVOS; i++) {
         servo[i] = DEFAULT_SERVO_MIDDLE;
     }
+
+    if (mixerIsTricopter()) {
+        servosTricopterInit();
+    }
 }
 
 void loadCustomServoMixer(void)
@@ -319,7 +323,7 @@ void writeServos(void)
     switch (currentMixerMode) {
     case MIXER_TRI:
     case MIXER_CUSTOM_TRI:
-        if (servoConfig()->tri_unarmed_servo) {
+        if (servosTricopterIsEnabledServoUnarmed()) {
             // if unarmed flag set, we always move servo
             pwmWriteServo(servoIndex++, servo[SERVO_RUDDER]);
         } else {
@@ -385,7 +389,7 @@ void writeServos(void)
     }
 }
 
-STATIC_UNIT_TESTED void servoMixer(void)
+void servoMixer(void)
 {
     int16_t input[INPUT_SOURCE_COUNT]; // Range [-500:+500]
     static int16_t currentOutput[MAX_SERVO_RULES];
@@ -397,9 +401,9 @@ STATIC_UNIT_TESTED void servoMixer(void)
         input[INPUT_STABILIZED_YAW] = rcCommand[YAW];
     } else {
         // Assisted modes (gyro only or gyro+acc according to AUX configuration in Gui
-        input[INPUT_STABILIZED_ROLL] = (axisPID_P[FD_ROLL] + axisPID_I[FD_ROLL] + axisPID_D[FD_ROLL]) * PID_SERVO_MIXER_SCALING;
-        input[INPUT_STABILIZED_PITCH] = (axisPID_P[FD_PITCH] + axisPID_I[FD_PITCH] + axisPID_D[FD_PITCH]) * PID_SERVO_MIXER_SCALING;
-        input[INPUT_STABILIZED_YAW] = (axisPID_P[FD_YAW] + axisPID_I[FD_YAW]) * PID_SERVO_MIXER_SCALING;
+        input[INPUT_STABILIZED_ROLL] = axisPIDSum[FD_ROLL] * PID_SERVO_MIXER_SCALING;
+        input[INPUT_STABILIZED_PITCH] = axisPIDSum[FD_PITCH] * PID_SERVO_MIXER_SCALING;
+        input[INPUT_STABILIZED_YAW] = axisPIDSum[FD_YAW] * PID_SERVO_MIXER_SCALING;
 
         // Reverse yaw servo when inverted in 3D mode
         if (feature(FEATURE_3D) && (rcData[THROTTLE] < rxConfig()->midrc)) {
@@ -467,12 +471,14 @@ static void servoTable(void)
 {
     // airplane / servo mixes
     switch (currentMixerMode) {
+    case MIXER_CUSTOM_TRI:
+    case MIXER_TRI:
+        servosTricopterMixer();
+        break;
     case MIXER_CUSTOM_AIRPLANE:
     case MIXER_FLYING_WING:
     case MIXER_AIRPLANE:
     case MIXER_BICOPTER:
-    case MIXER_CUSTOM_TRI:
-    case MIXER_TRI:
     case MIXER_DUALCOPTER:
     case MIXER_SINGLECOPTER:
     case MIXER_HELI_120_CCPM:

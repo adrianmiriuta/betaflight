@@ -58,7 +58,7 @@ static uint32_t imuDeltaT = 0;
 static bool imuUpdated = false;
 #endif
 
-#define IMU_LOCK pthread_mutex_unlock(&imuUpdateLock)
+#define IMU_LOCK pthread_mutex_lock(&imuUpdateLock)
 #define IMU_UNLOCK pthread_mutex_unlock(&imuUpdateLock)
 
 #else
@@ -158,7 +158,7 @@ void imuResetAccelerationSum(void)
 
 #if defined(USE_ALT_HOLD)
 // rotate acc into Earth frame and calculate acceleration in it
-static void imuCalculateAcceleration(uint32_t deltaT)
+static void imuCalculateAcceleration(timeDelta_t deltaT)
 {
     static float accZoffset = 0;
     static float accz_smooth = 0;
@@ -227,23 +227,22 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     const float spin_rate = sqrtf(sq(gx) + sq(gy) + sq(gz));
 
     // Use raw heading error (from GPS or whatever else)
-    float ez = 0;
+    float ex = 0, ey = 0, ez = 0;
     if (useYaw) {
         while (yawError >  M_PIf) yawError -= (2.0f * M_PIf);
         while (yawError < -M_PIf) yawError += (2.0f * M_PIf);
-
         ez += sin_approx(yawError / 2.0f);
     }
 
+#ifdef USE_MAG
     // Use measured magnetic field vector
-    float ex = 0, ey = 0;
-    float recipNorm = sq(mx) + sq(my) + sq(mz);
-    if (useMag && recipNorm > 0.01f) {
+    float recipMagNorm = sq(mx) + sq(my) + sq(mz);
+    if (useMag && recipMagNorm > 0.01f) {
         // Normalise magnetometer measurement
-        recipNorm = invSqrt(recipNorm);
-        mx *= recipNorm;
-        my *= recipNorm;
-        mz *= recipNorm;
+        recipMagNorm = invSqrt(recipMagNorm);
+        mx *= recipMagNorm;
+        my *= recipMagNorm;
+        mz *= recipMagNorm;
 
         // For magnetometer correction we make an assumption that magnetic field is perpendicular to gravity (ignore Z-component in EF).
         // This way magnetic field will only affect heading and wont mess roll/pitch angles
@@ -262,15 +261,21 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         ey += (2.0f * (qpAttitude.yz - -qpAttitude.wx)) * ez_ef;
         ez += (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) * ez_ef;
     }
+#else
+    UNUSED(useMag);
+    UNUSED(mx);
+    UNUSED(my);
+    UNUSED(mz);
+#endif
 
     // Use measured acceleration vector
-    recipNorm = sq(ax) + sq(ay) + sq(az);
-    if (useAcc && recipNorm > 0.01f) {
+    float recipAccNorm = sq(ax) + sq(ay) + sq(az);
+    if (useAcc && recipAccNorm > 0.01f) {
         // Normalise accelerometer measurement
-        recipNorm = invSqrt(recipNorm);
-        ax *= recipNorm;
-        ay *= recipNorm;
-        az *= recipNorm;
+        recipAccNorm = invSqrt(recipAccNorm);
+        ax *= recipAccNorm;
+        ay *= recipAccNorm;
+        az *= recipAccNorm;
 
         // Error is sum of cross product between estimated direction and measured direction of gravity
         ex += (ay * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - az * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
@@ -287,8 +292,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
             integralFBy += dcmKiGain * ey * dt;
             integralFBz += dcmKiGain * ez * dt;
         }
-    }
-    else {
+    } else {
         integralFBx = 0.0f;    // prevent integral windup
         integralFBy = 0.0f;
         integralFBz = 0.0f;
@@ -434,29 +438,26 @@ static bool imuIsAccelerometerHealthy(void)
     return (81 < accMagnitude) && (accMagnitude < 121);
 }
 
-static bool isMagnetometerHealthy(void)
-{
-    return (mag.magADC[X] != 0) && (mag.magADC[Y] != 0) && (mag.magADC[Z] != 0);
-}
-
 static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
 {
-    static uint32_t previousIMUUpdateTime;
+    static timeUs_t previousIMUUpdateTime;
     float rawYawError = 0;
     bool useAcc = false;
     bool useMag = false;
     bool useYaw = false;
 
-    uint32_t deltaT = currentTimeUs - previousIMUUpdateTime;
+    const timeDelta_t deltaT = currentTimeUs - previousIMUUpdateTime;
     previousIMUUpdateTime = currentTimeUs;
 
     if (imuIsAccelerometerHealthy()) {
         useAcc = true;
     }
 
-    if (sensors(SENSOR_MAG) && isMagnetometerHealthy()) {
+#ifdef USE_MAG
+    if (sensors(SENSOR_MAG) && compassIsHealthy()) {
         useMag = true;
     }
+#endif
 #if defined(USE_GPS)
     else if (STATE(FIXED_WING) && sensors(SENSOR_GPS) && STATE(GPS_FIX) && gpsSol.numSat >= 5 && gpsSol.groundSpeed >= 300) {
         // In case of a fixed-wing aircraft we can use GPS course over ground to correct heading
@@ -583,6 +584,6 @@ bool quaternionHeadfreeOffsetSet(void) {
         quaternionInverse(&qOffset, &qOffset);
         return(true);
     } else {
-        return(false);
+        return false;
     }
 }

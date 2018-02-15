@@ -17,4 +17,4 @@
 
 #pragma once
 
-#include "stm32f30x.h"
+extern CMS_Menu cmsx_menuPower;
