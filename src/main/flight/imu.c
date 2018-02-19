@@ -349,7 +349,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     vAcc.z = az;
     quaternionNormalize(&vAcc);
 
-    /*
+    
     quaternion qAccRoll;
     float u = 0.1f;
     //float roll2 = atan2_approx(vAcc.y,vAcc.z)/2; // mmax v1 ROT xyz
@@ -374,13 +374,15 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccPitch.z = 0;
 
     //quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
-    */
+
 
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
+    /*
     qAcc.w = sqrtf((vAcc.z + 1)/2.0f);
     qAcc.x = +vAcc.y/sqrtf(2.0f * (vAcc.z + 1));
     qAcc.y = -vAcc.x/sqrtf(2.0f * (vAcc.z + 1));
     qAcc.z = 0;
+    */
     quaternionComputeProducts(&qAcc, &qpAcc);
 
     quaternion qAccYaw;
