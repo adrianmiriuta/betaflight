@@ -414,7 +414,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     quaternionMinimumDistance(&qAcc, &qGyro);
     //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.9);
-    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, quaternionDotProduct(&qAcc, &qGyro) * 10);
+    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, constrainf(quaternionDotProduct(&qAcc, &qGyro) * 10.0f,0.5f,0.999f));
 
     quaternionNormalize(&qAttitude);
     quaternionCopy(&qAttitude, &qGyro);
