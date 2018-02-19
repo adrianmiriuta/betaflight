@@ -319,7 +319,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     // test new method b
-    //
+    // problems around +-90° without normalization
     // https://github.com/malloch/Arduino_IMU
     quaternion qDiff;
     qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
@@ -343,7 +343,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
 
-    //quaternionNormalize(&qGyro);
+    quaternionNormalize(&qGyro);
     //quaternionComputeProducts(&qGyro, &qpGyro);
 
     /*
