@@ -342,6 +342,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // eigen
     quaternion vAcc, qAcc, qAccInverse;
+    quaternionProducts qpAcc;
+
     vAcc.w = 0;
     vAcc.x = ax;
     vAcc.y = ay;
@@ -380,6 +382,18 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAcc.y = -vAcc.x/sqrtf(2.0f * (vAcc.z + 1));
     qAcc.z = 0;
 
+    quaternionComputeProducts(&qAcc, &qpAcc);
+
+    quaternion qAccYaw;
+    const float yaw = atan2_approx((+2.0f * (qpAcc.wz + qpAcc.xy)), (+1.0f - 2.0f * (qpAcc.yy + qpAcc.zz)));
+    qAccYaw.w = cos_approx(yaw/2);
+    qAccYaw.x = 0;
+    qAccYaw.y = 0;
+    qAccYaw.z = sin_approx(yaw/2);
+    quaternionInverse(&qAccYaw,&qAccYaw);
+
+    quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
+
 
 
 
@@ -396,15 +410,15 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
     qGyroYaw.z = sin_approx(yaw/2);
-    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
+    //quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
 
 
     //quaternionCopy(&qAccRoll, &qAttitude);
     //quaternionCopy(&qAccPitch, &qAcc);
-    //quaternionCopy(&qAcc, &qAttitude);
+    quaternionCopy(&qAcc, &qAttitude);
 
     //quaternionMinimumDistance(&qAcc, &qGyro);
-    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.99);
+    //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.99);
 
     quaternionNormalize(&qAttitude);
     //quaternionCopy(&qAttitude, &qGyro);
