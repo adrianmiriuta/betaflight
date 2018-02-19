@@ -431,6 +431,15 @@ float quaternionDotProduct(quaternion *l, quaternion *r) {
     return l->w * r->w + l->x * r->x + l->y * r->y + l->z * r->z;
 }
 
+void quaternionMinimumDistance(quaternion *a, quaternion *b) {
+    if (quaternionDotProduct(a, b) < 0) {
+        b->w = b->w * -1;
+        b->x = b->x * -1;
+        b->y = b->y * -1;
+        b->z = b->z * -1;
+    }
+}
+
 void quaternionSlerp(quaternion *l, quaternion *r, quaternion *o, float weight) {
     float dot = quaternionDotProduct(l, r);
     if (dot > 0.9995) {
