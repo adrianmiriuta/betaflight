@@ -320,21 +320,18 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // test new method b
     //
-    // Joseph Malloch arduino_imu
-    /*
+    // https://github.com/malloch/Arduino_IMU
     quaternion qDiff;
     qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
     qDiff.x = sin_approx(gx * 0.5f * dt);
     qDiff.y = sin_approx(gy * 0.5f * dt);
     qDiff.z = sin_approx(gz * 0.5f * dt);
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);*/
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
 
     // test new method c
-    // drift 0.1° /sec LUX_RACE
-    // problems around pitch +-90°
-    // with sin cos no drift but double and more angle ... wrong (also with  normailzation) CPU19%
+    // not working
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
-
+    /*
     quaternion qDiff;
     float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
     qDiff.w = cos_approx(qDiffNorm * 0.5f * dt);
@@ -342,6 +339,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.y = (gy * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
     qDiff.z = (gz * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    */
 
 
 
