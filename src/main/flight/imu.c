@@ -327,8 +327,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionAdd(&qAttitude, &qBuff, &qAttitude);*/
 
 
-
-
     // test new method
     quaternion qDiff;
     qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
@@ -336,10 +334,11 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.y = sin_approx(gy * 0.5f * dt);
     qDiff.z = sin_approx(gz * 0.5f * dt);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    quaternionNormalize(&qGyro);
-    quaternionComputeProducts(&qGyro, &qpGyro);
 
+    //quaternionNormalize(&qGyro);
+    //quaternionComputeProducts(&qGyro, &qpGyro);
 
+    /*
     // eigen
     quaternion vAcc, qAcc;
     quaternionProducts qpAcc;
@@ -348,6 +347,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     vAcc.y = ay;
     vAcc.z = az;
     quaternionNormalize(&vAcc);
+    */
 
     /*
     quaternion qAccRoll;
@@ -376,6 +376,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
     */
 
+    /*
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
     qAcc.w = sqrtf((vAcc.z + 1)/2.0f);
     qAcc.x = +vAcc.y/sqrtf(2.0f * (vAcc.z + 1));
@@ -399,27 +400,31 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionMultiply(&qGyro, &qAccInverse, &qGyroYaw);
     quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);*/
 
+    /*
     quaternion qGyroYaw;
     const float yaw = atan2_approx((+2.0f * (qpGyro.wz + qpGyro.xy)), (+1.0f - 2.0f * (qpGyro.yy + qpGyro.zz)));
     qGyroYaw.w = cos_approx(yaw/2);
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
     qGyroYaw.z = sin_approx(yaw/2);
-    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
+    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);*/
+
 
 
     //quaternionCopy(&qAccRoll, &qAttitude);
     //quaternionCopy(&qAccPitch, &qAcc);
     //quaternionCopy(&qAcc, &qAttitude);
 
-    quaternionMinimumDistance(&qAcc, &qGyro);
-    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.99);
+    //quaternionMinimumDistance(&qAcc, &qGyro);
+    //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.99);
 
     //ko
     //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, constrainf(quaternionDotProduct(&qAcc, &qAttitude),0.5f,0.999f));
 
-    quaternionNormalize(&qAttitude);
-    quaternionCopy(&qAttitude, &qGyro);
+    //quaternionNormalize(&qAttitude);
+    //quaternionCopy(&qAttitude, &qGyro);
+
+    quaternionCopy(&qGyro, &qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 }
 
