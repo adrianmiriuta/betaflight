@@ -374,12 +374,11 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
 
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
-    qAcc.w = sqrtf((vAcc.z + 1.01f)/2.0f);
+    qAcc.w = sqrtf((vAcc.z + 1)/2.0f);
     qAcc.x = +vAcc.y/sqrtf(2.0f * (vAcc.z + 1));
     qAcc.y = -vAcc.x/sqrtf(2.0f * (vAcc.z + 1));
     qAcc.z = 0;
 
-    quaternionNormalize(&qAcc);
 
 
 
@@ -396,15 +395,15 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
     qGyroYaw.z = sin_approx(yaw/2);
-    //quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
+    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
 
 
     //quaternionCopy(&qAccRoll, &qAttitude);
     //quaternionCopy(&qAccPitch, &qAcc);
-    quaternionCopy(&qAcc, &qAttitude);
+    //quaternionCopy(&qAcc, &qAttitude);
 
-    //quaternionMinimumDistance(&qAcc, &qGyro);
-    //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.9);
+    quaternionMinimumDistance(&qAcc, &qGyro);
+    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.9);
 
     quaternionNormalize(&qAttitude);
     quaternionCopy(&qAttitude, &qGyro);
