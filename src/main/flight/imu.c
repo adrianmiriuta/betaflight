@@ -319,7 +319,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     // test new method b
-    (not normalized drifts away)
+    //
     // Joseph Malloch arduino_imu
     /*
     quaternion qDiff;
@@ -344,7 +344,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
 
-    //quaternionNormalize(&qGyro);
+    quaternionNormalize(&qGyro);
     //quaternionComputeProducts(&qGyro, &qpGyro);
 
     /*
