@@ -341,15 +341,15 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     // eigen
-    quaternion vAcc, qAcc, qAccInverse;
+    quaternion vAcc, qAcc;
     quaternionProducts qpAcc;
-
     vAcc.w = 0;
     vAcc.x = ax;
     vAcc.y = ay;
     vAcc.z = az;
     quaternionNormalize(&vAcc);
 
+    /*
     quaternion qAccRoll;
     float u = 0.1f;
     //float roll2 = atan2_approx(vAcc.y,vAcc.z)/2; // mmax v1 ROT xyz
@@ -374,28 +374,23 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccPitch.z = 0;
 
     //quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
+    */
 
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
-
     qAcc.w = sqrtf((vAcc.z + 1)/2.0f);
     qAcc.x = +vAcc.y/sqrtf(2.0f * (vAcc.z + 1));
     qAcc.y = -vAcc.x/sqrtf(2.0f * (vAcc.z + 1));
     qAcc.z = 0;
-
     quaternionComputeProducts(&qAcc, &qpAcc);
 
     quaternion qAccYaw;
-    const float AccyawHalf = atan2_approx((+2.0f * (qpAcc.wz + qpAcc.xy)), (+1.0f - 2.0f * (qpAcc.yy + qpAcc.zz))) / 2.0f;
-    qAccYaw.w = cos_approx(AccyawHalf);
+    const float AccYawHalf = atan2_approx((+2.0f * (qpAcc.wz + qpAcc.xy)), (+1.0f - 2.0f * (qpAcc.yy + qpAcc.zz))) / 2.0f;
+    qAccYaw.w = cos_approx(AccYawHalf);
     qAccYaw.x = 0;
     qAccYaw.y = 0;
-    qAccYaw.z = sin_approx(AccyawHalf);
+    qAccYaw.z = sin_approx(AccYawHalf);
     quaternionInverse(&qAccYaw,&qAccYaw);
-
     quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
-
-
-
 
     //introduces roll pitch drift !
     /*
@@ -418,7 +413,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionCopy(&qAcc, &qAttitude);
 
     quaternionMinimumDistance(&qAcc, &qGyro);
-    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.9);
+    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.5);
 
     quaternionNormalize(&qAttitude);
     quaternionCopy(&qAttitude, &qGyro);
