@@ -327,13 +327,26 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionAdd(&qAttitude, &qBuff, &qAttitude);*/
 
 
-    // test new method
+    // test new method b (not normalized drifts away)
+    // Joseph Malloch arduino_imu
+    /*
     quaternion qDiff;
     qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
     qDiff.x = sin_approx(gx * 0.5f * dt);
     qDiff.y = sin_approx(gy * 0.5f * dt);
     qDiff.z = sin_approx(gz * 0.5f * dt);
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);*/
+
+    // test new method c
+    // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
+    quaternion qDiff;
+    float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
+    qDiff.w = cos_approx(qDiffNorm * 0.5f * dt);
+    qDiff.x = gx * sin_approx(qDiffNorm * 0.5f * dt);
+    qDiff.y = gy * sin_approx(qDiffNorm * 0.5f * dt);
+    qDiff.z = gz * sin_approx(qDiffNorm * 0.5f * dt);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
+
 
     //quaternionNormalize(&qGyro);
     //quaternionComputeProducts(&qGyro, &qpGyro);
