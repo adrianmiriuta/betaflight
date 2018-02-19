@@ -371,7 +371,15 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccPitch.y = sin_approx(pitch2);
     qAccPitch.z = 0;
 
-    quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
+    //quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
+
+    //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
+    qAcc.w = sqrtf((vAcc.z + 1)/2.0f);
+    qAcc.x = -vAcc.y/sqrtf(2(vAcc.z + 1));
+    qAcc.y =  vAcc.x/sqrtf(2(vAcc.z + 1));
+    qAcc.z = 0;
+
+
 
     //introduces roll pitch drift !
     /*
