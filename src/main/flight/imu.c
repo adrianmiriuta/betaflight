@@ -316,8 +316,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.z = gz * 0.5f * dt;
     quaternionMultiply(&qGyro, &qDiff, &qBuff);
     quaternionAdd(&qGyro, &qBuff, &qGyro);
-
-    //quaternionNormalize(&qGyro);
+    quaternionNormalize(&qGyro);
 
 
     // test new method b
