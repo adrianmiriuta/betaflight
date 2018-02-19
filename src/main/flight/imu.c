@@ -322,6 +322,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAttitude.x += (+buffer.w * gx + buffer.y * gz - buffer.z * gy);
     qAttitude.y += (+buffer.w * gy - buffer.x * gz + buffer.z * gx);
     qAttitude.z += (+buffer.w * gz + buffer.x * gy - buffer.y * gx);
+    quaternionNormalize(&qAttitude);
 
     // old bf method adapted
     // has positions of high drift +-90° 45-45°
