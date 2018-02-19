@@ -308,15 +308,14 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     */
 
 
-    // Ok old bf method
+    // old bf method
+    // has positions of high drift +-90° 45-45°
     // Integrate rate of change of quaternion
     gx *= (0.5f * dt);
     gy *= (0.5f * dt);
     gz *= (0.5f * dt);
-
     quaternion buffer;
     quaternionCopy(&qAttitude, &buffer);
-
     // construct new quaternion from old quaternion and rate of change gyro data
     qAttitude.w += (-buffer.x * gx - buffer.y * gy - buffer.z * gz);
     qAttitude.x += (+buffer.w * gx + buffer.y * gz - buffer.z * gy);
@@ -339,10 +338,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     // test new method b
+    // https://github.com/malloch/Arduino_IMU
     // problem cyrcles around +-90° without normalization
     // problem with normalization around +-90° drift pitch roll 1°/s
     // static drift 0.1°/s
-    // https://github.com/malloch/Arduino_IMU
     /*
     quaternion qDiff;
     qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
@@ -352,8 +351,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionMultiply(&qGyro, &qDiff, &qGyro);*/
 
     // test new method c
-    // not working
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
+    // not working
     /*
     quaternion qDiff;
     float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
