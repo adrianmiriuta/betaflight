@@ -327,7 +327,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionAdd(&qAttitude, &qBuff, &qAttitude);*/
 
 
-    // test new method b (not normalized drifts away)
+    // test new method b
+    (not normalized drifts away)
     // Joseph Malloch arduino_imu
     /*
     quaternion qDiff;
@@ -338,14 +339,18 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionMultiply(&qGyro, &qDiff, &qGyro);*/
 
     // test new method c
+    // drift 0.1° /sec LUX_RACE
+    // problems around pitch +-90°
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
+
     quaternion qDiff;
     float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
-    qDiff.w = cos_approx(qDiffNorm * 0.5f * dt);
-    qDiff.x = gx * sin_approx(qDiffNorm * 0.5f * dt);
-    qDiff.y = gy * sin_approx(qDiffNorm * 0.5f * dt);
-    qDiff.z = gz * sin_approx(qDiffNorm * 0.5f * dt);
+    qDiff.w = cos(qDiffNorm * 0.5f * dt);
+    qDiff.x = gx * sin(qDiffNorm * 0.5f * dt);
+    qDiff.y = gy * sin(qDiffNorm * 0.5f * dt);
+    qDiff.z = gz * sin(qDiffNorm * 0.5f * dt);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
+
 
 
     //quaternionNormalize(&qGyro);
