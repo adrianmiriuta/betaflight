@@ -374,10 +374,12 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
 
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
-    qAcc.w = sqrtf((vAcc.z + 1)/2.0f);
+    qAcc.w = sqrtf((vAcc.z + 1.01f)/2.0f);
     qAcc.x = +vAcc.y/sqrtf(2.0f * (vAcc.z + 1));
     qAcc.y = -vAcc.x/sqrtf(2.0f * (vAcc.z + 1));
     qAcc.z = 0;
+
+    quaternionNormalize(&qAcc);
 
 
 
