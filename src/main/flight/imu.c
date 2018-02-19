@@ -374,10 +374,11 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
 
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
+    /*
     qAcc.w = sqrtf((vAcc.z + 1)/2.0f);
     qAcc.x = +vAcc.y/sqrtf(2.0f * (vAcc.z + 1));
     qAcc.y = -vAcc.x/sqrtf(2.0f * (vAcc.z + 1));
-    qAcc.z = 0;
+    qAcc.z = 0;*/
 
 
 
@@ -403,10 +404,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionCopy(&qAcc, &qAttitude);
 
     quaternionMinimumDistance(&qAcc, &qGyro);
-    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.9);
+    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.99);
 
     quaternionNormalize(&qAttitude);
-    quaternionCopy(&qAttitude, &qGyro);
+    //quaternionCopy(&qAttitude, &qGyro);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 }
 
