@@ -338,9 +338,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternion qDiff;
     float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
     qDiff.w = cos_approx(qDiffNorm * 0.5f * dt);
-    qDiff.x = gx * sin_approx(qDiffNorm * 0.5f * dt);
-    qDiff.y = gy * sin_approx(qDiffNorm * 0.5f * dt);
-    qDiff.z = gz * sin_approx(qDiffNorm * 0.5f * dt);
+    qDiff.x = gx * sin_approx(qDiffNorm * 0.5f * dt) / qDiffNorm;
+    qDiff.y = gy * sin_approx(qDiffNorm * 0.5f * dt) / qDiffNorm;
+    qDiff.z = gz * sin_approx(qDiffNorm * 0.5f * dt) / qDiffNorm;
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
 
 
