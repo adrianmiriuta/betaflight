@@ -308,25 +308,30 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     */
 
     // Ok old bf method
-    /*
+
     quaternion qBuff, qDiff;
     qDiff.w = 0;
     qDiff.x = gx * 0.5f * dt;
     qDiff.y = gy * 0.5f * dt;
     qDiff.z = gz * 0.5f * dt;
-    quaternionMultiply(&qAttitude, &qDiff, &qBuff);
-    quaternionAdd(&qAttitude, &qBuff, &qAttitude);*/
+    quaternionMultiply(&qGyro, &qDiff, &qBuff);
+    quaternionAdd(&qGyro, &qBuff, &qGyro);
+
+    //quaternionNormalize(&qGyro);
 
 
     // test new method b
-    // problems around +-90° without normalization
+    // problem cyrcles around +-90° without normalization
+    // problem with normalization around +-90° drift pitch roll 1°/s
+    // static drift 0.1°/s
     // https://github.com/malloch/Arduino_IMU
+    /*
     quaternion qDiff;
     qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
     qDiff.x = sin_approx(gx * 0.5f * dt);
     qDiff.y = sin_approx(gy * 0.5f * dt);
     qDiff.z = sin_approx(gz * 0.5f * dt);
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);*/
 
     // test new method c
     // not working
@@ -343,7 +348,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
 
-    quaternionNormalize(&qGyro);
+    //quaternionNormalize(&qGyro);
     //quaternionComputeProducts(&qGyro, &qpGyro);
 
     /*
