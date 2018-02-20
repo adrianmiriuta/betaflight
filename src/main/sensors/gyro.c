@@ -173,6 +173,8 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .gyro_filter_q = 0,
     .gyro_filter_r = 0,
     .gyro_filter_p = 0,
+    .gyro_offset_roll = 0,
+    .gyro_offset_pitch = 0,
     .gyro_offset_yaw = 0,
 );
 
@@ -684,6 +686,12 @@ STATIC_UNIT_TESTED void performGyroCalibration(gyroSensor_t *gyroSensor, uint8_t
             }
             // please take care with exotic boardalignment !!
             gyroSensor->gyroDev.gyroZero[axis] = gyroSensor->calibration.sum[axis] / gyroCalculateCalibratingCycles();
+            if (axis == X) {
+              gyroSensor->gyroDev.gyroZero[axis] -= ((float)gyroConfig()->gyro_offset_roll / 100);
+            }
+            if (axis == Y) {
+              gyroSensor->gyroDev.gyroZero[axis] -= ((float)gyroConfig()->gyro_offset_pitch / 100);
+            }
             if (axis == Z) {
               gyroSensor->gyroDev.gyroZero[axis] -= ((float)gyroConfig()->gyro_offset_yaw / 100);
             }
