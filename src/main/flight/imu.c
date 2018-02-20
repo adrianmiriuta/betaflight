@@ -381,31 +381,27 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.x = sin_approx(gx * dt * 0.5f);
     qDiff.y = 0;
     qDiff.z = 0;
-    if ((parityCycle % 2) != 0) {
-      quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    } else {
-      quaternionMultiply(&qDiff, &qGyro, &qGyro);
-    }
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
 
     qDiff.w = cos_approx(gy * dt * 0.5f);
     qDiff.x = 0;
     qDiff.y = sin_approx(gy * dt * 0.5f);
     qDiff.z = 0;
-    if ((parityCycle % 2) != 0) {
-      quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    } else {
-      quaternionMultiply(&qDiff, &qGyro, &qGyro);
-    }
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
++
 
     qDiff.w = cos_approx(gz * dt * 0.5f);
     qDiff.x = 0;
     qDiff.y = 0;
     qDiff.z = sin_approx(gz * dt * 0.5f);
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
+
+    /* nope not compensating drift
     if ((parityCycle % 2) != 0) {
       quaternionMultiply(&qGyro, &qDiff, &qGyro);
     } else {
       quaternionMultiply(&qDiff, &qGyro, &qGyro);
-    }
+    }*/
 
     quaternionNormalize(&qGyro);
 
