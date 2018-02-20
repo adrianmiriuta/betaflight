@@ -346,15 +346,16 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // https://github.com/malloch/Arduino_IMU
     // problem singularities around +-90° without normalization
     // subjective lower static drift 0.1°/s
-    /*
+
     quaternion qDiff;
-    qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
+    const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
+    //qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
+    qDiff.w = cos_approx(qDiffNorm * 0.5f * dt);
     qDiff.x = sin_approx(gx * 0.5f * dt);
     qDiff.y = sin_approx(gy * 0.5f * dt);
     qDiff.z = sin_approx(gz * 0.5f * dt);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
     quaternionNormalize(&qGyro);
-    */
 
 
     // test method c
@@ -374,8 +375,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // test method d
     // my test incremental rotation
-    // problem singularities around +-90° without normalization
-
+    // problem singularities circle around +-90° without normalization
+    /*
     quaternion qDiff;
     qDiff.w = cos_approx(gx * dt * 0.5f);
     qDiff.x = sin_approx(gx * dt * 0.5f);
@@ -395,6 +396,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.z = sin_approx(gz * dt * 0.5f);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
 
+    quaternionNormalize(&qGyro);
+    */
+
     /* nope not compensating drift
     if ((parityCycle % 2) != 0) {
       quaternionMultiply(&qGyro, &qDiff, &qGyro);
@@ -402,7 +406,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       quaternionMultiply(&qDiff, &qGyro, &qGyro);
     }*/
 
-    quaternionNormalize(&qGyro);
+
 
 
 
