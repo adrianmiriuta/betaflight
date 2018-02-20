@@ -345,6 +345,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // https://github.com/malloch/Arduino_IMU
     // problem singularities around +-90° without normalization
     // subjective lower static drift 0.1°/s
+    /*
     quaternion qDiff;
     qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
     qDiff.x = sin_approx(gx * 0.5f * dt);
@@ -352,6 +353,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.z = sin_approx(gz * 0.5f * dt);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
     quaternionNormalize(&qGyro);
+    */
 
 
     // test method c
