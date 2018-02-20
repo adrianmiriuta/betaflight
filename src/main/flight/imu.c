@@ -381,31 +381,29 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // test method d
     // my test incremental rotation
     // problem singularities circle around +-90° without normalization
-    /*
-    quaternion qDiff;
-    qDiff.w = cos_approx(gx * dt * 0.5f);
-    qDiff.x = sin_approx(gx * dt * 0.5f);
-    qDiff.y = 0;
-    qDiff.z = 0;
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    qDiff.w = cos_approx(gy * dt * 0.5f);
-    qDiff.x = 0;
-    qDiff.y = sin_approx(gy * dt * 0.5f);
-    qDiff.z = 0;
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    qDiff.w = cos_approx(gz * dt * 0.5f);
-    qDiff.x = 0;
-    qDiff.y = 0;
-    qDiff.z = sin_approx(gz * dt * 0.5f);
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);
 
-    quaternionNormalize(&qGyro);
-    */
+    quaternion qDiff;
+    qDiff.w = cos(gx * dt * 0.5f);
+    qDiff.x = sin(gx * dt * 0.5f);
+    qDiff.y = 0;
+    qDiff.z = 0;
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    qDiff.w = cos(gy * dt * 0.5f);
+    qDiff.x = 0;
+    qDiff.y = sin(gy * dt * 0.5f);
+    qDiff.z = 0;
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    qDiff.w = cos(gz * dt * 0.5f);
+    qDiff.x = 0;
+    qDiff.y = 0;
+    qDiff.z = sin(gz * dt * 0.5f);
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
 
 
     // test method e
     // single rotation quaternion
     // singularity +-90° when using sin_approx
+    /*
     quaternion qDiff;
     const float cy = cos(gz * dt * 0.5);
     const float sy = sin(gz * dt * 0.5);
@@ -420,6 +418,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.z = sy * cr * cp - cy * sr * sp;
 
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    */
 
 
 
