@@ -347,10 +347,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // subjective lower static drift 0.1°/s
 
     quaternion qDiff;
-    qDiff.w = cos((gx + gy + gz) * 0.5f * dt);
-    qDiff.x = sin(gx * 0.5f * dt);
-    qDiff.y = sin(gy * 0.5f * dt);
-    qDiff.z = sin(gz * 0.5f * dt);
+    qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
+    qDiff.x = sin_approx(gx * 0.5f * dt);
+    qDiff.y = sin_approx(gy * 0.5f * dt);
+    qDiff.z = sin_approx(gz * 0.5f * dt);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
     quaternionNormalize(&qGyro);
 
