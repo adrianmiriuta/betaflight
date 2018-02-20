@@ -343,6 +343,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // test method b
     // https://github.com/malloch/Arduino_IMU
     // problem cyrcles around +-90° without normalization
+    // problem singularities around +-90° without normalization
     // problem with normalization around +-90° drift pitch roll 1°/s
     // static drift 0.1°/s
 
@@ -352,7 +353,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.y = sin_approx(gy * 0.5f * dt);
     qDiff.z = sin_approx(gz * 0.5f * dt);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    //quaternionNormalize(&qGyro);
+    quaternionNormalize(&qGyro);
 
 
     // test method c
