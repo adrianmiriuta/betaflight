@@ -362,7 +362,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // test method c
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
-    // not working zero movement
+    // singularities around +-90°
+    /*
     quaternion qDiff;
     const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
     if (qDiffNorm > 0.0000001f) {
@@ -372,6 +373,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qDiff.z = (gz * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
       quaternionMultiply(&qGyro, &qDiff, &qGyro);
     }
+    */
+
 
 
 
@@ -401,13 +404,14 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     // test method e
+    // single rotation quaternion
     quaternion qDiff;
-    const float cy = cos(gz * 0.5);
-    const float sy = sin(gz * 0.5);
-    const float cr = cos(gx * 0.5);
-    const float sr = sin(gx * 0.5);
-    const float cp = cos(gy * 0.5);
-    const float sp = sin(gy * 0.5);
+    const float cy = cos(gz * dt * 0.5);
+    const float sy = sin(gz * dt * 0.5);
+    const float cr = cos(gx * dt * 0.5);
+    const float sr = sin(gx * dt * 0.5);
+    const float cp = cos(gy * dt * 0.5);
+    const float sp = sin(gy * dt * 0.5);
 
     qDiff.w = cy * cr * cp + sy * sr * sp;
     qDiff.x = cy * sr * cp - sy * cr * sp;
