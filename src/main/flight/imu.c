@@ -328,6 +328,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // old bf method adapted
     // has positions of high drift +-90° 45-45°
+    // problem high drift around +-90° drift pitch roll 1°/s
     /*
     quaternion qBuff, qDiff;
     qDiff.w = 0;
@@ -342,16 +343,14 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // test method b
     // https://github.com/malloch/Arduino_IMU
-    // problem cyrcles around +-90° without normalization
     // problem singularities around +-90° without normalization
-    // problem with normalization around +-90° drift pitch roll 1°/s
-    // static drift 0.1°/s
+    // subjective lower static drift 0.1°/s
 
     quaternion qDiff;
-    qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
-    qDiff.x = sin_approx(gx * 0.5f * dt);
-    qDiff.y = sin_approx(gy * 0.5f * dt);
-    qDiff.z = sin_approx(gz * 0.5f * dt);
+    qDiff.w = cos((gx + gy + gz) * 0.5f * dt);
+    qDiff.x = sin(gx * 0.5f * dt);
+    qDiff.y = sin(gy * 0.5f * dt);
+    qDiff.z = sin(gz * 0.5f * dt);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
     quaternionNormalize(&qGyro);
 
