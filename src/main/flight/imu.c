@@ -310,7 +310,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // old bf method
     // has positions of high drift +-90° 45-45°
+    // same as adapted version
     // Integrate rate of change of quaternion
+    /*
     gx *= (0.5f * dt);
     gy *= (0.5f * dt);
     gz *= (0.5f * dt);
@@ -322,6 +324,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAttitude.y += (+buffer.w * gy - buffer.x * gz + buffer.z * gx);
     qAttitude.z += (+buffer.w * gz + buffer.x * gy - buffer.y * gx);
     quaternionNormalize(&qAttitude);
+    */
 
     // old bf method adapted
     // has positions of high drift +-90° 45-45°
@@ -337,7 +340,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     */
 
 
-    // test new method b
+    // test method b
     // https://github.com/malloch/Arduino_IMU
     // problem cyrcles around +-90° without normalization
     // problem with normalization around +-90° drift pitch roll 1°/s
@@ -350,18 +353,18 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.z = sin_approx(gz * 0.5f * dt);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);*/
 
-    // test new method c
+    // test method c
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
     // not working
-    /*
+
     quaternion qDiff;
-    float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
+    const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
     qDiff.w = cos_approx(qDiffNorm * 0.5f * dt);
     qDiff.x = (gx * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
     qDiff.y = (gy * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
     qDiff.z = (gz * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    */
+
 
 
 
@@ -454,7 +457,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionNormalize(&qAttitude);
     //quaternionCopy(&qAttitude, &qGyro);
 
-    //quaternionCopy(&qGyro, &qAttitude);
+    quaternionCopy(&qGyro, &qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 }
 
