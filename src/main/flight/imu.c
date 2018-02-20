@@ -363,7 +363,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // test method c
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
     // not working zero movement
-
     quaternion qDiff;
     const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
     if (qDiffNorm > 0.0000001f) {
@@ -386,13 +385,11 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.y = 0;
     qDiff.z = 0;
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
-
     qDiff.w = cos_approx(gy * dt * 0.5f);
     qDiff.x = 0;
     qDiff.y = sin_approx(gy * dt * 0.5f);
     qDiff.z = 0;
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
-
     qDiff.w = cos_approx(gz * dt * 0.5f);
     qDiff.x = 0;
     qDiff.y = 0;
@@ -402,14 +399,22 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionNormalize(&qGyro);
     */
 
-    /* nope not compensating drift
-    if ((parityCycle % 2) != 0) {
-      quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    } else {
-      quaternionMultiply(&qDiff, &qGyro, &qGyro);
-    }*/
 
+    // test method e
+    quaternion qDiff;
+    const float cy = cos(gz * 0.5);
+    const float sy = sin(gz * 0.5);
+    const float cr = cos(gx * 0.5);
+    const float sr = sin(gx * 0.5);
+    const float cp = cos(gy * 0.5);
+    const float sp = sin(gy * 0.5);
 
+    qDiff.w = cy * cr * cp + sy * sr * sp;
+    qDiff.x = cy * sr * cp - sy * cr * sp;
+    qDiff.y = cy * cr * sp + sy * sr * cp;
+    qDiff.z = sy * cr * cp - cy * sr * sp;
+
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
 
 
 
