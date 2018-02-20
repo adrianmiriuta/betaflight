@@ -373,6 +373,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // test method d
     // my test incremental rotation
+    // problem singularities around +-90° without normalization
     quaternion qDiff;
     qDiff.w = cos_approx(gx * dt * 0.5f);
     qDiff.x = sin_approx(gx * dt * 0.5f);
@@ -389,9 +390,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.y = 0;
     qDiff.z = sin_approx(gz * dt * 0.5f);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
-
-
-    //quaternionNormalize(&qGyro);
+    quaternionNormalize(&qGyro);
 
 
 
