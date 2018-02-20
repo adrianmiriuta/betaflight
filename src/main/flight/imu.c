@@ -365,7 +365,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // singularities around +-90°
     quaternion qDiff;
     const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
-    if (qDiffNorm > 0.00001f) {
+    if (qDiffNorm > 0.0000001f) {
       qDiff.w = cos(qDiffNorm * 0.5f * dt);
       qDiff.x = (gx * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
       qDiff.y = (gy * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
