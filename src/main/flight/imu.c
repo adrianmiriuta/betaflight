@@ -96,6 +96,7 @@ STATIC_UNIT_TESTED quaternionProducts qpGyro = QUATERNION_PRODUCTS_INITIALIZE;
 // headfree quaternions
 quaternion qHeadfree = QUATERNION_INITIALIZE;
 quaternion qOffset = QUATERNION_INITIALIZE;
+static uint32_t parityCycle;
 
 // absolute angle inclination in multiple of 0.1 degree    180 deg = 1800
 attitudeEulerAngles_t attitude = EULER_INITIALIZE;
@@ -374,26 +375,38 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // test method d
     // my test incremental rotation
     // problem singularities around +-90° without normalization
+
     quaternion qDiff;
     qDiff.w = cos_approx(gx * dt * 0.5f);
     qDiff.x = sin_approx(gx * dt * 0.5f);
     qDiff.y = 0;
     qDiff.z = 0;
-    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    quaternionMultiply(&qDiff, &qGyro, &qGyro);
+    if ((parityCycle % 2) != 0) {
+      quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    } else {
+      quaternionMultiply(&qDiff, &qGyro, &qGyro);
+    }
+
     qDiff.w = cos_approx(gy * dt * 0.5f);
     qDiff.x = 0;
     qDiff.y = sin_approx(gy * dt * 0.5f);
     qDiff.z = 0;
-    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    quaternionMultiply(&qDiff, &qGyro, &qGyro);
+    if ((parityCycle % 2) != 0) {
+      quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    } else {
+      quaternionMultiply(&qDiff, &qGyro, &qGyro);
+    }
+
     qDiff.w = cos_approx(gz * dt * 0.5f);
     qDiff.x = 0;
     qDiff.y = 0;
     qDiff.z = sin_approx(gz * dt * 0.5f);
-    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    quaternionMultiply(&qDiff, &qGyro, &qGyro);
-    
+    if ((parityCycle % 2) != 0) {
+      quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    } else {
+      quaternionMultiply(&qDiff, &qGyro, &qGyro);
+    }
+
     quaternionNormalize(&qGyro);
 
 
@@ -488,6 +501,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     quaternionCopy(&qGyro, &qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
+    parityCycle++;
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
