@@ -356,7 +356,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // test method c
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
     // not working
-
     quaternion qDiff;
     const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
     qDiff.w = cos_approx(qDiffNorm * 0.5f * dt);
@@ -364,11 +363,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.y = (gy * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
     qDiff.z = (gz * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    quaternionNormalize(&qGyro);
 
 
-
-
-    //quaternionNormalize(&qGyro);
+    
     //quaternionComputeProducts(&qGyro, &qpGyro);
 
     /*
