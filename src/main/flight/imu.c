@@ -363,17 +363,16 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // test method c
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
     // singularities around +-90°
-    /*
     quaternion qDiff;
     const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
-    if (qDiffNorm > 0.0000001f) {
-      qDiff.w = cos_approx(qDiffNorm * 0.5f * dt);
-      qDiff.x = (gx * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
-      qDiff.y = (gy * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
-      qDiff.z = (gz * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
+    if (qDiffNorm > 0.00001f) {
+      qDiff.w = cos(qDiffNorm * 0.5f * dt);
+      qDiff.x = (gx * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
+      qDiff.y = (gy * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
+      qDiff.z = (gz * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
       quaternionMultiply(&qGyro, &qDiff, &qGyro);
     }
-    */
+
 
 
 
@@ -381,7 +380,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // test method d
     // my test incremental rotation
     // problem singularities circle around +-90° without normalization
-
+    /*
     quaternion qDiff;
     qDiff.w = cos(gx * dt * 0.5f);
     qDiff.x = sin(gx * dt * 0.5f);
@@ -398,6 +397,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.y = 0;
     qDiff.z = sin(gz * dt * 0.5f);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    */
 
 
     // test method e
@@ -425,7 +425,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionComputeProducts(&qGyro, &qpGyro);
 
     /*
-    // eigen
+    // acc eigen
     quaternion vAcc, qAcc;
     quaternionProducts qpAcc;
     vAcc.w = 0;
