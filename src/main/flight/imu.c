@@ -369,6 +369,29 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     */
 
 
+    // test method d
+    // my test incremental rotation
+    quaternion qDiff;
+    qDiff.w = cos_approx(gx * dt * 0.5f);
+    qDiff.x = sin_approx(gx * dt * 0.5f);
+    qDiff.y = 0;
+    qDiff.z = 0;
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    qDiff.w = cos_approx(gy * dt * 0.5f);
+    qDiff.x = 0;
+    qDiff.y = sin_approx(gy * dt * 0.5f);
+    qDiff.z = 0;
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    qDiff.w = cos_approx(gz * dt * 0.5f);
+    qDiff.x = 0;
+    qDiff.y = 0;
+    qDiff.z = sin_approx(gz * dt * 0.5f);
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
+
+
+    //quaternionNormalize(&qGyro);
+
+
 
     //quaternionComputeProducts(&qGyro, &qpGyro);
 
