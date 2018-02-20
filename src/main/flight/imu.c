@@ -348,7 +348,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // subjective lower static drift 0.1°/s
     // variation qDiffNorm
     //variation sin cos
-
+    /*
     quaternion qDiff;
     const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
     //qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
@@ -357,22 +357,24 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.y = sin(gy * 0.5f * dt);
     qDiff.z = sin(gz * 0.5f * dt);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    quaternionNormalize(&qGyro);
+    quaternionNormalize(&qGyro);*/
 
 
     // test method c
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
     // not working zero movement
-    /*
+
     quaternion qDiff;
     const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
-    qDiff.w = cos_approx(qDiffNorm * 0.5f * dt);
-    qDiff.x = (gx * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
-    qDiff.y = (gy * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
-    qDiff.z = (gz * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    quaternionNormalize(&qGyro);
-    */
+    if (qDiffNorm > 0.0000001f) {
+      qDiff.w = cos_approx(qDiffNorm * 0.5f * dt);
+      qDiff.x = (gx * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
+      qDiff.y = (gy * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
+      qDiff.z = (gz * sin_approx(qDiffNorm * 0.5f * dt)) / qDiffNorm;
+      quaternionMultiply(&qGyro, &qDiff, &qGyro);
+      quaternionNormalize(&qGyro);
+    }
+
 
 
     // test method d
