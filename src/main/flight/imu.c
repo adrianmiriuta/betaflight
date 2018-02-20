@@ -405,13 +405,14 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // test method e
     // single rotation quaternion
+    // singularity +-90° when using sin_approx
     quaternion qDiff;
-    const float cy = cos_approx(gz * dt * 0.5);
-    const float sy = sin_approx(gz * dt * 0.5);
-    const float cr = cos_approx(gx * dt * 0.5);
-    const float sr = sin_approx(gx * dt * 0.5);
-    const float cp = cos_approx(gy * dt * 0.5);
-    const float sp = sin_approx(gy * dt * 0.5);
+    const float cy = cos(gz * dt * 0.5);
+    const float sy = sin(gz * dt * 0.5);
+    const float cr = cos(gx * dt * 0.5);
+    const float sr = sin(gx * dt * 0.5);
+    const float cp = cos(gy * dt * 0.5);
+    const float sp = sin(gy * dt * 0.5);
 
     qDiff.w = cy * cr * cp + sy * sr * sp;
     qDiff.x = cy * sr * cp - sy * cr * sp;
