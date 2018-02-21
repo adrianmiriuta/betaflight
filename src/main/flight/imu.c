@@ -491,7 +491,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qAcc.y = 0;
       qAcc.z = -vAcc.x/sqrtf(2.0f * (1 - vAcc.z));
     }
-    quaternionComputeProducts(&qAcc, &qpAcc);
+    //quaternionComputeProducts(&qAcc, &qpAcc);
 
     quaternion qAccYaw;
     const float AccYawHalf = atan2_approx((+2.0f * (qpAcc.wz + qpAcc.xy)), (+1.0f - 2.0f * (qpAcc.yy + qpAcc.zz))) / 2.0f;
@@ -501,7 +501,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccYaw.z = sin_approx(AccYawHalf);
     quaternionInverse(&qAccYaw,&qAccYaw);
     // remove yaw rotation
-    quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
+    //quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
 
     //introduces roll pitch drift !
     /*
@@ -518,7 +518,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
     qGyroYaw.z = sin_approx(yaw/2);
-    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
+    //quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
 
 
     //quaternionMinimumDistance(&qAcc, &qGyro);
