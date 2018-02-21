@@ -500,7 +500,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccYaw.z = sin_approx(AccYawHalf);
     quaternionInverse(&qAccYaw,&qAccYaw);
     // remove yaw rotation
-    quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
+    //quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
 
     //introduces roll pitch drift !
     /*
@@ -517,17 +517,17 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
     qGyroYaw.z = sin_approx(yaw/2);
-    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
+    //quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
 
 
-    quaternionMinimumDistance(&qAcc, &qGyro);
-    quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.995);
+    //quaternionMinimumDistance(&qAcc, &qGyro);
+    //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.995);
     //ko
     //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, constrainf(quaternionDotProduct(&qAcc, &qAttitude),0.5f,0.999f));
     //quaternionCopy(&qAttitude, &qGyro);
 
 
-    //quaternionCopy(&qAcc, &qAttitude);
+    quaternionCopy(&qAcc, &qAttitude);
     //quaternionNormalize(&qAttitude);
     //quaternionCopy(&qGyro, &qAttitude);
     //quaternionMultiply(&qGyroBinverse, &qGyro, &qAttitude);
