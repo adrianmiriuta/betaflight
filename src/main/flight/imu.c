@@ -311,22 +311,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     */
 
 
-    // old bf method
-    // has positions of high drift +-90° 45-45°
-    // same as adapted version
-    // Integrate rate of change of quaternion
 
-    gx *= (0.5f * dt);
-    gy *= (0.5f * dt);
-    gz *= (0.5f * dt);
-    quaternion buffer;
-    quaternionCopy(&qGyro, &buffer);
-    // construct new quaternion from old quaternion and rate of change gyro data
-    qGyro.w += (-buffer.x * gx - buffer.y * gy - buffer.z * gz);
-    qGyro.x += (+buffer.w * gx + buffer.y * gz - buffer.z * gy);
-    qGyro.y += (+buffer.w * gy - buffer.x * gz + buffer.z * gx);
-    qGyro.z += (+buffer.w * gz + buffer.x * gy - buffer.y * gx);
-    quaternionNormalize(&qGyro);
 
 
     // old bf method adapted
@@ -348,6 +333,23 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionInverse(&qGyroB, &qGyroBinverse);
 
 
+
+    // old bf method
+    // has positions of high drift +-90° 45-45°
+    // same as adapted version
+    // Integrate rate of change of quaternion
+
+    gx *= (0.5f * dt);
+    gy *= (0.5f * dt);
+    gz *= (0.5f * dt);
+    quaternion buffer;
+    quaternionCopy(&qGyro, &buffer);
+    // construct new quaternion from old quaternion and rate of change gyro data
+    qGyro.w += (-buffer.x * gx - buffer.y * gy - buffer.z * gz);
+    qGyro.x += (+buffer.w * gx + buffer.y * gz - buffer.z * gy);
+    qGyro.y += (+buffer.w * gy - buffer.x * gz + buffer.z * gx);
+    qGyro.z += (+buffer.w * gz + buffer.x * gy - buffer.y * gx);
+    quaternionNormalize(&qGyro);
 
 
     // test method b
