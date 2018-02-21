@@ -458,10 +458,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternion qAccRoll;
     float u = 0.1f;
     //float roll2 = atan2_approx(vAcc.y,vAcc.z)/2; // mmax v1 ROT xyz
+    //float roll2 = atan(vAcc.y/vAcc.z)/2; // mmax v1 ROT xyz
     //float roll2 = atan2_approx(vAcc.y,sqrtf(vAcc.z*vAcc.z + vAcc.x*vAcc.x))/2; // mmax v2 ROT xyz only z>0 no inverted position
     float roll2 = atan2_approx(vAcc.y,(float)copysign(1.0f,vAcc.z) * sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2.0f; // AN3461 xyz
     //float roll2 = atan(vAcc.y/copysign(1.0,vAcc.z)*sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2; // AN3461 xyz
-    //float roll2 = atan(vAcc.y/vAcc.z)/2; // mmax v1 ROT xyz
 
     qAccRoll.w = cos_approx(roll2);
     qAccRoll.x = sin_approx(roll2);
@@ -481,7 +481,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
     */
 
-    /*
+
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
     qAcc.w = sqrtf((vAcc.z + 1)/2.0f);
     qAcc.x = +vAcc.y/sqrtf(2.0f * (vAcc.z + 1));
@@ -496,7 +496,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccYaw.y = 0;
     qAccYaw.z = sin_approx(AccYawHalf);
     quaternionInverse(&qAccYaw,&qAccYaw);
-    quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
+    // remove yaw rotation
+    //quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
 
     //introduces roll pitch drift !
     /*
@@ -515,21 +516,16 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);*/
 
 
-
-    //quaternionCopy(&qAccRoll, &qAttitude);
-    //quaternionCopy(&qAccPitch, &qAcc);
-    //quaternionCopy(&qAcc, &qAttitude);
-
     //quaternionMinimumDistance(&qAcc, &qGyro);
     //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.99);
-
     //ko
     //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, constrainf(quaternionDotProduct(&qAcc, &qAttitude),0.5f,0.999f));
-
-    //quaternionNormalize(&qAttitude);
     //quaternionCopy(&qAttitude, &qGyro);
 
-    quaternionCopy(&qGyro, &qAttitude);
+
+    quaternionCopy(&qAcc, &qAttitude);
+    //quaternionNormalize(&qAttitude);
+    //quaternionCopy(&qGyro, &qAttitude);
     //quaternionMultiply(&qGyroBinverse, &qGyro, &qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 }
