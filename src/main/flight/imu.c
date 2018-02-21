@@ -91,6 +91,8 @@ static imuRuntimeConfig_t imuRuntimeConfig;
 // quaternion of sensor frame relative to earth frame
 STATIC_UNIT_TESTED quaternion qAttitude = QUATERNION_INITIALIZE;
 STATIC_UNIT_TESTED quaternion qGyro = QUATERNION_INITIALIZE;
+STATIC_UNIT_TESTED quaternion qGyroB = QUATERNION_INITIALIZE;
+STATIC_UNIT_TESTED quaternion qGyroBinverse = QUATERNION_INITIALIZE;
 STATIC_UNIT_TESTED quaternionProducts qpAttitude = QUATERNION_PRODUCTS_INITIALIZE;
 STATIC_UNIT_TESTED quaternionProducts qpGyro = QUATERNION_PRODUCTS_INITIALIZE;
 // headfree quaternions
@@ -349,7 +351,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // subjective lower static drift 0.1°/s
     // variation qDiffNorm Ko
     // variation sin cos Ko
-    /*
+
     quaternion qDiff;
     //const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
     qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
@@ -357,9 +359,11 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.x = sin(gx * 0.5f * dt);
     qDiff.y = sin(gy * 0.5f * dt);
     qDiff.z = sin(gz * 0.5f * dt);
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    quaternionNormalize(&qGyro);
-    */
+    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    //quaternionNormalize(&qGyro);
+    quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
+    quaternionInverse(&qGyroB, &qGyroBinverse);
+
 
 
     // test method c
@@ -375,9 +379,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       quaternionMultiply(&qGyro, &qDiff, &qGyro);
     }
     */
-
-
-
 
 
     // test method d
@@ -424,11 +425,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     */
 
 
-
     //quaternionComputeProducts(&qGyro, &qpGyro);
 
     /*
-    // acc eigen
+    // acc
     quaternion vAcc, qAcc;
     quaternionProducts qpAcc;
     vAcc.w = 0;
@@ -513,8 +513,11 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionNormalize(&qAttitude);
     //quaternionCopy(&qAttitude, &qGyro);
 
-    quaternionCopy(&qGyro, &qAttitude);
+    //quaternionCopy(&qGyro, &qAttitude);
+
+    quaternionMultiply(&qGyroBinverse, &qGyro, &qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
+
     parityCycle++;
 }
 
