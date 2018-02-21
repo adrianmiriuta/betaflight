@@ -392,7 +392,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // test method d
     // my test incremental rotation
     // singularities circle around +-90° sin_approx cos_approx related
-
+    /*
     //quaternion qDiff;
     qDiff.w = cos(gx * dt * 0.5f);
     qDiff.x = sin(gx * dt * 0.5f);
@@ -413,15 +413,17 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionMultiply(&qGyro, &qDiff, &qGyro);
     quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
     // incremental vs BF
+    // large diff vs BF calculus (on higher speed movements)
     quaternionInverse(&qGyroB, &qGyroBinverse);
+    */
 
 
 
     // test method e
     // single rotation quaternion
     // singularity +-90° when using sin_approx
-    /*
-    quaternion qDiff;
+
+    //quaternion qDiff;
     const float cy = cos(gz * dt * 0.5);
     const float sy = sin(gz * dt * 0.5);
     const float cr = cos(gx * dt * 0.5);
@@ -434,8 +436,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.y = cy * cr * sp + sy * sr * cp;
     qDiff.z = sy * cr * cp - cy * sr * sp;
 
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    */
+    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
+
 
 
     //quaternionComputeProducts(&qGyro, &qpGyro);
