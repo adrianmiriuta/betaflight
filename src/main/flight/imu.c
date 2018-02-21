@@ -398,18 +398,21 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.x = sin(gx * dt * 0.5f);
     qDiff.y = 0;
     qDiff.z = 0;
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
     qDiff.w = cos(gy * dt * 0.5f);
     qDiff.x = 0;
     qDiff.y = sin(gy * dt * 0.5f);
     qDiff.z = 0;
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
     qDiff.w = cos(gz * dt * 0.5f);
     qDiff.x = 0;
     qDiff.y = 0;
     qDiff.z = sin(gz * dt * 0.5f);
     //quaternionMultiply(&qGyro, &qDiff, &qGyro);
     quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
+    // incremental vs BF
     quaternionInverse(&qGyroB, &qGyroBinverse);
 
 
