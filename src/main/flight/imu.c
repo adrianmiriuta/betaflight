@@ -332,7 +332,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // old bf method adapted
     // has positions of high drift +-90° 45-45°
     // problem high drift around +-90° drift pitch roll 1°/s
-
+    /*
     quaternion qBuff, qDiff;
     qDiff.w = 0;
     qDiff.x = gx * 0.5f * dt;
@@ -341,6 +341,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionMultiply(&qGyro, &qDiff, &qBuff);
     quaternionAdd(&qGyro, &qBuff, &qGyro);
     quaternionNormalize(&qGyro);
+    */
 
 
 
@@ -394,7 +395,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // test method d
     // my test incremental rotation
     // singularities circle around +-90° sin_approx cos_approx related
-    /*
+
     quaternion qDiff;
     qDiff.w = cos(gx * dt * 0.5f);
     qDiff.x = sin(gx * dt * 0.5f);
@@ -417,7 +418,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // incremental vs BF
     // large diff vs BF calculus (on higher speed movements)
     //quaternionInverse(&qGyroB, &qGyroBinverse);
-    */
+
 
 
 
