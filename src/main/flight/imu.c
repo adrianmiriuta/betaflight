@@ -438,6 +438,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     //quaternionMultiply(&qGyro, &qDiff, &qGyro);
     quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
+    quaternionInverse(&qGyroB, &qGyroBinverse);
 
 
 
