@@ -440,10 +440,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     */
 
 
-
-    //quaternionComputeProducts(&qGyro, &qpGyro);
-
-
     // acc
     quaternion vAcc, qAcc;
     quaternionProducts qpAcc;
@@ -513,14 +509,15 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionMultiply(&qGyro, &qAccInverse, &qGyroYaw);
     quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);*/
 
-    /*
+
+    quaternionComputeProducts(&qGyro, &qpGyro);
     quaternion qGyroYaw;
     const float yaw = atan2_approx((+2.0f * (qpGyro.wz + qpGyro.xy)), (+1.0f - 2.0f * (qpGyro.yy + qpGyro.zz)));
     qGyroYaw.w = cos_approx(yaw/2);
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
     qGyroYaw.z = sin_approx(yaw/2);
-    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);*/
+    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
 
 
     //quaternionMinimumDistance(&qAcc, &qGyro);
