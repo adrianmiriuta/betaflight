@@ -483,17 +483,17 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
-    if (vAcc.z >= 0) {
+    /*if (vAcc.z >= 0) {
       qAcc.w = sqrtf((vAcc.z + 1)/2.0f);
       qAcc.x = +vAcc.y/sqrtf(2.0f * (vAcc.z + 1));
       qAcc.y = -vAcc.x/sqrtf(2.0f * (vAcc.z + 1));
       qAcc.z = 0;
-    } else {
+    } else {*/
       qAcc.w = +vAcc.y/sqrtf(2.0f * (1 - vAcc.z));
       qAcc.x = sqrtf((1 - vAcc.z)/2.0f);
       qAcc.y = 0;
       qAcc.z = -vAcc.x/sqrtf(2.0f * (1 - vAcc.z));
-    }
+    //}
     quaternionComputeProducts(&qAcc, &qpAcc);
 
     quaternion qAccYaw;
