@@ -315,33 +315,38 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // has positions of high drift +-90° 45-45°
     // same as adapted version
     // Integrate rate of change of quaternion
-    /*
+
     gx *= (0.5f * dt);
     gy *= (0.5f * dt);
     gz *= (0.5f * dt);
     quaternion buffer;
     quaternionCopy(&qAttitude, &buffer);
     // construct new quaternion from old quaternion and rate of change gyro data
-    qAttitude.w += (-buffer.x * gx - buffer.y * gy - buffer.z * gz);
-    qAttitude.x += (+buffer.w * gx + buffer.y * gz - buffer.z * gy);
-    qAttitude.y += (+buffer.w * gy - buffer.x * gz + buffer.z * gx);
-    qAttitude.z += (+buffer.w * gz + buffer.x * gy - buffer.y * gx);
-    quaternionNormalize(&qAttitude);
-    */
+    qGyro.w += (-buffer.x * gx - buffer.y * gy - buffer.z * gz);
+    qGyro.x += (+buffer.w * gx + buffer.y * gz - buffer.z * gy);
+    qGyro.y += (+buffer.w * gy - buffer.x * gz + buffer.z * gx);
+    qGyro.z += (+buffer.w * gz + buffer.x * gy - buffer.y * gx);
+    quaternionNormalize(&qGyro);
+
 
     // old bf method adapted
     // has positions of high drift +-90° 45-45°
     // problem high drift around +-90° drift pitch roll 1°/s
-    /*
+
     quaternion qBuff, qDiff;
     qDiff.w = 0;
     qDiff.x = gx * 0.5f * dt;
     qDiff.y = gy * 0.5f * dt;
     qDiff.z = gz * 0.5f * dt;
-    quaternionMultiply(&qGyro, &qDiff, &qBuff);
-    quaternionAdd(&qGyro, &qBuff, &qGyro);
-    quaternionNormalize(&qGyro);
-    */
+    //quaternionMultiply(&qGyro, &qDiff, &qBuff);
+    //quaternionAdd(&qGyro, &qBuff, &qGyro);
+    //quaternionNormalize(&qGyro);
+
+    quaternionMultiply(&qGyroB, &qDiff, &qBuff);
+    quaternionAdd(&qGyroB, &qBuff, &qGyroB);
+    quaternionNormalize(&qGyroB);
+    quaternionInverse(&qGyroB, &qGyroBinverse);
+
 
 
 
@@ -395,7 +400,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // test method d
     // my test incremental rotation
     // singularities circle around +-90° sin_approx cos_approx related
-
+    // worse than BF when shaiking gently (more diff from should be position)
+    /*
     quaternion qDiff;
     qDiff.w = cos(gx * dt * 0.5f);
     qDiff.x = sin(gx * dt * 0.5f);
@@ -418,6 +424,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // incremental vs BF
     // large diff vs BF calculus (on higher speed movements)
     //quaternionInverse(&qGyroB, &qGyroBinverse);
+    */
 
 
 
@@ -537,8 +544,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionNormalize(&qAttitude);
     //quaternionCopy(&qAttitude, &qGyro);
 
-    quaternionCopy(&qGyro, &qAttitude);
-    //quaternionMultiply(&qGyroBinverse, &qGyro, &qAttitude);
+    //quaternionCopy(&qGyro, &qAttitude);
+    quaternionMultiply(&qGyroBinverse, &qGyro, &qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 
     parityCycle++;
