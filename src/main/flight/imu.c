@@ -332,6 +332,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // old bf method adapted
     // has positions of high drift +-90° 45-45°
     // problem high drift around +-90° drift pitch roll 1°/s
+    /*
     quaternion qBuff, qDiff;
     qDiff.w = 0;
     qDiff.x = gx * 0.5f * dt;
@@ -340,6 +341,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionMultiply(&qGyro, &qDiff, &qBuff);
     quaternionAdd(&qGyro, &qBuff, &qGyro);
     quaternionNormalize(&qGyro);
+    */
 
 
     // test method b
@@ -392,30 +394,30 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // test method d
     // my test incremental rotation
     // singularities circle around +-90° sin_approx cos_approx related
-    /*
+
     //quaternion qDiff;
     qDiff.w = cos(gx * dt * 0.5f);
     qDiff.x = sin(gx * dt * 0.5f);
     qDiff.y = 0;
     qDiff.z = 0;
-    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    //quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
     qDiff.w = cos(gy * dt * 0.5f);
     qDiff.x = 0;
     qDiff.y = sin(gy * dt * 0.5f);
     qDiff.z = 0;
-    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    //quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
     qDiff.w = cos(gz * dt * 0.5f);
     qDiff.x = 0;
     qDiff.y = 0;
     qDiff.z = sin(gz * dt * 0.5f);
-    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
+    quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    //quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
     // incremental vs BF
     // large diff vs BF calculus (on higher speed movements)
-    quaternionInverse(&qGyroB, &qGyroBinverse);
-    */
+    //quaternionInverse(&qGyroB, &qGyroBinverse);
+
 
 
 
@@ -437,6 +439,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.z = sy * cr * cp - cy * sr * sp;
 
     //quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    // single rot vs bf same as incremental vs BF
+    // incremental rot vs single rot
     quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
     quaternionInverse(&qGyroB, &qGyroBinverse);
 
