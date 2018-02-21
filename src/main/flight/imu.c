@@ -320,7 +320,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     gy *= (0.5f * dt);
     gz *= (0.5f * dt);
     quaternion buffer;
-    quaternionCopy(&qAttitude, &buffer);
+    quaternionCopy(&qGyro, &buffer);
     // construct new quaternion from old quaternion and rate of change gyro data
     qGyro.w += (-buffer.x * gx - buffer.y * gy - buffer.z * gz);
     qGyro.x += (+buffer.w * gx + buffer.y * gz - buffer.z * gy);
