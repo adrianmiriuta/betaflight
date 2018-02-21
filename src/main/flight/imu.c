@@ -98,7 +98,6 @@ STATIC_UNIT_TESTED quaternionProducts qpGyro = QUATERNION_PRODUCTS_INITIALIZE;
 // headfree quaternions
 quaternion qHeadfree = QUATERNION_INITIALIZE;
 quaternion qOffset = QUATERNION_INITIALIZE;
-static uint32_t parityCycle;
 
 // absolute angle inclination in multiple of 0.1 degree    180 deg = 1800
 attitudeEulerAngles_t attitude = EULER_INITIALIZE;
@@ -311,45 +310,38 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     */
 
 
-
-
+    // old bf method
+    // has positions of high drift +-90° 45-45°
+    // same as adapted version
+    // Integrate rate of change of quaternion
+    /*
+    gx *= (0.5f * dt);
+    gy *= (0.5f * dt);
+    gz *= (0.5f * dt);
+    quaternion buffer;
+    quaternionCopy(&qAttitude, &buffer);
+    // construct new quaternion from old quaternion and rate of change gyro data
+    qAttitude.w += (-buffer.x * gx - buffer.y * gy - buffer.z * gz);
+    qAttitude.x += (+buffer.w * gx + buffer.y * gz - buffer.z * gy);
+    qAttitude.y += (+buffer.w * gy - buffer.x * gz + buffer.z * gx);
+    qAttitude.z += (+buffer.w * gz + buffer.x * gy - buffer.y * gx);
+    quaternionNormalize(&qAttitude);
+    */
 
     // old bf method adapted
     // has positions of high drift +-90° 45-45°
     // problem high drift around +-90° drift pitch roll 1°/s
+    // old BF vs old BF adapted no diff
 
     quaternion qBuff, qDiff;
     qDiff.w = 0;
     qDiff.x = gx * 0.5f * dt;
     qDiff.y = gy * 0.5f * dt;
     qDiff.z = gz * 0.5f * dt;
-    //quaternionMultiply(&qGyro, &qDiff, &qBuff);
-    //quaternionAdd(&qGyro, &qBuff, &qGyro);
-    //quaternionNormalize(&qGyro);
-
-    quaternionMultiply(&qGyroB, &qDiff, &qBuff);
-    quaternionAdd(&qGyroB, &qBuff, &qGyroB);
-    quaternionNormalize(&qGyroB);
-    quaternionInverse(&qGyroB, &qGyroBinverse);
-
-
-
-    // old bf method
-    // has positions of high drift +-90° 45-45°
-    // same as adapted version
-    // Integrate rate of change of quaternion
-
-    gx *= (0.5f * dt);
-    gy *= (0.5f * dt);
-    gz *= (0.5f * dt);
-    quaternion buffer;
-    quaternionCopy(&qGyro, &buffer);
-    // construct new quaternion from old quaternion and rate of change gyro data
-    qGyro.w += (-buffer.x * gx - buffer.y * gy - buffer.z * gz);
-    qGyro.x += (+buffer.w * gx + buffer.y * gz - buffer.z * gy);
-    qGyro.y += (+buffer.w * gy - buffer.x * gz + buffer.z * gx);
-    qGyro.z += (+buffer.w * gz + buffer.x * gy - buffer.y * gx);
+    quaternionMultiply(&qGyro, &qDiff, &qBuff);
+    quaternionAdd(&qGyro, &qBuff, &qGyro);
     quaternionNormalize(&qGyro);
+    //quaternionInverse(&qGyroB, &qGyroBinverse);
 
 
     // test method b
@@ -378,7 +370,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     */
 
 
-
     // test method c
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
     /*
@@ -396,7 +387,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       quaternionInverse(&qGyroB, &qGyroBinverse);
     }
     */
-
 
 
     // test method d
@@ -427,9 +417,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // large diff vs BF calculus (on higher speed movements)
     //quaternionInverse(&qGyroB, &qGyroBinverse);
     */
-
-
-
 
 
     // test method e
@@ -546,11 +533,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionNormalize(&qAttitude);
     //quaternionCopy(&qAttitude, &qGyro);
 
-    //quaternionCopy(&qGyro, &qAttitude);
-    quaternionMultiply(&qGyroBinverse, &qGyro, &qAttitude);
+    quaternionCopy(&qGyro, &qAttitude);
+    //quaternionMultiply(&qGyroBinverse, &qGyro, &qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
-
-    parityCycle++;
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
