@@ -443,7 +443,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     //quaternionComputeProducts(&qGyro, &qpGyro);
 
-    /*
+
     // acc
     quaternion vAcc, qAcc;
     quaternionProducts qpAcc;
@@ -451,8 +451,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     vAcc.x = ax;
     vAcc.y = ay;
     vAcc.z = az;
-    quaternionNormalize(&vAcc);
-    */
+    //quaternionNormalize(&vAcc);
+
 
     /*
     quaternion qAccRoll;
