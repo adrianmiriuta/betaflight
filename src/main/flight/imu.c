@@ -352,7 +352,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // variation qDiffNorm Ko
     // variation sin cos Ko
 
-    quaternion qDiff;
+    //quaternion qDiff;
     //const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
     qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
     //qDiff.w = cos(qDiffNorm * 0.5f * dt);
