@@ -483,7 +483,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
-    //if (vAcc.z >= -0.5) {
+    //1if (vAcc.z >= -0.5) {
       qAcc.w = +sqrtf((vAcc.z + 1)/2.0f);
       qAcc.x = +vAcc.y/sqrtf(2.0f * (vAcc.z + 1));
       qAcc.y = -vAcc.x/sqrtf(2.0f * (vAcc.z + 1));
@@ -504,7 +504,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccYaw.z = sin_approx(AccYawHalf);
     quaternionInverse(&qAccYaw,&qAccYaw);
     // remove yaw rotation
-    //quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
+    quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
 
     //introduces roll pitch drift !
     /*
