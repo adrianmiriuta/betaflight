@@ -504,7 +504,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccYaw.z = sin_approx(AccYawHalf);
     quaternionInverse(&qAccYaw,&qAccYaw);
     // remove yaw rotation
-    //quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
+    quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
 
     //introduces roll pitch drift !
     /*
