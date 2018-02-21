@@ -312,7 +312,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // old bf method
     // has positions of high drift +-90° 45-45°
-    // same as adapted version
+    // identical with adapted version (no diff with rot inverted)
     // Integrate rate of change of quaternion
     /*
     gx *= (0.5f * dt);
@@ -332,7 +332,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // has positions of high drift +-90° 45-45°
     // problem high drift around +-90° drift pitch roll 1°/s
     // old BF vs old BF adapted no diff
-
     quaternion qBuff, qDiff;
     qDiff.w = 0;
     qDiff.x = gx * 0.5f * dt;
@@ -353,6 +352,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // subjective lower static drift 0.1°/s
     // variation qDiffNorm Ko
     // variation sin cos Ko
+    // no drift 0.1° differeces roll pitch +-90° to BF calculus
     /*
     //quaternion qDiff;
     //const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
@@ -363,8 +363,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.z = sin(gz * 0.5f * dt);
     //quaternionMultiply(&qGyro, &qDiff, &qGyro);
     //quaternionNormalize(&qGyro);
-    // no drift
-    // 0.1° differeces roll pitch +-90° to BF calculus
     quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
     quaternionInverse(&qGyroB, &qGyroBinverse);
     */
@@ -372,6 +370,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // test method c
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
+    // more diff than malloch vs BF calculus (on high speed movements) no drift
     /*
     //quaternion qDiff;
     const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
@@ -381,8 +380,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qDiff.y = (gy * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
       qDiff.z = (gz * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
       //quaternionMultiply(&qGyro, &qDiff, &qGyro);
-      // no drift
-      // more diff than malloch vs BF calculus (on high speed movements)
       quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
       quaternionInverse(&qGyroB, &qGyroBinverse);
     }
@@ -390,9 +387,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     // test method d
-    // my test incremental rotation
+    // test incremental rotation
     // singularities circle around +-90° sin_approx cos_approx related
     // worse than BF when shaiking gently (more diff from should be position)
+    // incremental vs BF large diff vs BF calculus (on higher speed movements)
     /*
     quaternion qDiff;
     qDiff.w = cos(gx * dt * 0.5f);
@@ -413,8 +411,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.z = sin(gz * dt * 0.5f);
     quaternionMultiply(&qGyro, &qDiff, &qGyro);
     //quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
-    // incremental vs BF
-    // large diff vs BF calculus (on higher speed movements)
     //quaternionInverse(&qGyroB, &qGyroBinverse);
     */
 
@@ -422,6 +418,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // test method e
     // single rotation quaternion
     // singularity +-90° when using sin_approx
+    // single rot vs bf same as incremental vs BF
+    // incremental rot vs single rot big difference (rotation order???)
     /*
     //quaternion qDiff;
     const float cy = cos(gz * dt * 0.5);
@@ -435,10 +433,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.x = cy * sr * cp - sy * cr * sp;
     qDiff.y = cy * cr * sp + sy * sr * cp;
     qDiff.z = sy * cr * cp - cy * sr * sp;
-
     //quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    // single rot vs bf same as incremental vs BF
-    // incremental rot vs single rot big difference (rotation order???)
+
     quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
     quaternionInverse(&qGyroB, &qGyroBinverse);
     */
