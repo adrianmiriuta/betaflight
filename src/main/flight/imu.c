@@ -361,6 +361,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.z = sin(gz * 0.5f * dt);
     //quaternionMultiply(&qGyro, &qDiff, &qGyro);
     //quaternionNormalize(&qGyro);
+    // no drift
     // 0.1° differeces roll pitch +-90° to BF calculus
     quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
     quaternionInverse(&qGyroB, &qGyroBinverse);
@@ -370,7 +371,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // test method c
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
-
+    /*
     //quaternion qDiff;
     const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
     if (qDiffNorm > 0.0000001f) {
@@ -379,17 +380,20 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qDiff.y = (gy * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
       qDiff.z = (gz * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
       //quaternionMultiply(&qGyro, &qDiff, &qGyro);
+      // no drift
+      // more diff than malloch vs BF calculus (on high speed movements)
       quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
       quaternionInverse(&qGyroB, &qGyroBinverse);
     }
+    */
 
 
 
     // test method d
     // my test incremental rotation
     // singularities circle around +-90° sin_approx cos_approx related
-    /*
-    quaternion qDiff;
+
+    //quaternion qDiff;
     qDiff.w = cos(gx * dt * 0.5f);
     qDiff.x = sin(gx * dt * 0.5f);
     qDiff.y = 0;
@@ -404,8 +408,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.x = 0;
     qDiff.y = 0;
     qDiff.z = sin(gz * dt * 0.5f);
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    */
+    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
+    quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
+    quaternionInverse(&qGyroB, &qGyroBinverse);
+
 
 
     // test method e
