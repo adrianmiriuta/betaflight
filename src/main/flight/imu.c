@@ -371,7 +371,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // test method c
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
 
-    quaternion qDiff;
+    //quaternion qDiff;
     const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
     if (qDiffNorm > 0.0000001f) {
       qDiff.w = cos(qDiffNorm * 0.5f * dt);
