@@ -351,7 +351,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // subjective lower static drift 0.1°/s
     // variation qDiffNorm Ko
     // variation sin cos Ko
-
+    /*
     //quaternion qDiff;
     //const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
     qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
@@ -361,14 +361,16 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.z = sin(gz * 0.5f * dt);
     //quaternionMultiply(&qGyro, &qDiff, &qGyro);
     //quaternionNormalize(&qGyro);
+    // 0.1° differeces roll pitch +-90° to BF calculus
     quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
     quaternionInverse(&qGyroB, &qGyroBinverse);
+    */
 
 
 
     // test method c
     // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
-    /*
+
     quaternion qDiff;
     const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
     if (qDiffNorm > 0.0000001f) {
@@ -376,9 +378,11 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qDiff.x = (gx * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
       qDiff.y = (gy * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
       qDiff.z = (gz * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
-      quaternionMultiply(&qGyro, &qDiff, &qGyro);
+      //quaternionMultiply(&qGyro, &qDiff, &qGyro);
+      quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
+      quaternionInverse(&qGyroB, &qGyroBinverse);
     }
-    */
+
 
 
     // test method d
