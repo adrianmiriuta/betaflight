@@ -395,7 +395,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // my test incremental rotation
     // singularities circle around +-90° sin_approx cos_approx related
 
-    //quaternion qDiff;
+    quaternion qDiff;
     qDiff.w = cos(gx * dt * 0.5f);
     qDiff.x = sin(gx * dt * 0.5f);
     qDiff.y = 0;
