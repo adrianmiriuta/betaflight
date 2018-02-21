@@ -527,11 +527,12 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionCopy(&qAttitude, &qGyro);
 
 
-    //quaternionCopy(&qAcc, &qAttitude);
+    quaternionCopy(&qAcc, &qAttitude);
     //quaternionNormalize(&qAttitude);
     //quaternionCopy(&qGyro, &qAttitude);
     //quaternionMultiply(&qGyroBinverse, &qGyro, &qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
+    quaternionCopy(&qAttitude, &qGyro);
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
