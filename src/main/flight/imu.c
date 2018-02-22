@@ -501,9 +501,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     if (vAcc.z > 0) {
-    qAcc.w = +sqrtf(vAcc.z);
-    qAcc.x = +vAcc.y/sqrtf(vAcc.z);
-    qAcc.y = -vAcc.x/sqrtf(vAcc.z);
+    qAcc.w = +sqrtf(vAcc.z)/2;
+    qAcc.x = +vAcc.y/2*sqrtf(vAcc.z);
+    qAcc.y = -vAcc.x/2*sqrtf(vAcc.z);
     qAcc.z = 0;
     }
 
