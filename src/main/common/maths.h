@@ -29,7 +29,7 @@
 // Use floating point M_PI instead explicitly.
 #define M_PIf       3.14159265358979323846f
 #define M_PIf2       3.14159265358979323846f/2
-#define M_PIf4       3.14159265358979323846f/4
+#define M_PIf4       3.14159265358979323846f/4.01
 #define M_PIf5       3.14159265358979323846f/5
 #define M_PIf8       3.14159265358979323846f/8
 

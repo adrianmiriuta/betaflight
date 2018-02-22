@@ -463,10 +463,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccRoll.z = 0;
 
     quaternion qAccPitch;
-    float pitch2 = atan2(-vAcc.x, sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2.0f; // AN3461 xyz
-    //float pitch2 = atan(-vAcc.x/sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // AN3461 xyz
-    //float pitch2 = atan(-vAcc.x/vAcc.z)/2; // AN3461 xyz
-    //pitch2 = constrainf(pitch2, -M_PIf4, M_PIf4);
+    float pitchHalf= atan2(-vAcc.x, sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2.0f; // AN3461 xyz
+    //float pitchHalf= atan(-vAcc.x/sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // AN3461 xyz
+    //float pitchHalf= atan(-vAcc.x/vAcc.z)/2; // AN3461 xyz
+    //pitchHalf= constrainf(pitch2, -M_PIf4, M_PIf4);
     qAccPitch.w = cos(pitch2);
     qAccPitch.x = 0;
     qAccPitch.y = sin(pitch2);
