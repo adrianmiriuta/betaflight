@@ -500,11 +500,11 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionComputeProducts(&qAcc, &qpAcc);
 
     quaternion qAccYaw;
-    const float AccYawHalf = atan2_approx((+2.0f * (qpAcc.wz + qpAcc.xy)), (+1.0f - 2.0f * (qpAcc.yy + qpAcc.zz))) / 2.0f;
-    qAccYaw.w = cos_approx(AccYawHalf);
+    const float AccYawHalf = atan2((+2.0f * (qpAcc.wz + qpAcc.xy)), (+1.0f - 2.0f * (qpAcc.yy + qpAcc.zz))) / 2.0f;
+    qAccYaw.w = cos(AccYawHalf);
     qAccYaw.x = 0;
     qAccYaw.y = 0;
-    qAccYaw.z = sin_approx(AccYawHalf);
+    qAccYaw.z = sin(AccYawHalf);
     quaternionInverse(&qAccYaw,&qAccYaw);
     // remove yaw rotation
     quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
