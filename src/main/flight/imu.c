@@ -475,7 +475,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
 
 
-
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
       /*
       if (vAcc.z >= -0.95) {
@@ -497,8 +496,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qAcc.y = -vAcc.x / (2 * qAcc.w);
 
     }*/
-    //quaternionComputeProducts(&qAcc, &qpAcc);
 
+    quaternionComputeProducts(&qAcc, &qpAcc);
     quaternion qAccYaw;
     const float AccYawHalf = atan2((+2.0f * (qpAcc.wz + qpAcc.xy)), (+1.0f - 2.0f * (qpAcc.yy + qpAcc.zz))) / 2.0f;
     qAccYaw.w = cos(AccYawHalf);
