@@ -451,14 +451,14 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     quaternion qAccRoll;
     float u = 0.1f;
-    //float roll2 = atan2_approx(vAcc.y,vAcc.z)/2; // mmax v1 ROT xyz
-    //float roll2 = atan(vAcc.y/vAcc.z)/2; // mmax v1 ROT xyz
-    //float roll2 = atan2_approx(vAcc.y,sqrtf(vAcc.z*vAcc.z + vAcc.x*vAcc.x))/2; // mmax v2 ROT xyz only z>0 no inverted position
-    float roll2 = atan2(vAcc.y,(float)copysign(1.0f,vAcc.z) * sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2.0f; // AN3461 xyz
-    //float roll2 = atan(vAcc.y/copysign(1.0,vAcc.z)*sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2; // AN3461 xyz
+    //float rollHalf = atan2_approx(vAcc.y,vAcc.z)/2; // mmax v1 ROT xyz
+    //float rollHalf = atan(vAcc.y/vAcc.z)/2; // mmax v1 ROT xyz
+    //float rollHalf = atan2_approx(vAcc.y,sqrtf(vAcc.z*vAcc.z + vAcc.x*vAcc.x))/2; // mmax v2 ROT xyz only z>0 no inverted position
+    float rollHalf = atan2(vAcc.y,(float)copysign(1.0f,vAcc.z) * sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2.0f; // AN3461 xyz
+    //float rollHalf = atan(vAcc.y/copysign(1.0,vAcc.z)*sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2; // AN3461 xyz
 
-    qAccRoll.w = cos(roll2);
-    qAccRoll.x = sin(roll2);
+    qAccRoll.w = cos(rollHalf);
+    qAccRoll.x = sin(rollHalf);
     qAccRoll.y = 0;
     qAccRoll.z = 0;
 
@@ -467,9 +467,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //float pitchHalf= atan(-vAcc.x/sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // AN3461 xyz
     //float pitchHalf= atan(-vAcc.x/vAcc.z)/2; // AN3461 xyz
     //pitchHalf= constrainf(pitch2, -M_PIf4, M_PIf4);
-    qAccPitch.w = cos(pitch2);
+    qAccPitch.w = cos(pitchHalf);
     qAccPitch.x = 0;
-    qAccPitch.y = sin(pitch2);
+    qAccPitch.y = sin(pitchHalf);
     qAccPitch.z = 0;
 
     quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
