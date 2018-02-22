@@ -479,18 +479,27 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
-    if (vAcc.z >= 0) {
+    //if (vAcc.z >= -0.95) {
       qAcc.w = +sqrtf((vAcc.z + 1)/2.0f);
       qAcc.x = +vAcc.y/sqrtf(2.0f * (vAcc.z + 1));
       qAcc.y = -vAcc.x/sqrtf(2.0f * (vAcc.z + 1));
       qAcc.z = 0;
-    } else {
+    /*} else {
+
+
       // ko fuck
-      qAcc.w = vAcc.y/sqrtf(2.0f * (1 - vAcc.z));
-      qAcc.x = sqrtf((1 - vAcc.z)/2.0f);
+      qAcc.w = +vAcc.y/sqrtf(2.0f * (1 - vAcc.z));
+      qAcc.x = +sqrtf((1 - vAcc.z)/2.0f);
       qAcc.y = 0;
-      qAcc.z = -vAcc.x/sqrtf(2.0f * (1 - vAcc.z));
-    }
+      qAcc.z = +vAcc.x/sqrtf(2.0f * (1 - vAcc.z));
+
+      // 22.02.2018 qAcc.x = 0 constraint
+      qAcc.x = 0;
+      qAcc.z = -sqrtf(((vAcc.z + 1) * vAcc.y * vAcc.y)/(2 * (vAcc.x * vAcc.x + vAcc.y * vAcc.y)));
+      qAcc.w = -(vAcc.x * qAcc.z) / vAcc.y;
+      qAcc.y = -vAcc.x / (2 * qAcc.w);
+
+    }*/
     //quaternionComputeProducts(&qAcc, &qpAcc);
 
     quaternion qAccYaw;
