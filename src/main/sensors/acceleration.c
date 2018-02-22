@@ -490,6 +490,7 @@ void accUpdate(timeUs_t currentTimeUs, rollAndPitchTrims_t *rollAndPitchTrims)
         DEBUG_SET(DEBUG_ACCELEROMETER, axis, acc.dev.ADCRaw[axis]);
         acc.accADC[axis] = acc.dev.ADCRaw[axis];
     }
+    DEBUG_SET(DEBUG_ACCELEROMETER, 3, lrintf(sqrtf((float)acc.dev.ADCRaw[0]*(float)acc.dev.ADCRaw[0] + (float)acc.dev.ADCRaw[1]*(float)acc.dev.ADCRaw[1] + (float)acc.dev.ADCRaw[2]*(float)acc.dev.ADCRaw[2])));
 
     if (accLpfCutHz) {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
