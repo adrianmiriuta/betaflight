@@ -449,6 +449,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     vAcc.z = az;
     quaternionNormalize(&vAcc);
 
+    /*
     quaternion qAccRoll;
     float u = 0.1f;
     //float rollHalf = atan2_approx(vAcc.y,vAcc.z)/2; // mmax v1 ROT xyz
@@ -473,29 +474,38 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccPitch.z = 0;
 
     quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
+    */
 
 
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
-      /*
-      if (vAcc.z >= -0.95) {
-      qAcc.w = +sqrtf((vAcc.z + 1)/2.0f);
-      qAcc.x = +vAcc.y/sqrtf(2.0f * (vAcc.z + 1));
-      qAcc.y = -vAcc.x/sqrtf(2.0f * (vAcc.z + 1));
-      qAcc.z = 0;
-      } else {
-      // Ko
-      qAcc.w = +vAcc.y/sqrtf(2.0f * (1 - vAcc.z));
-      qAcc.x = +sqrtf((1 - vAcc.z)/2.0f);
-      qAcc.y = 0;
-      qAcc.z = +vAcc.x/sqrtf(2.0f * (1 - vAcc.z));
+    /*
+    if (vAcc.z >= -0.95) {
+    qAcc.w = +sqrtf((vAcc.z + 1)/2.0f);
+    qAcc.x = +vAcc.y/sqrtf(2.0f * (vAcc.z + 1));
+    qAcc.y = -vAcc.x/sqrtf(2.0f * (vAcc.z + 1));
+    qAcc.z = 0;
+    } else {
+    // Ko
+    qAcc.w = +vAcc.y/sqrtf(2.0f * (1 - vAcc.z));
+    qAcc.x = +sqrtf((1 - vAcc.z)/2.0f);
+    qAcc.y = 0;
+    qAcc.z = +vAcc.x/sqrtf(2.0f * (1 - vAcc.z));
 
-      // Ko 22.02.2018 qAcc.x = 0 constraint
-      qAcc.x = 0;
-      qAcc.z = -sqrtf(((vAcc.z + 1) * vAcc.y * vAcc.y)/(2 * (vAcc.x * vAcc.x + vAcc.y * vAcc.y)));
-      qAcc.w = -(vAcc.x * qAcc.z) / vAcc.y;
-      qAcc.y = -vAcc.x / (2 * qAcc.w);
+    // Ko 22.02.2018 qAcc.x = 0 constraint
+    qAcc.x = 0;
+    qAcc.z = -sqrtf(((vAcc.z + 1) * vAcc.y * vAcc.y)/(2 * (vAcc.x * vAcc.x + vAcc.y * vAcc.y)));
+    qAcc.w = -(vAcc.x * qAcc.z) / vAcc.y;
+    qAcc.y = -vAcc.x / (2 * qAcc.w);
 
     }*/
+
+
+    if (vAcc.z > 0) {
+    qAcc.w = +sqrtf(vAcc.z);
+    qAcc.x = +vAcc.y/sqrtf(vAcc.z);
+    qAcc.y = -vAcc.x/sqrtf(vAcc.z);
+    qAcc.z = 0;
+    }
 
     quaternionComputeProducts(&qAcc, &qpAcc);
     quaternion qAccYaw;
