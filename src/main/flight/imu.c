@@ -449,51 +449,48 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     vAcc.z = az;
     quaternionNormalize(&vAcc);
 
-
-    /*
     quaternion qAccRoll;
     float u = 0.1f;
     //float roll2 = atan2_approx(vAcc.y,vAcc.z)/2; // mmax v1 ROT xyz
     //float roll2 = atan(vAcc.y/vAcc.z)/2; // mmax v1 ROT xyz
     //float roll2 = atan2_approx(vAcc.y,sqrtf(vAcc.z*vAcc.z + vAcc.x*vAcc.x))/2; // mmax v2 ROT xyz only z>0 no inverted position
-    float roll2 = atan2_approx(vAcc.y,(float)copysign(1.0f,vAcc.z) * sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2.0f; // AN3461 xyz
+    float roll2 = atan2(vAcc.y,(float)copysign(1.0f,vAcc.z) * sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2.0f; // AN3461 xyz
     //float roll2 = atan(vAcc.y/copysign(1.0,vAcc.z)*sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2; // AN3461 xyz
 
-    qAccRoll.w = cos_approx(roll2);
-    qAccRoll.x = sin_approx(roll2);
+    qAccRoll.w = cos(roll2);
+    qAccRoll.x = sin(roll2);
     qAccRoll.y = 0;
     qAccRoll.z = 0;
 
     quaternion qAccPitch;
-    float pitch2 = atan2_approx(-vAcc.x, sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2.0f; // AN3461 xyz
+    float pitch2 = atan2(-vAcc.x, sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2.0f; // AN3461 xyz
     //float pitch2 = atan(-vAcc.x/sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // AN3461 xyz
     //float pitch2 = atan(-vAcc.x/vAcc.z)/2; // AN3461 xyz
     //pitch2 = constrainf(pitch2, -M_PIf4, M_PIf4);
-    qAccPitch.w = cos_approx(pitch2);
+    qAccPitch.w = cos(pitch2);
     qAccPitch.x = 0;
-    qAccPitch.y = sin_approx(pitch2);
+    qAccPitch.y = sin(pitch2);
     qAccPitch.z = 0;
 
-    //quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
-    */
+    quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
+
 
 
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
-    //if (vAcc.z >= -0.95) {
+      /*
+      if (vAcc.z >= -0.95) {
       qAcc.w = +sqrtf((vAcc.z + 1)/2.0f);
       qAcc.x = +vAcc.y/sqrtf(2.0f * (vAcc.z + 1));
       qAcc.y = -vAcc.x/sqrtf(2.0f * (vAcc.z + 1));
       qAcc.z = 0;
-    /*} else {
-
-
-      // ko fuck
+      } else {
+      // Ko
       qAcc.w = +vAcc.y/sqrtf(2.0f * (1 - vAcc.z));
       qAcc.x = +sqrtf((1 - vAcc.z)/2.0f);
       qAcc.y = 0;
       qAcc.z = +vAcc.x/sqrtf(2.0f * (1 - vAcc.z));
 
-      // 22.02.2018 qAcc.x = 0 constraint
+      // Ko 22.02.2018 qAcc.x = 0 constraint
       qAcc.x = 0;
       qAcc.z = -sqrtf(((vAcc.z + 1) * vAcc.y * vAcc.y)/(2 * (vAcc.x * vAcc.x + vAcc.y * vAcc.y)));
       qAcc.w = -(vAcc.x * qAcc.z) / vAcc.y;
