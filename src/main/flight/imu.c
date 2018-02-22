@@ -501,11 +501,12 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     if (vAcc.z > 0) {
-    qAcc.w = +sqrtf(vAcc.z)/2;
-    qAcc.x = +vAcc.y/2*sqrtf(vAcc.z);
-    qAcc.y = -vAcc.x/2*sqrtf(vAcc.z);
+    qAcc.w = +vAcc.z;
+    qAcc.x = +vAcc.y/vAcc.z;
+    qAcc.y = -vAcc.x/vAcc.z;
     qAcc.z = 0;
     }
+    quaternionNormalize(&qAcc);
 
     quaternionComputeProducts(&qAcc, &qpAcc);
     quaternion qAccYaw;
