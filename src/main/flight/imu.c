@@ -479,7 +479,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
     if (imuIsAccelerometerHealthy()) {
-      if (vAcc.z >= -0.5) {
+      if (vAcc.z >= -0.8) {
         // z = 0 v1 +w Ok
         qAcc.w = +sqrtf((vAcc.z + 1) / 2.0f);
         qAcc.x = +vAcc.y/(2 * qAcc.w);
@@ -563,7 +563,7 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
     }
 }
 
-static bool imuIsAccelerometerHealthy(void)
+bool imuIsAccelerometerHealthy(void)
 {
     float accMagnitude = 0;
     for (int axis = 0; axis < 3; axis++) {

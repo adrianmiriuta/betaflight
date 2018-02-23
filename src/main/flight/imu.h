@@ -84,5 +84,5 @@ void imuSetHasNewData(uint32_t dt);
 #endif
 #endif
 
-static bool imuIsAccelerometerHealthy(void);
+bool imuIsAccelerometerHealthy(void);
 bool quaternionHeadfreeOffsetSet(void);
