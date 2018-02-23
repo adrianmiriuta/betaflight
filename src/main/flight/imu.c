@@ -479,13 +479,15 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
     if (imuIsAccelerometerHealthy()) {
-      if (vAcc.z >= -0.8) {
+      if (vAcc.z >= -0.95) {
         // z = 0 v1 +w Ok
         qAcc.w = +sqrtf((vAcc.z + 1) / 2.0f);
         qAcc.x = +vAcc.y/(2 * qAcc.w);
         qAcc.y = -vAcc.x/(2 * qAcc.w);
         qAcc.z = 0;
       } else {
+        quaternionCopy(&qAttitude, &qAcc);
+        /*
         // y = 0 v1 PMC4570372
         // + 0 + + Ko
         // - 0 + + Ko
@@ -501,8 +503,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         // rotate yaw 180° mutates pitch to roll problem
         qRot.w = qRot.x = qRot.y = 0;
         qRot.z = 1;
-        //quaternionMultiply(&qRot, &qAcc, &qAcc);
-        quaternionMultiply(&qAcc, &qRot, &qAcc);
+        //quaternionMultiply(&qRot, &qAcc, &qAcc);*/
       }
     } else {
       quaternionCopy(&qAttitude, &qAcc);
