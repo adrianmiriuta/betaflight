@@ -487,7 +487,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qAcc.z = 0;*/
 
       // y = 0 v1
-      qAcc.x = sqrtf((vAcc.z / vAcc.y);
+      qAcc.x = sqrtf(vAcc.z / vAcc.y);
       qAcc.y = 0;
       qAcc.z = vAcc.x / (2 * qAcc.x);
       qAcc.w = vAcc.y / (2 * qAcc.x);
