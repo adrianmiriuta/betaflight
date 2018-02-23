@@ -480,11 +480,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
     if (imuIsAccelerometerHealthy()) {
       // z = 0 v1 +w Ok
-      /*
       qAcc.w = +sqrtf((vAcc.z + 1) / 2.0f);
       qAcc.x = +vAcc.y/(2 * qAcc.w);
       qAcc.y = -vAcc.x/(2 * qAcc.w);
-      qAcc.z = 0;*/
+      qAcc.z = 0;
 
       // y = 0 v1 +x Ko reversed
       /*
@@ -493,20 +492,11 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qAcc.z = vAcc.x / (2 * qAcc.x);
       qAcc.w = vAcc.y / (2 * qAcc.x);*/
 
-      // z = 0 v2 +i*w
-      // + + - 0 vAcc.y vAcc.x swapped Ko
-      // + + - 0 Ko
-      // - + - 0 Ko
-      // - - - 0 Ko
-      // + + + 0 Ko
-
-      qAcc.w = +sqrtf((1 - vAcc.z ) / 2.0f);
-      qAcc.x = -vAcc.y/(2 * qAcc.w);
-      qAcc.y = +vAcc.x/(2 * qAcc.w);
-      qAcc.z = 0;
-
-
-
+      // y = 0 v1 PMC4570372
+      qAcc.x = +sqrtf((1 - vAcc.z) / 2.0f);
+      qAcc.y = 0;
+      qAcc.z = vAcc.x/(2 * qAcc.x);
+      qAcc.w = vAcc.y/(2 * qAcc.x);
 
 
       /*
