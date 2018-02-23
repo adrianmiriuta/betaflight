@@ -511,7 +511,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionNormalize(&qAcc);
 
     // remove Acc yaw rotation
-    /*
+
     quaternionComputeProducts(&qAcc, &qpAcc);
     quaternion qAccYaw;
     const float AccYawHalf = atan2((+2.0f * (qpAcc.wz + qpAcc.xy)), (+1.0f - 2.0f * (qpAcc.yy + qpAcc.zz))) / 2.0f;
@@ -520,7 +520,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccYaw.y = 0;
     qAccYaw.z = sin(AccYawHalf);
     quaternionInverse(&qAccYaw,&qAccYaw);
-    quaternionMultiply(&qAccYaw, &qAcc, &qAcc);*/
+    quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
 
     // gyro yaw rotation
 
