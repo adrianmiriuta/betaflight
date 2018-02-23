@@ -433,8 +433,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.x = cy * sr * cp - sy * cr * sp;
     qDiff.y = cy * cr * sp + sy * sr * cp;
     qDiff.z = sy * cr * cp - cy * sr * sp;
-    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
 
+    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
     quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
     quaternionInverse(&qGyroB, &qGyroBinverse);
     */
@@ -480,29 +480,28 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
     if (imuIsAccelerometerHealthy()) {
       if (vAcc.z >= 0) {
-      // z = 0 v1 +w Ok
-      qAcc.w = +sqrtf((vAcc.z + 1) / 2.0f);
-      qAcc.x = +vAcc.y/(2 * qAcc.w);
-      qAcc.y = -vAcc.x/(2 * qAcc.w);
-      qAcc.z = 0;
+        // z = 0 v1 +w Ok
+        qAcc.w = +sqrtf((vAcc.z + 1) / 2.0f);
+        qAcc.x = +vAcc.y/(2 * qAcc.w);
+        qAcc.y = -vAcc.x/(2 * qAcc.w);
+        qAcc.z = 0;
       } else {
-      // y = 0 v1 PMC4570372
-      // + 0 + + Ko pitch
-      // - 0 + + Ko pitch
-      // + 0 - + ?
-      qAcc.x = +sqrtf((1 - vAcc.z) / 2.0f);
-      qAcc.y = 0;
-      qAcc.z = -vAcc.x/(2 * qAcc.x);
-      qAcc.w = +vAcc.y/(2 * qAcc.x);
+        // y = 0 v1 PMC4570372
+        // + 0 + + Ko pitch
+        // - 0 + + Ko pitch
+        // + 0 - + ?
+        qAcc.x = +sqrtf((1 - vAcc.z) / 2.0f);
+        qAcc.y = 0;
+        qAcc.z = -vAcc.x/(2 * qAcc.x);
+        qAcc.w = +vAcc.y/(2 * qAcc.x);
       }
     } else {
       quaternionCopy(&qAttitude, &qAcc);
     }
+    //quaternionNormalize(&qAcc);
 
-
-
-    quaternionNormalize(&qAcc);
-
+    // remove Acc yaw rotation
+    /*
     quaternionComputeProducts(&qAcc, &qpAcc);
     quaternion qAccYaw;
     const float AccYawHalf = atan2((+2.0f * (qpAcc.wz + qpAcc.xy)), (+1.0f - 2.0f * (qpAcc.yy + qpAcc.zz))) / 2.0f;
@@ -511,17 +510,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccYaw.y = 0;
     qAccYaw.z = sin(AccYawHalf);
     quaternionInverse(&qAccYaw,&qAccYaw);
-    // remove yaw rotation
-    //quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
+    quaternionMultiply(&qAccYaw, &qAcc, &qAcc);*/
 
-    //introduces roll pitch drift !
+    // gyro yaw rotation
     /*
-    quaternionInverse(&qAcc, &qAccInverse);
-    quaternion qGyroYaw;
-    quaternionMultiply(&qGyro, &qAccInverse, &qGyroYaw);
-    quaternionMultiply(&qAcc, &qGyroYaw, &qAcc);*/
-
-
     quaternionComputeProducts(&qGyro, &qpGyro);
     quaternion qGyroYaw;
     const float yaw = atan2_approx((+2.0f * (qpGyro.wz + qpGyro.xy)), (+1.0f - 2.0f * (qpGyro.yy + qpGyro.zz)));
@@ -529,12 +521,12 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
     qGyroYaw.z = sin_approx(yaw/2);
-    //quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
+    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);*/
 
 
     //quaternionMinimumDistance(&qAcc, &qGyro);
     //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.995);
-    //ko
+    // Ko
     //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, constrainf(quaternionDotProduct(&qAcc, &qAttitude),0.5f,0.999f));
     //quaternionCopy(&qAttitude, &qGyro);
 
