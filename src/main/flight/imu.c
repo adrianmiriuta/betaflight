@@ -479,18 +479,23 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
 
-    //if (vAcc.z >= -0.9) {
-    qAcc.w = +sqrtf((vAcc.z + 1)/2.0f);
-    qAcc.x = +vAcc.y/(2 * qAcc.w);
-    qAcc.y = -vAcc.x/(2 * qAcc.w);
-    qAcc.z = 0;
-    /*} else {
-    // Ko
-    qAcc.w = +vAcc.y/sqrtf(2.0f * (1 - vAcc.z));
-    qAcc.x = +sqrtf((1 - vAcc.z)/2.0f);
-    qAcc.y = 0;
-    qAcc.z = +vAcc.x/sqrtf(2.0f * (1 - vAcc.z));
-  }*/
+    if (imuIsAccelerometerHealthy()) {
+      //if (vAcc.z >= -0.9) {
+      qAcc.w = +sqrtf((vAcc.z + 1) / 2.0f);
+      qAcc.x = +vAcc.y/(2 * qAcc.w);
+      qAcc.y = -vAcc.x/(2 * qAcc.w);
+      qAcc.z = 0;
+      /*} else {
+      // Ko
+      qAcc.w = +vAcc.y/sqrtf(2.0f * (1 - vAcc.z));
+      qAcc.x = +sqrtf((1 - vAcc.z)/2.0f);
+      qAcc.y = 0;
+      qAcc.z = +vAcc.x/sqrtf(2.0f * (1 - vAcc.z));
+      }*/
+
+    }
+
+
 
     quaternionNormalize(&qAcc);
 
