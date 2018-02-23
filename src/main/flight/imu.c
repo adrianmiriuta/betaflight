@@ -441,7 +441,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     // acc
-    quaternion vAcc, qAcc;
+    quaternion vAcc, qAcc, qRot;
     quaternionProducts qpAcc;
     vAcc.w = 0;
     vAcc.x = ax;
@@ -487,16 +487,23 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         qAcc.z = 0;
       } else {
         // y = 0 v1 PMC4570372
-        // + 0 + + Ko pitch
+        // + 0 + + Ko
         // - 0 + + Ko
         // + 0 - + Ko
         // + 0 + - Ko
         // + 0 - - Ko
-        // - 0 - -
-        qAcc.x = -sqrtf((1 - vAcc.z) / 2.0f);
+        // - 0 - - Ko
+        qAcc.x = sqrtf((1 - vAcc.z) / 2.0f);
         qAcc.y = 0;
-        qAcc.z = -vAcc.x/(2 * qAcc.x);
-        qAcc.w = -vAcc.y/(2 * qAcc.x);
+        qAcc.z = vAcc.x/(2 * qAcc.x);
+        qAcc.w = vAcc.y/(2 * qAcc.x);
+
+        qRot.w = qRot.x = qRot.y = 0;
+        qRot.z = 1;
+        quaternionMultiply(&qRot, &qAcc, &qAcc);
+
+
+
       }
     } else {
       quaternionCopy(&qAttitude, &qAcc);
