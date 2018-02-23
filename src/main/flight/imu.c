@@ -492,7 +492,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qAcc.z = +vAcc.x/sqrtf(2.0f * (1 - vAcc.z));
       }*/
     } else {
-      quaternioncopy(&qAttitude, &qAcc);
+      quaternionCopy(&qAttitude, &qAcc);
     }
 
 
