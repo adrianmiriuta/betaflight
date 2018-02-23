@@ -488,12 +488,12 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       } else {
         // y = 0 v1 PMC4570372
         // + 0 + + Ko pitch
-        // - 0 + + Ko pitch
-        // + 0 - + Ko pitch
-        // + 0 + - 
+        // - 0 + + Ko
+        // + 0 - + Ko
+        // + 0 + - Ko
         qAcc.x = +sqrtf((1 - vAcc.z) / 2.0f);
         qAcc.y = 0;
-        qAcc.z = +vAcc.x/(2 * qAcc.x);
+        qAcc.z = -vAcc.x/(2 * qAcc.x);
         qAcc.w = -vAcc.y/(2 * qAcc.x);
       }
     } else {
