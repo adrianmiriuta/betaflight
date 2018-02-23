@@ -477,8 +477,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     */
 
 
-    //https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
-
+    // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
     if (imuIsAccelerometerHealthy()) {
       //if (vAcc.z >= -0.9) {
       qAcc.w = +sqrtf((vAcc.z + 1) / 2.0f);
@@ -492,7 +491,8 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
       qAcc.y = 0;
       qAcc.z = +vAcc.x/sqrtf(2.0f * (1 - vAcc.z));
       }*/
-
+    } else {
+      quaternioncopy(&qAttitude, &qAcc);
     }
 
 
