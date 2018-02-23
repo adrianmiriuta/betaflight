@@ -479,39 +479,19 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
     if (imuIsAccelerometerHealthy()) {
+      if (vAcc.z >= 0) {
       // z = 0 v1 +w Ok
       qAcc.w = +sqrtf((vAcc.z + 1) / 2.0f);
       qAcc.x = +vAcc.y/(2 * qAcc.w);
       qAcc.y = -vAcc.x/(2 * qAcc.w);
       qAcc.z = 0;
-
-      // y = 0 v1 +x Ko reversed
-      /*
-      qAcc.x = sqrtf((vAcc.z + 1) / 2.0f);
-      qAcc.y = 0;
-      qAcc.z = vAcc.x / (2 * qAcc.x);
-      qAcc.w = vAcc.y / (2 * qAcc.x);*/
-
+      } else {
       // y = 0 v1 PMC4570372
       qAcc.x = +sqrtf((1 - vAcc.z) / 2.0f);
       qAcc.y = 0;
       qAcc.z = vAcc.x/(2 * qAcc.x);
       qAcc.w = vAcc.y/(2 * qAcc.x);
-
-
-      /*
-      if (vAcc.z >= -0.9) {
-      qAcc.w = +sqrtf((vAcc.z + 1) / 2.0f);
-      qAcc.x = +vAcc.y/(2 * qAcc.w);
-      qAcc.y = -vAcc.x/(2 * qAcc.w);
-      qAcc.z = 0;
-      } else {
-      // Ko
-      qAcc.w = +vAcc.y/sqrtf(2.0f * (1 - vAcc.z));
-      qAcc.x = +sqrtf((1 - vAcc.z)/2.0f);
-      qAcc.y = 0;
-      qAcc.z = +vAcc.x/sqrtf(2.0f * (1 - vAcc.z));
-      }*/
+      }
     } else {
       quaternionCopy(&qAttitude, &qAcc);
     }
