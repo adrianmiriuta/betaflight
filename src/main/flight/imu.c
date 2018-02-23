@@ -498,12 +498,11 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         qAcc.z = vAcc.x/(2 * qAcc.x);
         qAcc.w = vAcc.y/(2 * qAcc.x);
 
+        // rotate yaw 180° mutates pitch to roll problem
         qRot.w = qRot.x = qRot.y = 0;
         qRot.z = 1;
-        quaternionMultiply(&qRot, &qAcc, &qAcc);
-
-
-
+        //quaternionMultiply(&qRot, &qAcc, &qAcc);
+        quaternionMultiply(&qAcc, &qRot, &qAcc);
       }
     } else {
       quaternionCopy(&qAttitude, &qAcc);
