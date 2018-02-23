@@ -479,7 +479,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
     // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
     if (imuIsAccelerometerHealthy()) {
-      if (vAcc.z >= 0) {
+      if (vAcc.z >= -0.5) {
         // z = 0 v1 +w Ok
         qAcc.w = +sqrtf((vAcc.z + 1) / 2.0f);
         qAcc.x = +vAcc.y/(2 * qAcc.w);
