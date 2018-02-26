@@ -72,7 +72,6 @@ static bool imuUpdated = false;
 // omega_I. At larger spin rates the DCM PI controller can get 'dizzy'
 // which results in false gyro drift. See
 // http://gentlenav.googlecode.com/files/fastRotations.pdf
-
 #define SPIN_RATE_LIMIT 20
 
 int32_t accSum[XYZ_AXIS_COUNT];
@@ -90,11 +89,7 @@ static imuRuntimeConfig_t imuRuntimeConfig;
 
 // quaternion of sensor frame relative to earth frame
 STATIC_UNIT_TESTED quaternion qAttitude = QUATERNION_INITIALIZE;
-//STATIC_UNIT_TESTED quaternion qGyro = QUATERNION_INITIALIZE;
-//STATIC_UNIT_TESTED quaternion qGyroB = QUATERNION_INITIALIZE;
-//STATIC_UNIT_TESTED quaternion qGyroBinverse = QUATERNION_INITIALIZE;
 STATIC_UNIT_TESTED quaternionProducts qpAttitude = QUATERNION_PRODUCTS_INITIALIZE;
-//STATIC_UNIT_TESTED quaternionProducts qpGyro = QUATERNION_PRODUCTS_INITIALIZE;
 // headfree quaternions
 quaternion qHeadfree = QUATERNION_INITIALIZE;
 quaternion qOffset = QUATERNION_INITIALIZE;
@@ -223,7 +218,6 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
                                 bool useMag, float mx, float my, float mz,
                                 bool useYaw, float yawError)
 {
-
     quaternion vError = VECTOR_INITIALIZE;
     quaternion vIntegralFB = VECTOR_INITIALIZE;
 
@@ -289,9 +283,13 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
         vIntegralFB.x += dcmKiGain * vError.x * dt;
         vIntegralFB.y += dcmKiGain * vError.y * dt;
         vIntegralFB.z += dcmKiGain * vError.z * dt;
+      } else {
+        // prevent integral windup
+        vIntegralFB.x = 0.0f;
+        vIntegralFB.y = 0.0f;
+        vIntegralFB.z = 0.0f;
       }
     } else {
-      // prevent integral windup
       vIntegralFB.x = 0.0f;
       vIntegralFB.y = 0.0f;
       vIntegralFB.z = 0.0f;
@@ -305,7 +303,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
     vGyro->y += dcmKpGain * vError.y + vIntegralFB.y;
     vGyro->z += dcmKpGain * vError.z + vIntegralFB.z;
 
-    // old bf method adapted
+    // quaternion integration old bf method adapted
     quaternion qBuff, qDiff;
     qDiff.w = 0;
     qDiff.x = vGyro->x * 0.5f * dt;
