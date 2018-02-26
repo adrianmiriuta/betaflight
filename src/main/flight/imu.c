@@ -230,11 +230,13 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
     const float spin_rate = sqrtf(sq(vGyro->x) + sq(vGyro->y) + sq(vGyro->z));
 
     // Use raw heading error (from GPS or whatever else)
-    float ex = 0, ey = 0, ez = 0;
+    //float ex = 0, ey = 0, ez = 0;
+    quaternion vError = VECTOR_INITIALIZE;
+
     if (useYaw) {
         while (yawError >  M_PIf) yawError -= (2.0f * M_PIf);
         while (yawError < -M_PIf) yawError += (2.0f * M_PIf);
-        ez += sin_approx(yawError / 2.0f);
+        vError.z += sin_approx(yawError / 2.0f);
     }
 
 #ifdef USE_MAG
@@ -260,9 +262,9 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
         const float ez_ef = -(hy * bx);
 
         // Rotate mag error vector back to BF and accumulate
-        ex += (2.0f * (qpAttitude.xz + -qpAttitude.wy)) * ez_ef;
-        ey += (2.0f * (qpAttitude.yz - -qpAttitude.wx)) * ez_ef;
-        ez += (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) * ez_ef;
+        vError.x += (2.0f * (qpAttitude.xz + -qpAttitude.wy)) * ez_ef;
+        vError.y += (2.0f * (qpAttitude.yz - -qpAttitude.wx)) * ez_ef;
+        vError.z += (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) * ez_ef;
     }
 #else
     UNUSED(useMag);
@@ -275,9 +277,9 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
       if (imuIsAccelerometerHealthy(vAcc)) {
         quaternionNormalize(vAcc);
         // Error is sum of cross product between estimated direction and measured direction of gravity
-        ex += (vAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - vAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
-        ey += (vAcc->z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - vAcc->x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
-        ez += (vAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - vAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
+        vError.x += (vAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - vAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
+        vError.y += (vAcc->z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - vAcc->x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
+        vError.z += (vAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - vAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
       }
     }
 
@@ -286,9 +288,9 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
         // Stop integrating if spinning beyond the certain limit
         if (spin_rate < DEGREES_TO_RADIANS(SPIN_RATE_LIMIT)) {
             const float dcmKiGain = imuRuntimeConfig.dcm_ki;
-            integralFBx += dcmKiGain * ex * dt;    // integral error scaled by Ki
-            integralFBy += dcmKiGain * ey * dt;
-            integralFBz += dcmKiGain * ez * dt;
+            integralFBx += dcmKiGain * vError.x * dt;    // integral error scaled by Ki
+            integralFBy += dcmKiGain * vError.y * dt;
+            integralFBz += dcmKiGain * vError.z * dt;
         }
     } else {
         integralFBx = 0.0f;    // prevent integral windup
