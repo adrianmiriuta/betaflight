@@ -222,7 +222,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
                                 bool useMag, float mx, float my, float mz,
                                 bool useYaw, float yawError)
 {
-    
+
     static float integralFBx = 0.0f,  integralFBy = 0.0f, integralFBz = 0.0f;    // integral error terms scaled by Ki
 
     // Calculate general spin rate (rad/s)
@@ -270,19 +270,21 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     UNUSED(mz);
 #endif
 
-    // Use measured acceleration vector
-    float recipAccNorm = sq(ax) + sq(ay) + sq(az);
-    if (useAcc && recipAccNorm > 0.01f) {
-        // Normalise accelerometer measurement
-        recipAccNorm = invSqrt(recipAccNorm);
-        ax *= recipAccNorm;
-        ay *= recipAccNorm;
-        az *= recipAccNorm;
 
-        // Error is sum of cross product between estimated direction and measured direction of gravity
-        ex += (ay * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - az * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
-        ey += (az * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - ax * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
-        ez += (ax * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - ay * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
+    quaternion qAcc;
+    qAcc.w = 0;
+    qAcc.x = ax;
+    qAcc.y = ay;
+    qAcc.z = az;
+
+    // Use measured acceleration vector
+    //float recipAccNorm = sq(ax) + sq(ay) + sq(az);
+    if (imuIsAccelerometerHealthy(&qAcc)) {
+      quaternionNormalize(&qAcc);
+      // Error is sum of cross product between estimated direction and measured direction of gravity
+      ex += (qAcc.y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - qAcc.z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
+      ey += (qAcc.z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - qAcc.x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
+      ez += (qAcc.x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - qAcc.y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
     }
 
     // Compute and apply integral feedback if enabled
@@ -591,14 +593,9 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
     }
 }
 
-bool imuIsAccelerometerHealthy(void)
+bool imuIsAccelerometerHealthy(quaternion *q)
 {
-    float accMagnitude = 0;
-    for (int axis = 0; axis < 3; axis++) {
-        const float a = acc.accADC[axis];
-        accMagnitude += a * a;
-    }
-
+    float accMagnitude = q.x * q.x + q.y * q.y + q.z * q.z;
     accMagnitude = accMagnitude * 100 / (sq((int32_t)acc.dev.acc_1G));
 
     // Accept accel readings only in range 0.90g - 1.10g
@@ -616,9 +613,9 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     const timeDelta_t deltaT = currentTimeUs - previousIMUUpdateTime;
     previousIMUUpdateTime = currentTimeUs;
 
-    if (imuIsAccelerometerHealthy()) {
+    //if (imuIsAccelerometerHealthy()) {
         useAcc = true;
-    }
+    //}
 
 #ifdef USE_MAG
     if (sensors(SENSOR_MAG) && compassIsHealthy()) {
