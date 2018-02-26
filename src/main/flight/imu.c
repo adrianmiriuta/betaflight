@@ -277,12 +277,14 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAcc.y = ay;
     qAcc.z = az;
 
-    if (imuIsAccelerometerHealthy(&qAcc)) {
-      quaternionNormalize(&qAcc);
-      // Error is sum of cross product between estimated direction and measured direction of gravity
-      ex += (qAcc.y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - qAcc.z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
-      ey += (qAcc.z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - qAcc.x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
-      ez += (qAcc.x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - qAcc.y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
+    if (useAcc){
+      if (imuIsAccelerometerHealthy(&qAcc)) {
+        quaternionNormalize(&qAcc);
+        // Error is sum of cross product between estimated direction and measured direction of gravity
+        ex += (qAcc.y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - qAcc.z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
+        ey += (qAcc.z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - qAcc.x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
+        ez += (qAcc.x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - qAcc.y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
+      }
     }
 
     // Compute and apply integral feedback if enabled
@@ -563,7 +565,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionCopy(&qGyro, &qAttitude);
     //quaternionMultiply(&qGyroBinverse, &qGyro, &qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
-    quaternionCopy(&qAttitude, &qGyro);
+    //quaternionCopy(&qAttitude, &qGyro);
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
