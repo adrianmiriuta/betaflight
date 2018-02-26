@@ -302,9 +302,9 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
     const float dcmKpGain = imuRuntimeConfig.dcm_kp * imuGetPGainScaleFactor();
 
     // Apply proportional and integral feedback
-    vGyro->x += dcmKpGain * ex + integralFBx;
-    vGyro->y += dcmKpGain * ey + integralFBy;
-    vGyro->z += dcmKpGain * ez + integralFBz;
+    vGyro->x += dcmKpGain * vError.x + integralFBx;
+    vGyro->y += dcmKpGain * vError.y + integralFBy;
+    vGyro->z += dcmKpGain * vError.z + integralFBz;
 
 
 
