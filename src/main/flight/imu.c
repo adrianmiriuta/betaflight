@@ -90,11 +90,11 @@ static imuRuntimeConfig_t imuRuntimeConfig;
 
 // quaternion of sensor frame relative to earth frame
 STATIC_UNIT_TESTED quaternion qAttitude = QUATERNION_INITIALIZE;
-STATIC_UNIT_TESTED quaternion qGyro = QUATERNION_INITIALIZE;
-STATIC_UNIT_TESTED quaternion qGyroB = QUATERNION_INITIALIZE;
-STATIC_UNIT_TESTED quaternion qGyroBinverse = QUATERNION_INITIALIZE;
+//STATIC_UNIT_TESTED quaternion qGyro = QUATERNION_INITIALIZE;
+//STATIC_UNIT_TESTED quaternion qGyroB = QUATERNION_INITIALIZE;
+//STATIC_UNIT_TESTED quaternion qGyroBinverse = QUATERNION_INITIALIZE;
 STATIC_UNIT_TESTED quaternionProducts qpAttitude = QUATERNION_PRODUCTS_INITIALIZE;
-STATIC_UNIT_TESTED quaternionProducts qpGyro = QUATERNION_PRODUCTS_INITIALIZE;
+//STATIC_UNIT_TESTED quaternionProducts qpGyro = QUATERNION_PRODUCTS_INITIALIZE;
 // headfree quaternions
 quaternion qHeadfree = QUATERNION_INITIALIZE;
 quaternion qOffset = QUATERNION_INITIALIZE;
@@ -197,10 +197,11 @@ static void imuCalculateAcceleration(timeDelta_t deltaT)
 }
 #endif // USE_ALT_HOLD
 
+/*
 static float invSqrt(float x)
 {
     return 1.0f / sqrtf(x);
-}
+}*/
 
 static bool imuUseFastGains(void)
 {
@@ -270,15 +271,12 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     UNUSED(mz);
 #endif
 
-
     quaternion qAcc;
     qAcc.w = 0;
     qAcc.x = ax;
     qAcc.y = ay;
     qAcc.z = az;
 
-    // Use measured acceleration vector
-    //float recipAccNorm = sq(ax) + sq(ay) + sq(az);
     if (imuIsAccelerometerHealthy(&qAcc)) {
       quaternionNormalize(&qAcc);
       // Error is sum of cross product between estimated direction and measured direction of gravity
@@ -507,7 +505,6 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         qAcc.z = 0;
       } else {
         quaternionCopy(&qAttitude, &qAcc);
-        /*
         // y = 0 v1 PMC4570372
         // + 0 + + Ko
         // - 0 + + Ko
@@ -595,7 +592,7 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
 
 bool imuIsAccelerometerHealthy(quaternion *q)
 {
-    float accMagnitude = q.x * q.x + q.y * q.y + q.z * q.z;
+    float accMagnitude = q->x * q->x + q->y * q->y + q->z * q->z;
     accMagnitude = accMagnitude * 100 / (sq((int32_t)acc.dev.acc_1G));
 
     // Accept accel readings only in range 0.90g - 1.10g
