@@ -281,19 +281,20 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
       }
     }
 
-    // Compute and apply integral feedback if enabled
+    // integral feedback if enabled
     if (imuRuntimeConfig.dcm_ki > 0.0f) {
-        // Stop integrating if spinning beyond the certain limit
-        if (spin_rate < DEGREES_TO_RADIANS(SPIN_RATE_LIMIT)) {
-            const float dcmKiGain = imuRuntimeConfig.dcm_ki;
-            vIntegralFB.x += dcmKiGain * vError.x * dt;    // integral error scaled by Ki
-            vIntegralFB.y += dcmKiGain * vError.y * dt;
-            vIntegralFB.z += dcmKiGain * vError.z * dt;
-        }
+      // stop integrating if spinning beyond SPIN_RATE_LIMIT
+      if (spin_rate < DEGREES_TO_RADIANS(SPIN_RATE_LIMIT)) {
+        const float dcmKiGain = imuRuntimeConfig.dcm_ki;
+        vIntegralFB.x += dcmKiGain * vError.x * dt;
+        vIntegralFB.y += dcmKiGain * vError.y * dt;
+        vIntegralFB.z += dcmKiGain * vError.z * dt;
+      }
     } else {
-        vIntegralFB.x = 0.0f;    // prevent integral windup
-        vIntegralFB.y = 0.0f;
-        vIntegralFB.z = 0.0f;
+      // prevent integral windup
+      vIntegralFB.x = 0.0f;
+      vIntegralFB.y = 0.0f;
+      vIntegralFB.z = 0.0f;
     }
 
     // Calculate kP gain. If we are acquiring initial attitude (not armed and within 20 sec from powerup) scale the kP to converge faster
