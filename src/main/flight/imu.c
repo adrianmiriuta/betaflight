@@ -219,7 +219,7 @@ static float imuGetPGainScaleFactor(void)
 }
 
 static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
-                                bool useAcc, quaternion *qAcc,
+                                bool useAcc, quaternion *vAcc,
                                 bool useMag, float mx, float my, float mz,
                                 bool useYaw, float yawError)
 {
@@ -272,12 +272,12 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 #endif
 
     if (useAcc){
-      if (imuIsAccelerometerHealthy(qAcc)) {
-        quaternionNormalize(qAcc);
+      if (imuIsAccelerometerHealthy(vAcc)) {
+        quaternionNormalize(vAcc);
         // Error is sum of cross product between estimated direction and measured direction of gravity
-        ex += (qAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - qAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
-        ey += (qAcc->z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - qAcc->x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
-        ez += (qAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - qAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
+        ex += (vAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - vAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
+        ey += (vAcc->z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - vAcc->x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
+        ez += (vAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - vAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
       }
     }
 
