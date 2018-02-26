@@ -218,7 +218,7 @@ static float imuGetPGainScaleFactor(void)
     }
 }
 
-static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
+static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
                                 bool useAcc, quaternion *vAcc,
                                 bool useMag, float mx, float my, float mz,
                                 bool useYaw, float yawError)
@@ -227,7 +227,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     static float integralFBx = 0.0f,  integralFBy = 0.0f, integralFBz = 0.0f;    // integral error terms scaled by Ki
 
     // Calculate general spin rate (rad/s)
-    const float spin_rate = sqrtf(sq(gx) + sq(gy) + sq(gz));
+    const float spin_rate = sqrtf(sq(vGyro->x) + sq(vGyro->y) + sq(vGyro->z));
 
     // Use raw heading error (from GPS or whatever else)
     float ex = 0, ey = 0, ez = 0;
@@ -300,9 +300,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     const float dcmKpGain = imuRuntimeConfig.dcm_kp * imuGetPGainScaleFactor();
 
     // Apply proportional and integral feedback
-    gx += dcmKpGain * ex + integralFBx;
-    gy += dcmKpGain * ey + integralFBy;
-    gz += dcmKpGain * ez + integralFBz;
+    vGyro->x += dcmKpGain * ex + integralFBx;
+    vGyro->y += dcmKpGain * ey + integralFBy;
+    vGyro->z += dcmKpGain * ez + integralFBz;
 
 
 
@@ -330,9 +330,9 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     // old BF vs old BF adapted no diff
     quaternion qBuff, qDiff;
     qDiff.w = 0;
-    qDiff.x = gx * 0.5f * dt;
-    qDiff.y = gy * 0.5f * dt;
-    qDiff.z = gz * 0.5f * dt;
+    qDiff.x = vGyro->x * 0.5f * dt;
+    qDiff.y = vGyro->y * 0.5f * dt;
+    qDiff.z = vGyro->z * 0.5f * dt;
     quaternionMultiply(&qAttitude, &qDiff, &qBuff);
     quaternionAdd(&qAttitude, &qBuff, &qAttitude);
     quaternionNormalize(&qAttitude);
@@ -631,15 +631,15 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
 //  printf("[imu]deltaT = %u, imuDeltaT = %u, currentTimeUs = %u, micros64_real = %lu\n", deltaT, imuDeltaT, currentTimeUs, micros64_real());
     deltaT = imuDeltaT;
 #endif
-    float gyroAverage[XYZ_AXIS_COUNT];
-    gyroGetAccumulationAverage(gyroAverage);
-    quaternion qAccAverage;
-    if (!accGetAccumulationAverage(&qAccAverage)) {
+    quaternion vGyroAverage;
+    gyroGetAccumulationAverage(&vGyroAverage);
+    quaternion vAccAverage;
+    if (!accGetAccumulationAverage(&vAccAverage)) {
         useAcc = false;
     }
     imuMahonyAHRSupdate(deltaT * 1e-6f,
-                        DEGREES_TO_RADIANS(gyroAverage[X]), DEGREES_TO_RADIANS(gyroAverage[Y]), DEGREES_TO_RADIANS(gyroAverage[Z]),
-                        useAcc, &qAccAverage,
+                        &vGyroAverage,
+                        useAcc, &vAccAverage,
                         useMag, mag.magADC[X], mag.magADC[Y], mag.magADC[Z],
                         useYaw, rawYawError);
 

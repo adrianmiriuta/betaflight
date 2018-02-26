@@ -882,22 +882,25 @@ FAST_CODE void gyroUpdate(timeUs_t currentTimeUs)
     gyroUpdateSensor(&gyroSensor1, currentTimeUs);
 }
 
-bool gyroGetAccumulationAverage(float *accumulationAverage)
-{
-    if (accumulatedMeasurementTimeUs > 0) {
-        // If we have gyro data accumulated, calculate average rate that will yield the same rotation
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            accumulationAverage[axis] = accumulatedMeasurements[axis] / accumulatedMeasurementTimeUs;
-            accumulatedMeasurements[axis] = 0.0f;
-        }
-        accumulatedMeasurementTimeUs = 0;
-        return true;
-    } else {
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            accumulationAverage[axis] = 0.0f;
-        }
-        return false;
+bool gyroGetAccumulationAverage(quaternion *vAverage) {
+  if (accumulatedMeasurementTimeUs > 0) {
+    vAverage->w = 0;
+    vAverage->x = DEGREES_TO_RADIANS(accumulatedMeasurements[X] / accumulatedMeasurementTimeUs);
+    vAverage->y = DEGREES_TO_RADIANS(accumulatedMeasurements[Y] / accumulatedMeasurementTimeUs);
+    vAverage->z = DEGREES_TO_RADIANS(accumulatedMeasurements[Z] / accumulatedMeasurementTimeUs);
+
+    for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+        accumulatedMeasurements[axis] = 0.0f;
     }
+    accumulatedMeasurementTimeUs = 0;
+    return true;
+  } else {
+    vAverage->w = 0;
+    vAverage->x = 0;
+    vAverage->y = 0;
+    vAverage->z = 0;
+    return false;
+  }
 }
 
 void gyroReadTemperature(void)

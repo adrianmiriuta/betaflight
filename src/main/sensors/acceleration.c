@@ -516,12 +516,12 @@ void accUpdate(timeUs_t currentTimeUs, rollAndPitchTrims_t *rollAndPitchTrims)
     }
 }
 
-bool accGetAccumulationAverage(quaternion *average) {
+bool accGetAccumulationAverage(quaternion *vAverage) {
   if (accumulatedMeasurementCount > 0) {
-    average->w = 0;
-    average->x = accumulatedMeasurements[X] / accumulatedMeasurementCount;
-    average->y = accumulatedMeasurements[Y] / accumulatedMeasurementCount;
-    average->z = accumulatedMeasurements[Z] / accumulatedMeasurementCount;
+    vAverage->w = 0;
+    vAverage->x = accumulatedMeasurements[X] / accumulatedMeasurementCount;
+    vAverage->y = accumulatedMeasurements[Y] / accumulatedMeasurementCount;
+    vAverage->z = accumulatedMeasurements[Z] / accumulatedMeasurementCount;
 
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
       accumulatedMeasurements[axis] = 0.0f;
@@ -529,10 +529,10 @@ bool accGetAccumulationAverage(quaternion *average) {
     accumulatedMeasurementCount = 0;
     return true;
   } else {
-    average->w = 0;
-    average->x = 0;
-    average->y = 0;
-    average->z = 0;
+    vAverage->w = 0;
+    vAverage->x = 0;
+    vAverage->y = 0;
+    vAverage->z = 0;
     return false;
   }
 }
