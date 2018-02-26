@@ -219,7 +219,7 @@ static float imuGetPGainScaleFactor(void)
 }
 
 static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
-                                bool useAcc, float ax, float ay, float az,
+                                bool useAcc, quaternion *qAcc,
                                 bool useMag, float mx, float my, float mz,
                                 bool useYaw, float yawError)
 {
@@ -271,19 +271,13 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     UNUSED(mz);
 #endif
 
-    quaternion qAcc;
-    qAcc.w = 0;
-    qAcc.x = ax;
-    qAcc.y = ay;
-    qAcc.z = az;
-
     if (useAcc){
-      if (imuIsAccelerometerHealthy(&qAcc)) {
-        quaternionNormalize(&qAcc);
+      if (imuIsAccelerometerHealthy(qAcc)) {
+        quaternionNormalize(qAcc);
         // Error is sum of cross product between estimated direction and measured direction of gravity
-        ex += (qAcc.y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - qAcc.z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
-        ey += (qAcc.z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - qAcc.x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
-        ez += (qAcc.x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - qAcc.y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
+        ex += (qAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - qAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
+        ey += (qAcc->z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - qAcc->x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
+        ez += (qAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - qAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
       }
     }
 
@@ -605,16 +599,12 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
 {
     static timeUs_t previousIMUUpdateTime;
     float rawYawError = 0;
-    bool useAcc = false;
+    bool useAcc = true;
     bool useMag = false;
     bool useYaw = false;
 
     const timeDelta_t deltaT = currentTimeUs - previousIMUUpdateTime;
     previousIMUUpdateTime = currentTimeUs;
-
-    //if (imuIsAccelerometerHealthy()) {
-        useAcc = true;
-    //}
 
 #ifdef USE_MAG
     if (sensors(SENSOR_MAG) && compassIsHealthy()) {
@@ -643,13 +633,13 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
 #endif
     float gyroAverage[XYZ_AXIS_COUNT];
     gyroGetAccumulationAverage(gyroAverage);
-    float accAverage[XYZ_AXIS_COUNT];
-    if (!accGetAccumulationAverage(accAverage)) {
+    quaternion qAccAverage;
+    if (!accGetAccumulationAverage(&qAccAverage)) {
         useAcc = false;
     }
     imuMahonyAHRSupdate(deltaT * 1e-6f,
                         DEGREES_TO_RADIANS(gyroAverage[X]), DEGREES_TO_RADIANS(gyroAverage[Y]), DEGREES_TO_RADIANS(gyroAverage[Z]),
-                        useAcc, accAverage[X], accAverage[Y], accAverage[Z],
+                        useAcc, &qAccAverage,
                         useMag, mag.magADC[X], mag.magADC[Y], mag.magADC[Z],
                         useYaw, rawYawError);
 

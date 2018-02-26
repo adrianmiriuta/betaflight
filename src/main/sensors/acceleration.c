@@ -516,22 +516,25 @@ void accUpdate(timeUs_t currentTimeUs, rollAndPitchTrims_t *rollAndPitchTrims)
     }
 }
 
-bool accGetAccumulationAverage(float *accumulationAverage)
-{
-    if (accumulatedMeasurementCount > 0) {
-        // If we have gyro data accumulated, calculate average rate that will yield the same rotation
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            accumulationAverage[axis] = accumulatedMeasurements[axis] / accumulatedMeasurementCount;
-            accumulatedMeasurements[axis] = 0.0f;
-        }
-        accumulatedMeasurementCount = 0;
-        return true;
-    } else {
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            accumulationAverage[axis] = 0.0f;
-        }
-        return false;
+bool accGetAccumulationAverage(quaternion *average) {
+  if (accumulatedMeasurementCount > 0) {
+    average->w = 0;
+    average->x = accumulatedMeasurements[X] / accumulatedMeasurementCount;
+    average->y = accumulatedMeasurements[Y] / accumulatedMeasurementCount;
+    average->z = accumulatedMeasurements[Z] / accumulatedMeasurementCount;
+
+    for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+      accumulatedMeasurements[axis] = 0.0f;
     }
+    accumulatedMeasurementCount = 0;
+    return true;
+  } else {
+    average->w = 0;
+    average->x = 0;
+    average->y = 0;
+    average->z = 0;
+    return false;
+  }
 }
 
 void setAccelerationTrims(flightDynamicsTrims_t *accelerationTrimsToUse)
