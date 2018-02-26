@@ -297,38 +297,15 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
       vIntegralFB.z = 0.0f;
     }
 
-    // Calculate kP gain. If we are acquiring initial attitude (not armed and within 20 sec from powerup) scale the kP to converge faster
+    // scale dcm_kp to converge faster (if not armed and within 20 sec from powerup)
     const float dcmKpGain = imuRuntimeConfig.dcm_kp * imuGetPGainScaleFactor();
 
-    // Apply proportional and integral feedback
+    // apply proportional and integral feedback
     vGyro->x += dcmKpGain * vError.x + vIntegralFB.x;
     vGyro->y += dcmKpGain * vError.y + vIntegralFB.y;
     vGyro->z += dcmKpGain * vError.z + vIntegralFB.z;
 
-
-
-    // old bf method
-    // has positions of high drift +-90° 45-45°
-    // identical with adapted version (no diff with rot inverted)
-    // Integrate rate of change of quaternion
-    /*
-    gx *= (0.5f * dt);
-    gy *= (0.5f * dt);
-    gz *= (0.5f * dt);
-    quaternion buffer;
-    quaternionCopy(&qAttitude, &buffer);
-    // construct new quaternion from old quaternion and rate of change gyro data
-    qAttitude.w += (-buffer.x * gx - buffer.y * gy - buffer.z * gz);
-    qAttitude.x += (+buffer.w * gx + buffer.y * gz - buffer.z * gy);
-    qAttitude.y += (+buffer.w * gy - buffer.x * gz + buffer.z * gx);
-    qAttitude.z += (+buffer.w * gz + buffer.x * gy - buffer.y * gx);
-    quaternionNormalize(&qAttitude);
-    */
-
     // old bf method adapted
-    // has positions of high drift +-90° 45-45°
-    // problem high drift around +-90° drift pitch roll 1°/s
-    // old BF vs old BF adapted no diff
     quaternion qBuff, qDiff;
     qDiff.w = 0;
     qDiff.x = vGyro->x * 0.5f * dt;
@@ -337,230 +314,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
     quaternionMultiply(&qAttitude, &qDiff, &qBuff);
     quaternionAdd(&qAttitude, &qBuff, &qAttitude);
     quaternionNormalize(&qAttitude);
-    //quaternionInverse(&qGyroB, &qGyroBinverse);
-
-
-    // old bf method adapted
-    // has positions of high drift +-90° 45-45°
-    // problem high drift around +-90° drift pitch roll 1°/s
-    // old BF vs old BF adapted no diff
-    /*
-    quaternion qBuff, qDiff;
-    qDiff.w = 0;
-    qDiff.x = gx * 0.5f * dt;
-    qDiff.y = gy * 0.5f * dt;
-    qDiff.z = gz * 0.5f * dt;
-    quaternionMultiply(&qGyro, &qDiff, &qBuff);
-    quaternionAdd(&qGyro, &qBuff, &qGyro);
-    quaternionNormalize(&qGyro);
-    //quaternionInverse(&qGyroB, &qGyroBinverse);*/
-
-
-    // test method b
-    // some sort of aproximation!!!
-    // https://github.com/malloch/Arduino_IMU
-    // problem singularities around +-90° without normalization
-    // problem singularities around +-90° not sin_approx related
-    // probelm high drift 45°45°
-    // subjective lower static drift 0.1°/s
-    // variation qDiffNorm Ko
-    // variation sin cos Ko
-    // no drift 0.1° differeces roll pitch +-90° to BF calculus
-    /*
-    //quaternion qDiff;
-    //const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
-    qDiff.w = cos_approx((gx + gy + gz) * 0.5f * dt);
-    //qDiff.w = cos(qDiffNorm * 0.5f * dt);
-    qDiff.x = sin(gx * 0.5f * dt);
-    qDiff.y = sin(gy * 0.5f * dt);
-    qDiff.z = sin(gz * 0.5f * dt);
-    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    //quaternionNormalize(&qGyro);
-    quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
-    quaternionInverse(&qGyroB, &qGyroBinverse);
-    */
-
-
-    // test method c
-    // https://math.stackexchange.com/questions/1693067/differences-between-quaternion-integration-methods
-    // more diff than malloch vs BF calculus (on high speed movements) no drift
-    /*
-    //quaternion qDiff;
-    const float qDiffNorm = sqrt(gx*gx + gy*gy + gz*gz);
-    if (qDiffNorm > 0.0000001f) {
-      qDiff.w = cos(qDiffNorm * 0.5f * dt);
-      qDiff.x = (gx * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
-      qDiff.y = (gy * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
-      qDiff.z = (gz * sin(qDiffNorm * 0.5f * dt)) / qDiffNorm;
-      //quaternionMultiply(&qGyro, &qDiff, &qGyro);
-      quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
-      quaternionInverse(&qGyroB, &qGyroBinverse);
-    }
-    */
-
-
-    // test method d
-    // test incremental rotation
-    // singularities circle around +-90° sin_approx cos_approx related
-    // worse than BF when shaiking gently (more diff from should be position)
-    // incremental vs BF large diff vs BF calculus (on higher speed movements)
-    /*
-    quaternion qDiff;
-    qDiff.w = cos(gx * dt * 0.5f);
-    qDiff.x = sin(gx * dt * 0.5f);
-    qDiff.y = 0;
-    qDiff.z = 0;
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    //quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
-    qDiff.w = cos(gy * dt * 0.5f);
-    qDiff.x = 0;
-    qDiff.y = sin(gy * dt * 0.5f);
-    qDiff.z = 0;
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    //quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
-    qDiff.w = cos(gz * dt * 0.5f);
-    qDiff.x = 0;
-    qDiff.y = 0;
-    qDiff.z = sin(gz * dt * 0.5f);
-    quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    //quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
-    //quaternionInverse(&qGyroB, &qGyroBinverse);
-    */
-
-
-    // test method e
-    // single rotation quaternion
-    // singularity +-90° when using sin_approx
-    // single rot vs bf same as incremental vs BF
-    // incremental rot vs single rot big difference (rotation order???)
-    /*
-    //quaternion qDiff;
-    const float cy = cos(gz * dt * 0.5);
-    const float sy = sin(gz * dt * 0.5);
-    const float cr = cos(gx * dt * 0.5);
-    const float sr = sin(gx * dt * 0.5);
-    const float cp = cos(gy * dt * 0.5);
-    const float sp = sin(gy * dt * 0.5);
-
-    qDiff.w = cy * cr * cp + sy * sr * sp;
-    qDiff.x = cy * sr * cp - sy * cr * sp;
-    qDiff.y = cy * cr * sp + sy * sr * cp;
-    qDiff.z = sy * cr * cp - cy * sr * sp;
-
-    //quaternionMultiply(&qGyro, &qDiff, &qGyro);
-    quaternionMultiply(&qGyroB, &qDiff, &qGyroB);
-    quaternionInverse(&qGyroB, &qGyroBinverse);
-    */
-
-
-    // acc
-    /*
-    quaternion vAcc, qAcc, qRot;
-    quaternionProducts qpAcc;
-    vAcc.w = 0;
-    vAcc.x = ax;
-    vAcc.y = ay;
-    vAcc.z = az;
-    quaternionNormalize(&vAcc);*/
-
-    /*
-    quaternion qAccRoll;
-    float u = 0.1f;
-    //float rollHalf = atan2_approx(vAcc.y,vAcc.z)/2; // mmax v1 ROT xyz
-    //float rollHalf = atan(vAcc.y/vAcc.z)/2; // mmax v1 ROT xyz
-    //float rollHalf = atan2_approx(vAcc.y,sqrtf(vAcc.z*vAcc.z + vAcc.x*vAcc.x))/2; // mmax v2 ROT xyz only z>0 no inverted position
-    float rollHalf = atan2(vAcc.y,(float)copysign(1.0f,vAcc.z) * sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2.0f; // AN3461 xyz
-    //float rollHalf = atan(vAcc.y/copysign(1.0,vAcc.z)*sqrtf(vAcc.z*vAcc.z + u*vAcc.x*vAcc.x))/2; // AN3461 xyz
-
-    qAccRoll.w = cos(rollHalf);
-    qAccRoll.x = sin(rollHalf);
-    qAccRoll.y = 0;
-    qAccRoll.z = 0;
-
-    quaternion qAccPitch;
-    float pitchHalf= atan2(-vAcc.x, sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2.0f; // AN3461 xyz
-    //float pitchHalf= atan(-vAcc.x/sqrtf(vAcc.y * vAcc.y + vAcc.z * vAcc.z) )/2; // AN3461 xyz
-    //float pitchHalf= atan(-vAcc.x/vAcc.z)/2; // AN3461 xyz
-    //pitchHalf= constrainf(pitch2, -M_PIf4, M_PIf4);
-    qAccPitch.w = cos(pitchHalf);
-    qAccPitch.x = 0;
-    qAccPitch.y = sin(pitchHalf);
-    qAccPitch.z = 0;
-
-    quaternionMultiply(&qAccRoll, &qAccPitch, &qAcc); //xyz
-    */
-
-
-    // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
-    /*
-    if (imuIsAccelerometerHealthy()) {
-      if (vAcc.z >= -0.95) {
-        // z = 0 v1 +w Ok
-        qAcc.w = +sqrtf((vAcc.z + 1) / 2.0f);
-        qAcc.x = +vAcc.y/(2 * qAcc.w);
-        qAcc.y = -vAcc.x/(2 * qAcc.w);
-        qAcc.z = 0;
-      } else {
-        quaternionCopy(&qAttitude, &qAcc);
-        // y = 0 v1 PMC4570372
-        // + 0 + + Ko
-        // - 0 + + Ko
-        // + 0 - + Ko
-        // + 0 + - Ko
-        // + 0 - - Ko
-        // - 0 - - Ko
-        qAcc.x = sqrtf((1 - vAcc.z) / 2.0f);
-        qAcc.y = 0;
-        qAcc.z = vAcc.x/(2 * qAcc.x);
-        qAcc.w = vAcc.y/(2 * qAcc.x);
-
-        // rotate yaw 180° mutates pitch to roll problem
-        qRot.w = qRot.x = qRot.y = 0;
-        qRot.z = 1;
-        //quaternionMultiply(&qRot, &qAcc, &qAcc);
-      }
-    } else {
-      quaternionCopy(&qAttitude, &qAcc);
-    }
-    //quaternionNormalize(&qAcc);*/
-
-    // remove Acc yaw rotation
-    /*
-    quaternionComputeProducts(&qAcc, &qpAcc);
-    quaternion qAccYaw;
-    const float AccYawHalf = atan2((+2.0f * (qpAcc.wz + qpAcc.xy)), (+1.0f - 2.0f * (qpAcc.yy + qpAcc.zz))) / 2.0f;
-    qAccYaw.w = cos(AccYawHalf);
-    qAccYaw.x = 0;
-    qAccYaw.y = 0;
-    qAccYaw.z = sin(AccYawHalf);
-    quaternionInverse(&qAccYaw,&qAccYaw);
-    quaternionMultiply(&qAccYaw, &qAcc, &qAcc);*/
-
-    // gyro yaw rotation
-    /*
-    quaternionComputeProducts(&qGyro, &qpGyro);
-    quaternion qGyroYaw;
-    const float yaw = atan2_approx((+2.0f * (qpGyro.wz + qpGyro.xy)), (+1.0f - 2.0f * (qpGyro.yy + qpGyro.zz)));
-    qGyroYaw.w = cos_approx(yaw/2);
-    qGyroYaw.x = 0;
-    qGyroYaw.y = 0;
-    qGyroYaw.z = sin_approx(yaw/2);
-    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);*/
-
-
-    //quaternionMinimumDistance(&qAcc, &qGyro);
-    //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, 0.995);
-    // Ko
-    //quaternionSlerp(&qAcc, &qGyro,  &qAttitude, constrainf(quaternionDotProduct(&qAcc, &qAttitude),0.5f,0.999f));
-    //quaternionCopy(&qAttitude, &qGyro);
-
-
-    //quaternionCopy(&qAcc, &qAttitude);
-    //quaternionNormalize(&qAttitude);
-    //quaternionCopy(&qGyro, &qAttitude);
-    //quaternionMultiply(&qGyroBinverse, &qGyro, &qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
-    //quaternionCopy(&qAttitude, &qGyro);
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
@@ -587,13 +341,12 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
     }
 }
 
-bool imuIsAccelerometerHealthy(quaternion *q)
-{
+bool imuIsAccelerometerHealthy(quaternion *q) {
     float accMagnitude = q->x * q->x + q->y * q->y + q->z * q->z;
     accMagnitude = accMagnitude * 100 / (sq((int32_t)acc.dev.acc_1G));
 
-    // Accept accel readings only in range 0.90g - 1.10g
-    return (81 < accMagnitude) && (accMagnitude < 121);
+    // accept accel readings only in range 0.90g - 1.10g
+    return ((81 < accMagnitude) && (accMagnitude < 121));
 }
 
 static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
