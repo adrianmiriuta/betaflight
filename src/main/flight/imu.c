@@ -224,15 +224,13 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
                                 bool useYaw, float yawError)
 {
 
-    static float integralFBx = 0.0f,  integralFBy = 0.0f, integralFBz = 0.0f;    // integral error terms scaled by Ki
+    quaternion vError = VECTOR_INITIALIZE;
+    quaternion vIntegralFB = VECTOR_INITIALIZE;
 
     // Calculate general spin rate (rad/s)
     const float spin_rate = sqrtf(sq(vGyro->x) + sq(vGyro->y) + sq(vGyro->z));
 
     // Use raw heading error (from GPS or whatever else)
-    //float ex = 0, ey = 0, ez = 0;
-    quaternion vError = VECTOR_INITIALIZE;
-
     if (useYaw) {
         while (yawError >  M_PIf) yawError -= (2.0f * M_PIf);
         while (yawError < -M_PIf) yawError += (2.0f * M_PIf);
@@ -288,23 +286,23 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
         // Stop integrating if spinning beyond the certain limit
         if (spin_rate < DEGREES_TO_RADIANS(SPIN_RATE_LIMIT)) {
             const float dcmKiGain = imuRuntimeConfig.dcm_ki;
-            integralFBx += dcmKiGain * vError.x * dt;    // integral error scaled by Ki
-            integralFBy += dcmKiGain * vError.y * dt;
-            integralFBz += dcmKiGain * vError.z * dt;
+            vIntegralFB.x += dcmKiGain * vError.x * dt;    // integral error scaled by Ki
+            vIntegralFB.y += dcmKiGain * vError.y * dt;
+            vIntegralFB.z += dcmKiGain * vError.z * dt;
         }
     } else {
-        integralFBx = 0.0f;    // prevent integral windup
-        integralFBy = 0.0f;
-        integralFBz = 0.0f;
+        vIntegralFB.x = 0.0f;    // prevent integral windup
+        vIntegralFB.y = 0.0f;
+        vIntegralFB.z = 0.0f;
     }
 
     // Calculate kP gain. If we are acquiring initial attitude (not armed and within 20 sec from powerup) scale the kP to converge faster
     const float dcmKpGain = imuRuntimeConfig.dcm_kp * imuGetPGainScaleFactor();
 
     // Apply proportional and integral feedback
-    vGyro->x += dcmKpGain * vError.x + integralFBx;
-    vGyro->y += dcmKpGain * vError.y + integralFBy;
-    vGyro->z += dcmKpGain * vError.z + integralFBz;
+    vGyro->x += dcmKpGain * vError.x + vIntegralFB.x;
+    vGyro->y += dcmKpGain * vError.y + vIntegralFB.y;
+    vGyro->z += dcmKpGain * vError.z + vIntegralFB.z;
 
 
 
