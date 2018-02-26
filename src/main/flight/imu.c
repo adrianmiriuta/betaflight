@@ -192,11 +192,11 @@ static void imuCalculateAcceleration(timeDelta_t deltaT)
 }
 #endif // USE_ALT_HOLD
 
-/*
+
 static float invSqrt(float x)
 {
     return 1.0f / sqrtf(x);
-}*/
+}
 
 static bool imuUseFastGains(void)
 {
