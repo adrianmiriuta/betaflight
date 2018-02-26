@@ -222,7 +222,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
                                 bool useMag, float mx, float my, float mz,
                                 bool useYaw, float yawError)
 {
-    /*
+    
     static float integralFBx = 0.0f,  integralFBy = 0.0f, integralFBz = 0.0f;    // integral error terms scaled by Ki
 
     // Calculate general spin rate (rad/s)
@@ -307,7 +307,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     gx += dcmKpGain * ex + integralFBx;
     gy += dcmKpGain * ey + integralFBy;
     gz += dcmKpGain * ez + integralFBz;
-    */
+
 
 
     // old bf method
@@ -337,10 +337,26 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qDiff.x = gx * 0.5f * dt;
     qDiff.y = gy * 0.5f * dt;
     qDiff.z = gz * 0.5f * dt;
+    quaternionMultiply(&qAttitude, &qDiff, &qBuff);
+    quaternionAdd(&qAttitude, &qBuff, &qAttitude);
+    quaternionNormalize(&qAttitude);
+    //quaternionInverse(&qGyroB, &qGyroBinverse);
+
+
+    // old bf method adapted
+    // has positions of high drift +-90° 45-45°
+    // problem high drift around +-90° drift pitch roll 1°/s
+    // old BF vs old BF adapted no diff
+    /*
+    quaternion qBuff, qDiff;
+    qDiff.w = 0;
+    qDiff.x = gx * 0.5f * dt;
+    qDiff.y = gy * 0.5f * dt;
+    qDiff.z = gz * 0.5f * dt;
     quaternionMultiply(&qGyro, &qDiff, &qBuff);
     quaternionAdd(&qGyro, &qBuff, &qGyro);
     quaternionNormalize(&qGyro);
-    //quaternionInverse(&qGyroB, &qGyroBinverse);
+    //quaternionInverse(&qGyroB, &qGyroBinverse);*/
 
 
     // test method b
@@ -441,13 +457,14 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     // acc
+    /*
     quaternion vAcc, qAcc, qRot;
     quaternionProducts qpAcc;
     vAcc.w = 0;
     vAcc.x = ax;
     vAcc.y = ay;
     vAcc.z = az;
-    quaternionNormalize(&vAcc);
+    quaternionNormalize(&vAcc);*/
 
     /*
     quaternion qAccRoll;
@@ -478,6 +495,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
 
 
     // https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4570372/
+    /*
     if (imuIsAccelerometerHealthy()) {
       if (vAcc.z >= -0.95) {
         // z = 0 v1 +w Ok
@@ -503,15 +521,15 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
         // rotate yaw 180° mutates pitch to roll problem
         qRot.w = qRot.x = qRot.y = 0;
         qRot.z = 1;
-        //quaternionMultiply(&qRot, &qAcc, &qAcc);*/
+        //quaternionMultiply(&qRot, &qAcc, &qAcc);
       }
     } else {
       quaternionCopy(&qAttitude, &qAcc);
     }
-    //quaternionNormalize(&qAcc);
+    //quaternionNormalize(&qAcc);*/
 
     // remove Acc yaw rotation
-
+    /*
     quaternionComputeProducts(&qAcc, &qpAcc);
     quaternion qAccYaw;
     const float AccYawHalf = atan2((+2.0f * (qpAcc.wz + qpAcc.xy)), (+1.0f - 2.0f * (qpAcc.yy + qpAcc.zz))) / 2.0f;
@@ -520,10 +538,10 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qAccYaw.y = 0;
     qAccYaw.z = sin(AccYawHalf);
     quaternionInverse(&qAccYaw,&qAccYaw);
-    quaternionMultiply(&qAccYaw, &qAcc, &qAcc);
+    quaternionMultiply(&qAccYaw, &qAcc, &qAcc);*/
 
     // gyro yaw rotation
-
+    /*
     quaternionComputeProducts(&qGyro, &qpGyro);
     quaternion qGyroYaw;
     const float yaw = atan2_approx((+2.0f * (qpGyro.wz + qpGyro.xy)), (+1.0f - 2.0f * (qpGyro.yy + qpGyro.zz)));
@@ -531,7 +549,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     qGyroYaw.x = 0;
     qGyroYaw.y = 0;
     qGyroYaw.z = sin_approx(yaw/2);
-    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);
+    quaternionMultiply(&qGyroYaw, &qAcc, &qAcc);*/
 
 
     //quaternionMinimumDistance(&qAcc, &qGyro);
@@ -541,7 +559,7 @@ static void imuMahonyAHRSupdate(float dt, float gx, float gy, float gz,
     //quaternionCopy(&qAttitude, &qGyro);
 
 
-    quaternionCopy(&qAcc, &qAttitude);
+    //quaternionCopy(&qAcc, &qAttitude);
     //quaternionNormalize(&qAttitude);
     //quaternionCopy(&qGyro, &qAttitude);
     //quaternionMultiply(&qGyroBinverse, &qGyro, &qAttitude);
