@@ -192,15 +192,8 @@ static void imuCalculateAcceleration(timeDelta_t deltaT)
 }
 #endif // USE_ALT_HOLD
 
-
-static float invSqrt(float x)
-{
-    return 1.0f / sqrtf(x);
-}
-
-static bool imuUseFastGains(void)
-{
-    return !ARMING_FLAG(ARMED) && millis() < 20000;
+static bool imuUseFastGains(void) {
+    return !ARMING_FLAG(ARMED) && millis() < 10000;
 }
 
 static float imuGetPGainScaleFactor(void)
@@ -215,7 +208,7 @@ static float imuGetPGainScaleFactor(void)
 
 static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
                                 bool useAcc, quaternion *vAcc,
-                                bool useMag, float mx, float my, float mz,
+                                bool useMag, quaternion *vMag,
                                 bool useYaw, float yawError)
 {
     quaternion vKpKi = VECTOR_INITIALIZE;
@@ -236,21 +229,17 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
 #ifdef USE_MAG
     // Use measured magnetic field vector
     float recipMagNorm = sq(mx) + sq(my) + sq(mz);
-    if (useMag && recipMagNorm > 0.01f) {
-        // Normalise magnetometer measurement
-        recipMagNorm = invSqrt(recipMagNorm);
-        mx *= recipMagNorm;
-        my *= recipMagNorm;
-        mz *= recipMagNorm;
-
+    if (useMag) {
+      if (compassIsHealthy()){
+        quaternionNormalize(vMag);
         // For magnetometer correction we make an assumption that magnetic field is perpendicular to gravity (ignore Z-component in EF).
         // This way magnetic field will only affect heading and wont mess roll/pitch angles
 
         // (hx; hy; 0) - measured mag field vector in EF (assuming Z-component is zero)
         // (bx; 0; 0) - reference mag field vector heading due North in EF (assuming Z-component is zero)
-        const float hx = (1.0f - 2.0f * qpAttitude.yy - 2.0f * qpAttitude.zz) * mx + (2.0f * (qpAttitude.xy + -qpAttitude.wz)) * my + (2.0f * (qpAttitude.xz - -qpAttitude.wy)) * mz;
-        const float hy = (2.0f * (qpAttitude.xy - -qpAttitude.wz)) * mx + (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.zz) * my + (2.0f * (qpAttitude.yz + -qpAttitude.wx)) * mz;
-        const float bx = sqrtf(hx * hx + hy * hy);
+        const float hx = (1.0f - 2.0f * qpAttitude.yy - 2.0f * qpAttitude.zz) * vMag->x + (2.0f * (qpAttitude.xy + -qpAttitude.wz)) * vMag->y + (2.0f * (qpAttitude.xz - -qpAttitude.wy)) * vMag->z;
+        const float hy = (2.0f * (qpAttitude.xy - -qpAttitude.wz)) * vMag->x + (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.zz) * vMag->y + (2.0f * (qpAttitude.yz + -qpAttitude.wx)) * vMag->z;
+        const float bx = sqrtf(sq(hx) + sq(hy));
 
         // magnetometer error is cross product between estimated magnetic north and measured magnetic north (calculated in EF)
         const float ez_ef = -(hy * bx);
@@ -259,16 +248,15 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
         vError.x += (2.0f * (qpAttitude.xz + -qpAttitude.wy)) * ez_ef;
         vError.y += (2.0f * (qpAttitude.yz - -qpAttitude.wx)) * ez_ef;
         vError.z += (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) * ez_ef;
+      }
     }
 #else
     UNUSED(useMag);
-    UNUSED(mx);
-    UNUSED(my);
-    UNUSED(mz);
+    UNUSED(vMag);
 #endif
 
     if (useAcc){
-      if (imuIsAccelerometerHealthy(vAcc)) {
+      if (accIsHealthy(vAcc)) {
         quaternionNormalize(vAcc);
         // Error is sum of cross product between estimated direction and measured direction of gravity
         vError.x += (vAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - vAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
@@ -341,14 +329,6 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
     }
 }
 
-bool imuIsAccelerometerHealthy(quaternion *q) {
-    float accMagnitude = q->x * q->x + q->y * q->y + q->z * q->z;
-    accMagnitude = accMagnitude * 100 / (sq((int32_t)acc.dev.acc_1G));
-
-    // accept accel readings only in range 0.90g - 1.10g
-    return ((81 < accMagnitude) && (accMagnitude < 121));
-}
-
 static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
 {
     static timeUs_t previousIMUUpdateTime;
@@ -361,7 +341,7 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     previousIMUUpdateTime = currentTimeUs;
 
 #ifdef USE_MAG
-    if (sensors(SENSOR_MAG) && compassIsHealthy()) {
+    if (sensors(SENSOR_MAG)) {
         useMag = true;
     }
 #endif
@@ -386,15 +366,21 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     deltaT = imuDeltaT;
 #endif
     quaternion vGyroAverage;
-    gyroGetAccumulationAverage(&vGyroAverage);
+    gyroGetAverage(&vGyroAverage);
+
     quaternion vAccAverage;
-    if (!accGetAccumulationAverage(&vAccAverage)) {
+    if (!accGetAverage(&vAccAverage)) {
         useAcc = false;
+    }
+
+    quaternion vMagAverage;
+    if (useMag) {
+      compassGetAverage(&vMagAverage);
     }
     imuMahonyAHRSupdate(deltaT * 1e-6f,
                         &vGyroAverage,
                         useAcc, &vAccAverage,
-                        useMag, mag.magADC[X], mag.magADC[Y], mag.magADC[Z],
+                        useMag, &vMagAverage,
                         useYaw, rawYawError);
 
     imuUpdateEulerAngles();

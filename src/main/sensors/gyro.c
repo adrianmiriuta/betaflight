@@ -882,7 +882,7 @@ FAST_CODE void gyroUpdate(timeUs_t currentTimeUs)
     gyroUpdateSensor(&gyroSensor1, currentTimeUs);
 }
 
-bool gyroGetAccumulationAverage(quaternion *vAverage) {
+bool gyroGetAverage(quaternion *vAverage) {
   if (accumulatedMeasurementTimeUs > 0) {
     vAverage->w = 0;
     vAverage->x = DEGREES_TO_RADIANS(accumulatedMeasurements[X] / accumulatedMeasurementTimeUs);

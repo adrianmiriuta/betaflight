@@ -262,9 +262,13 @@ bool compassInit(void)
     return true;
 }
 
-bool compassIsHealthy(void)
-{
-    return (mag.magADC[X] != 0) && (mag.magADC[Y] != 0) && (mag.magADC[Z] != 0);
+bool compassIsHealthy(void) {
+  float recipMagNorm = sq(mag.magADC[X]) + sq(mag.magADC[Y]) + sq(mag.magADC[Z]);
+  if (recipMagNorm > 0.01f) {
+    return (true);
+  } else {
+    return (false);
+  }
 }
 
 void compassUpdate(timeUs_t currentTimeUs)
@@ -314,5 +318,12 @@ void compassUpdate(timeUs_t currentTimeUs)
             saveConfigAndNotify();
         }
     }
+}
+
+bool compassGetAverage(quaternion *vAverage) {
+    vAverage->w = 0;
+    vAverage->x = mag.magADC[X];
+    vAverage->y = mag.magADC[Y];
+    vAverage->z = mag.magADC[Z];
 }
 #endif // USE_MAG

@@ -111,6 +111,6 @@ bool compassIsHealthy(void) { return true; }
 bool isBaroCalibrationComplete(void) { return true; }
 void performBaroCalibrationCycle(void) {}
 int32_t baroCalculateAltitude(void) { return 0; }
-bool gyroGetAccumulationAverage(float *) { return false; }
-bool accGetAccumulationAverage(float *) { return false; }
+bool gyroGetAverage(float *) { return false; }
+bool accGetAverage(float *) { return false; }
 }

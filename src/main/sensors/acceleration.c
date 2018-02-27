@@ -516,7 +516,7 @@ void accUpdate(timeUs_t currentTimeUs, rollAndPitchTrims_t *rollAndPitchTrims)
     }
 }
 
-bool accGetAccumulationAverage(quaternion *vAverage) {
+bool accGetAverage(quaternion *vAverage) {
   if (accumulatedMeasurementCount > 0) {
     vAverage->w = 0;
     vAverage->x = accumulatedMeasurements[X] / accumulatedMeasurementCount;
@@ -550,4 +550,12 @@ void accInitFilters(void)
             biquadFilterInitLPF(&accFilter[axis], accLpfCutHz, acc.accSamplingInterval);
         }
     }
+}
+
+bool accIsHealthy(quaternion *q) {
+    float accMagnitude = sq(q->x) + sq(q->y) + sq(q->z);
+    accMagnitude = accMagnitude * 100 / (sq((int32_t)acc.dev.acc_1G));
+
+    // accept accel readings only in range 0.90g - 1.10g
+    return ((81 < accMagnitude) && (accMagnitude < 121));
 }

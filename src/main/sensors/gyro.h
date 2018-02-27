@@ -85,7 +85,7 @@ bool gyroInit(void);
 
 void gyroInitFilters(void);
 void gyroUpdate(timeUs_t currentTimeUs);
-bool gyroGetAccumulationAverage(quaternion *vAverage);
+bool gyroGetAverage(quaternion *vAverage);
 const busDevice_t *gyroSensorBus(void);
 struct mpuConfiguration_s;
 const struct mpuConfiguration_s *gyroMpuConfiguration(void);
