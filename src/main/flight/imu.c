@@ -217,7 +217,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
     quaternionCopy(vGyro, &vKpKi);
 
     // Calculate general spin rate (rad/s)
-    const float spin_rate = sqrtf(sq(vGyro->x) + sq(vGyro->y) + sq(Gyro->z));
+    const float spin_rate = sqrtf(sq(vGyro->x) + sq(vGyro->y) + sq(vGyro->z));
 
     // Use raw heading error (from GPS or whatever else)
     if (useYaw) {
@@ -468,13 +468,15 @@ void imuSetHasNewData(uint32_t dt)
 #endif
 
 bool quaternionHeadfreeOffsetSet(void) {
-      if ((ABS(attitude.values.roll) < 450)  && (ABS(attitude.values.pitch) < 450)) {
-        const float yaw = atan2_approx((+2.0f * (qpAttitude.wz + qpAttitude.xy)), (+1.0f - 2.0f * (qpAttitude.yy + qpAttitude.zz)));
-        qOffset.w = cos_approx(yaw/2);
+      // HEADADJ allowed for tilt below 37°
+      if ((ABS(getCosTiltAngle()) > 0.8f)) {
+        const float yawHalf = atan2_approx((+2.0f * (qpAttitude.wz + qpAttitude.xy)), (+1.0f - 2.0f * (qpAttitude.yy + qpAttitude.zz))) / 2.0f;
+        qOffset.w = cos_approx(yawHalf);
         qOffset.x = 0;
         qOffset.y = 0;
-        qOffset.z = sin_approx(yaw/2);
-        quaternionInverse(&qOffset, &qOffset);
+        qOffset.z = sin_approx(yawHalf);
+
+        quaternionConjugate(&qOffset, &qOffset);
         return(true);
     } else {
         return false;
