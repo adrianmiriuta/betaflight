@@ -348,22 +348,22 @@ fix12_t  qConstruct(int16_t num, int16_t den) {
 
 // quaternions
 void quaternionTransformVectorBodyToEarth(quaternion *qVector, quaternion *qReference) {
-    quaternion qVectorBuffer, qReferenceInverse;
+    quaternion qVectorBuffer, qReferenceConjugate;
     qVector->w = 0;
 
     quaternionCopy(qVector, &qVectorBuffer);
-    quaternionConjugate(qReference, &qReferenceInverse);
+    quaternionConjugate(qReference, &qReferenceConjugate);
     quaternionMultiply(qReference, &qVectorBuffer, &qVectorBuffer);
-    quaternionMultiply(&qVectorBuffer, &qReferenceInverse, qVector);
+    quaternionMultiply(&qVectorBuffer, &qReferenceConjugate, qVector);
 }
 
 void quaternionTransformVectorEarthToBody(quaternion *qVector, quaternion *qReference) {
-    quaternion qVectorBuffer, qReferenceInverse;
+    quaternion qVectorBuffer, qReferenceConjugate;
     qVector->w = 0;
 
     quaternionCopy(qVector, &qVectorBuffer);
-    quaternionConjugate(qReference, &qReferenceInverse);
-    quaternionMultiply(&qReferenceInverse, &qVectorBuffer, &qVectorBuffer);
+    quaternionConjugate(qReference, &qReferenceConjugate);
+    quaternionMultiply(&qReferenceConjugate, &qVectorBuffer, &qVectorBuffer);
     quaternionMultiply(&qVectorBuffer, qReference, qVector);
 }
 
