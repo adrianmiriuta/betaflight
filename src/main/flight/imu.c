@@ -218,11 +218,13 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
                                 bool useMag, float mx, float my, float mz,
                                 bool useYaw, float yawError)
 {
+    quaternion vKpKi = VECTOR_INITIALIZE;
     quaternion vError = VECTOR_INITIALIZE;
     quaternion vIntegralFB = VECTOR_INITIALIZE;
+    quaternionCopy(vGyro, &vKpKi);
 
     // Calculate general spin rate (rad/s)
-    const float spin_rate = sqrtf(sq(vGyro->x) + sq(vGyro->y) + sq(vGyro->z));
+    const float spin_rate = sqrtf(sq(vKpKi.x) + sq(vKpKi.y) + sq(vKpKi.z));
 
     // Use raw heading error (from GPS or whatever else)
     if (useYaw) {
@@ -299,16 +301,16 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
     const float dcmKpGain = imuRuntimeConfig.dcm_kp * imuGetPGainScaleFactor();
 
     // apply proportional and integral feedback
-    vGyro->x += dcmKpGain * vError.x + vIntegralFB.x;
-    vGyro->y += dcmKpGain * vError.y + vIntegralFB.y;
-    vGyro->z += dcmKpGain * vError.z + vIntegralFB.z;
+    vKpKi.x += dcmKpGain * vError.x + vIntegralFB.x;
+    vKpKi.y += dcmKpGain * vError.y + vIntegralFB.y;
+    vKpKi.z += dcmKpGain * vError.z + vIntegralFB.z;
 
     // quaternion integration old bf method adapted
     quaternion qBuff, qDiff;
     qDiff.w = 0;
-    qDiff.x = vGyro->x * 0.5f * dt;
-    qDiff.y = vGyro->y * 0.5f * dt;
-    qDiff.z = vGyro->z * 0.5f * dt;
+    qDiff.x = vKpKi.x * 0.5f * dt;
+    qDiff.y = vKpKi.y * 0.5f * dt;
+    qDiff.z = vKpKi.z * 0.5f * dt;
     quaternionMultiply(&qAttitude, &qDiff, &qBuff);
     quaternionAdd(&qAttitude, &qBuff, &qAttitude);
     quaternionNormalize(&qAttitude);
