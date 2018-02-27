@@ -230,23 +230,23 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
     // For magnetometer correction we make an assumption that magnetic field is perpendicular to gravity (ignore Z-component in EF).
     // This way magnetic field will only affect heading and wont mess roll/pitch angles
     if (useMag) {
-      if (compassIsHealthy()) {
-        quaternionNormalize(vMag);
+        if (compassIsHealthy()) {
+            quaternionNormalize(vMag);
 
-        // (hx; hy; 0) - measured mag field vector in EF (assuming Z-component is zero)
-        // (bx; 0; 0) - reference mag field vector heading due North in EF (assuming Z-component is zero)
-        const float hx = (1.0f - 2.0f * qpAttitude.yy - 2.0f * qpAttitude.zz) * vMag->x + (2.0f * (qpAttitude.xy + -qpAttitude.wz)) * vMag->y + (2.0f * (qpAttitude.xz - -qpAttitude.wy)) * vMag->z;
-        const float hy = (2.0f * (qpAttitude.xy - -qpAttitude.wz)) * vMag->x + (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.zz) * vMag->y + (2.0f * (qpAttitude.yz + -qpAttitude.wx)) * vMag->z;
-        const float bx = sqrtf(sq(hx) + sq(hy));
+            // (hx; hy; 0) - measured mag field vector in EF (assuming Z-component is zero)
+            // (bx; 0; 0) - reference mag field vector heading due North in EF (assuming Z-component is zero)
+            const float hx = (1.0f - 2.0f * qpAttitude.yy - 2.0f * qpAttitude.zz) * vMag->x + (2.0f * (qpAttitude.xy + -qpAttitude.wz)) * vMag->y + (2.0f * (qpAttitude.xz - -qpAttitude.wy)) * vMag->z;
+            const float hy = (2.0f * (qpAttitude.xy - -qpAttitude.wz)) * vMag->x + (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.zz) * vMag->y + (2.0f * (qpAttitude.yz + -qpAttitude.wx)) * vMag->z;
+            const float bx = sqrtf(sq(hx) + sq(hy));
 
-        // magnetometer error is cross product between estimated magnetic north and measured magnetic north (calculated in EF)
-        const float ez_ef = -(hy * bx);
+            // magnetometer error is cross product between estimated magnetic north and measured magnetic north (calculated in EF)
+            const float ez_ef = -(hy * bx);
 
-        // Rotate mag error vector back to BF and accumulate
-        vError.x += (2.0f * (qpAttitude.xz + -qpAttitude.wy)) * ez_ef;
-        vError.y += (2.0f * (qpAttitude.yz - -qpAttitude.wx)) * ez_ef;
-        vError.z += (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) * ez_ef;
-      }
+            // Rotate mag error vector back to BF and accumulate
+            vError.x += (2.0f * (qpAttitude.xz + -qpAttitude.wy)) * ez_ef;
+            vError.y += (2.0f * (qpAttitude.yz - -qpAttitude.wx)) * ez_ef;
+            vError.z += (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) * ez_ef;
+        }
     }
 #else
     UNUSED(useMag);
@@ -254,33 +254,33 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
 #endif
 
     if (useAcc) {
-      if (accIsHealthy(vAcc)) {
-        quaternionNormalize(vAcc);
-        // Error is sum of cross product between estimated direction and measured direction of gravity
-        vError.x += (vAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - vAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
-        vError.y += (vAcc->z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - vAcc->x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
-        vError.z += (vAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - vAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
-      }
+        if (accIsHealthy(vAcc)) {
+            quaternionNormalize(vAcc);
+            // Error is sum of cross product between estimated direction and measured direction of gravity
+            vError.x += (vAcc->y * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy) - vAcc->z * (2.0f * (qpAttitude.yz - -qpAttitude.wx)));
+            vError.y += (vAcc->z * (2.0f * (qpAttitude.xz + -qpAttitude.wy)) - vAcc->x * (1.0f - 2.0f * qpAttitude.xx - 2.0f * qpAttitude.yy));
+            vError.z += (vAcc->x * (2.0f * (qpAttitude.yz - -qpAttitude.wx)) - vAcc->y * (2.0f * (qpAttitude.xz + -qpAttitude.wy)));
+        }
     }
 
     // integral feedback if enabled
     if (imuRuntimeConfig.dcm_ki > 0.0f) {
-      // stop integrating if spinning beyond SPIN_RATE_LIMIT
-      if (spin_rate < DEGREES_TO_RADIANS(SPIN_RATE_LIMIT)) {
-        const float dcmKiGain = imuRuntimeConfig.dcm_ki;
-        vIntegralFB.x += dcmKiGain * vError.x * dt;
-        vIntegralFB.y += dcmKiGain * vError.y * dt;
-        vIntegralFB.z += dcmKiGain * vError.z * dt;
-      } else {
-        // prevent integral windup
+        // stop integrating if spinning beyond SPIN_RATE_LIMIT
+        if (spin_rate < DEGREES_TO_RADIANS(SPIN_RATE_LIMIT)) {
+            const float dcmKiGain = imuRuntimeConfig.dcm_ki;
+            vIntegralFB.x += dcmKiGain * vError.x * dt;
+            vIntegralFB.y += dcmKiGain * vError.y * dt;
+            vIntegralFB.z += dcmKiGain * vError.z * dt;
+        } else {
+            // prevent integral windup
+            vIntegralFB.x = 0.0f;
+            vIntegralFB.y = 0.0f;
+            vIntegralFB.z = 0.0f;
+        }
+    } else {
         vIntegralFB.x = 0.0f;
         vIntegralFB.y = 0.0f;
         vIntegralFB.z = 0.0f;
-      }
-    } else {
-      vIntegralFB.x = 0.0f;
-      vIntegralFB.y = 0.0f;
-      vIntegralFB.z = 0.0f;
     }
 
     // scale dcm_kp to converge faster (if not armed and within 20 sec from powerup)

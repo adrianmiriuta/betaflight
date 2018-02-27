@@ -883,24 +883,24 @@ FAST_CODE void gyroUpdate(timeUs_t currentTimeUs)
 }
 
 bool gyroGetAverage(quaternion *vAverage) {
-  if (accumulatedMeasurementTimeUs > 0) {
-    vAverage->w = 0;
-    vAverage->x = DEGREES_TO_RADIANS(accumulatedMeasurements[X] / accumulatedMeasurementTimeUs);
-    vAverage->y = DEGREES_TO_RADIANS(accumulatedMeasurements[Y] / accumulatedMeasurementTimeUs);
-    vAverage->z = DEGREES_TO_RADIANS(accumulatedMeasurements[Z] / accumulatedMeasurementTimeUs);
+    if (accumulatedMeasurementTimeUs > 0) {
+        vAverage->w = 0;
+        vAverage->x = DEGREES_TO_RADIANS(accumulatedMeasurements[X] / accumulatedMeasurementTimeUs);
+        vAverage->y = DEGREES_TO_RADIANS(accumulatedMeasurements[Y] / accumulatedMeasurementTimeUs);
+        vAverage->z = DEGREES_TO_RADIANS(accumulatedMeasurements[Z] / accumulatedMeasurementTimeUs);
 
-    for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-        accumulatedMeasurements[axis] = 0.0f;
+        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+            accumulatedMeasurements[axis] = 0.0f;
+        }
+        accumulatedMeasurementTimeUs = 0;
+        return true;
+    } else {
+        vAverage->w = 0;
+        vAverage->x = 0;
+        vAverage->y = 0;
+        vAverage->z = 0;
+        return false;
     }
-    accumulatedMeasurementTimeUs = 0;
-    return true;
-  } else {
-    vAverage->w = 0;
-    vAverage->x = 0;
-    vAverage->y = 0;
-    vAverage->z = 0;
-    return false;
-  }
 }
 
 void gyroReadTemperature(void)
