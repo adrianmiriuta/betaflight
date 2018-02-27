@@ -341,6 +341,7 @@ void updateRcCommands(void)
             rcCommand[THROTTLE] = rxConfig()->midrc + qMultiply(throttleScaler, PWM_RANGE_MAX - rxConfig()->midrc);
         }
     }
+    
     if (FLIGHT_MODE(HEADFREE_MODE)) {
         static quaternion  rcCommandBuff;
 
