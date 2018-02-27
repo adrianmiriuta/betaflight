@@ -321,9 +321,10 @@ void compassUpdate(timeUs_t currentTimeUs)
 }
 
 bool compassGetAverage(quaternion *vAverage) {
-    vAverage->w = 0;
-    vAverage->x = mag.magADC[X];
-    vAverage->y = mag.magADC[Y];
-    vAverage->z = mag.magADC[Z];
+  vAverage->w = 0;
+  vAverage->x = mag.magADC[X];
+  vAverage->y = mag.magADC[Y];
+  vAverage->z = mag.magADC[Z];
+  return(true);
 }
 #endif // USE_MAG
