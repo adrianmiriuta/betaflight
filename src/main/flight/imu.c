@@ -227,8 +227,6 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
     }
 
 #ifdef USE_MAG
-    // Use measured magnetic field vector
-    float recipMagNorm = sq(mx) + sq(my) + sq(mz);
     if (useMag) {
       if (compassIsHealthy()){
         quaternionNormalize(vMag);
