@@ -193,7 +193,7 @@ static void imuCalculateAcceleration(timeDelta_t deltaT)
 #endif // USE_ALT_HOLD
 
 static bool imuUseFastGains(void) {
-    return !ARMING_FLAG(ARMED) && millis() < 10000;
+    return (!ARMING_FLAG(ARMED) && (millis() < 20000));
 }
 
 static float imuGetPGainScaleFactor(void)
