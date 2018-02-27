@@ -217,7 +217,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
     quaternionCopy(vGyro, &vKpKi);
 
     // Calculate general spin rate (rad/s)
-    const float spin_rate = sqrtf(sq(vKpKi.x) + sq(vKpKi.y) + sq(vKpKi.z));
+    const float spin_rate = sqrtf(sq(vGyro->x) + sq(vGyro->y) + sq(Gyro->z));
 
     // Use raw heading error (from GPS or whatever else)
     if (useYaw) {
@@ -227,11 +227,11 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
     }
 
 #ifdef USE_MAG
+    // For magnetometer correction we make an assumption that magnetic field is perpendicular to gravity (ignore Z-component in EF).
+    // This way magnetic field will only affect heading and wont mess roll/pitch angles
     if (useMag) {
-      if (compassIsHealthy()){
+      if (compassIsHealthy()) {
         quaternionNormalize(vMag);
-        // For magnetometer correction we make an assumption that magnetic field is perpendicular to gravity (ignore Z-component in EF).
-        // This way magnetic field will only affect heading and wont mess roll/pitch angles
 
         // (hx; hy; 0) - measured mag field vector in EF (assuming Z-component is zero)
         // (bx; 0; 0) - reference mag field vector heading due North in EF (assuming Z-component is zero)
@@ -253,7 +253,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
     UNUSED(vMag);
 #endif
 
-    if (useAcc){
+    if (useAcc) {
       if (accIsHealthy(vAcc)) {
         quaternionNormalize(vAcc);
         // Error is sum of cross product between estimated direction and measured direction of gravity
@@ -317,8 +317,9 @@ STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
     attitude.values.pitch = lrintf(((0.5f * M_PIf) - acos_approx(+2.0f * (buffer.wy - buffer.xz))) * (1800.0f / M_PIf));
     attitude.values.yaw = lrintf((-atan2_approx((+2.0f * (buffer.wz + buffer.xy)), (+1.0f - 2.0f * (buffer.yy + buffer.zz))) * (1800.0f / M_PIf)));
 
-    if (attitude.values.yaw < 0)
+    if (attitude.values.yaw < 0) {
         attitude.values.yaw += 3600;
+    }
 
     if (getCosTiltAngle() > smallAngleCosZ) {
         ENABLE_STATE(SMALL_ANGLE);
@@ -363,6 +364,7 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
 //  printf("[imu]deltaT = %u, imuDeltaT = %u, currentTimeUs = %u, micros64_real = %lu\n", deltaT, imuDeltaT, currentTimeUs, micros64_real());
     deltaT = imuDeltaT;
 #endif
+    // get sensor data
     quaternion vGyroAverage;
     gyroGetAverage(&vGyroAverage);
 
