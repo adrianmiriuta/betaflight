@@ -206,20 +206,16 @@ static float imuGetPGainScaleFactor(void)
     }
 }
 
-static void imuMahonyAHRSupdate(float dt, quaternion *vGyro,
-                                bool useAcc, quaternion *vAcc,
-                                bool useMag, quaternion *vMag,
-                                bool useYaw, float yawError)
-{
+static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quaternion *vAcc, bool useMag, quaternion *vMag, bool useYaw, float yawError) {
     quaternion vKpKi = VECTOR_INITIALIZE;
     quaternion vError = VECTOR_INITIALIZE;
     quaternion vIntegralFB = VECTOR_INITIALIZE;
     quaternionCopy(vGyro, &vKpKi);
 
-    // Calculate general spin rate (rad/s)
+    // spin rate (rad/s)
     const float spin_rate = sqrtf(sq(vGyro->x) + sq(vGyro->y) + sq(vGyro->z));
 
-    // Use raw heading error (from GPS or whatever else)
+    // use raw heading error (from GPS or whatever else)
     if (useYaw) {
         while (yawError >  M_PIf) yawError -= (2.0f * M_PIf);
         while (yawError < -M_PIf) yawError += (2.0f * M_PIf);
@@ -377,14 +373,11 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     if (useMag) {
       compassGetAverage(&vMagAverage);
     }
-    imuMahonyAHRSupdate(deltaT * 1e-6f,
-                        &vGyroAverage,
-                        useAcc, &vAccAverage,
-                        useMag, &vMagAverage,
-                        useYaw, rawYawError);
 
+    imuMahonyAHRSupdate(deltaT * 1e-6f, &vGyroAverage, useAcc, &vAccAverage, useMag, &vMagAverage, useYaw, rawYawError);
     imuUpdateEulerAngles();
 #endif
+
 #if defined(USE_ALT_HOLD)
     imuCalculateAcceleration(deltaT); // rotate acc vector into earth frame
 #endif
@@ -431,8 +424,7 @@ int16_t calculateThrottleAngleCorrection(uint8_t throttle_correction_value)
 }
 
 #ifdef SIMULATOR_BUILD
-void imuSetAttitudeRPY(float roll, float pitch, float yaw)
-{
+void imuSetAttitudeRPY(float roll, float pitch, float yaw) {
     IMU_LOCK;
 
     attitude.values.roll = roll * 10;
@@ -441,8 +433,8 @@ void imuSetAttitudeRPY(float roll, float pitch, float yaw)
 
     IMU_UNLOCK;
 }
-void imuSetAttitudeQuat(float w, float x, float y, float z)
-{
+
+void imuSetAttitudeQuat(float w, float x, float y, float z) {
     IMU_LOCK;
 
     qAttitude.w = w;
@@ -456,8 +448,7 @@ void imuSetAttitudeQuat(float w, float x, float y, float z)
 }
 #endif
 #if defined(SIMULATOR_BUILD) && defined(SIMULATOR_IMU_SYNC)
-void imuSetHasNewData(uint32_t dt)
-{
+void imuSetHasNewData(uint32_t dt) {
     IMU_LOCK;
 
     imuUpdated = true;
@@ -467,15 +458,14 @@ void imuSetHasNewData(uint32_t dt)
 }
 #endif
 
+// HEADFREE HEADADJ allowed for tilt below 37°
 bool quaternionHeadfreeOffsetSet(void) {
-      // HEADADJ allowed for tilt below 37°
       if ((ABS(getCosTiltAngle()) > 0.8f)) {
         const float yawHalf = atan2_approx((+2.0f * (qpAttitude.wz + qpAttitude.xy)), (+1.0f - 2.0f * (qpAttitude.yy + qpAttitude.zz))) / 2.0f;
         qOffset.w = cos_approx(yawHalf);
         qOffset.x = 0;
         qOffset.y = 0;
         qOffset.z = sin_approx(yawHalf);
-
         quaternionConjugate(&qOffset, &qOffset);
         return(true);
     } else {
