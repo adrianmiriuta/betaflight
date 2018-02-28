@@ -266,14 +266,10 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
             vIntegralFB.z += dcmKiGain * vError.z * dt;
         } else {
             // prevent integral windup
-            vIntegralFB.x = 0.0f;
-            vIntegralFB.y = 0.0f;
-            vIntegralFB.z = 0.0f;
+            quaternionVinit(&vIntegralFB);
         }
     } else {
-        vIntegralFB.x = 0.0f;
-        vIntegralFB.y = 0.0f;
-        vIntegralFB.z = 0.0f;
+        quaternionVinit(&vIntegralFB);
     }
 
     // scale dcm_kp to converge faster (if not armed and within 20 sec from powerup)
