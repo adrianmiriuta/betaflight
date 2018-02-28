@@ -28,8 +28,6 @@ extern int accSumCount;
 extern float accVelScale;
 extern int32_t accSum[XYZ_AXIS_COUNT];
 
-
-
 typedef union {
     int16_t raw[XYZ_AXIS_COUNT];
     struct {

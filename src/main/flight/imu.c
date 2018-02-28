@@ -68,9 +68,8 @@ static bool imuUpdated = false;
 
 #endif
 
-// the limit (in degrees/second) beyond which we stop integrating
-// omega_I. At larger spin rates the DCM PI controller can get 'dizzy'
-// which results in false gyro drift. See
+// the limit (in degrees/second) beyond which we stop integrating vIntegralFB.
+// at larger spin rates the DCM PI controller can get 'dizzy' , which results in false gyro drift.
 // http://gentlenav.googlecode.com/files/fastRotations.pdf
 #define SPIN_RATE_LIMIT 20
 
@@ -85,7 +84,6 @@ static float fc_acc;
 static float smallAngleCosZ = 0;
 
 static imuRuntimeConfig_t imuRuntimeConfig;
-
 
 // quaternion of sensor frame relative to earth frame
 STATIC_UNIT_TESTED quaternion qAttitude = QUATERNION_INITIALIZE;
@@ -107,9 +105,8 @@ PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
     .acc_unarmedcal = 1
 );
 
-/*
-* Calculate RC time constant used in the accZ lpf.
-*/
+
+// calculate RC time constant used in the accZ lpf.
 static float calculateAccZLowPassFilterRCTimeConstant(float accz_lpf_cutoff)
 {
     return 0.5f / (M_PIf * accz_lpf_cutoff);
