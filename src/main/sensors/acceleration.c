@@ -528,7 +528,7 @@ bool accGetAverage(quaternion *vAverage) {
     accumulatedMeasurementCount = 0;
     return true;
   } else {
-    quaternionVinit(vAverage);
+    quaternionInitVector(vAverage);
     return false;
   }
 }

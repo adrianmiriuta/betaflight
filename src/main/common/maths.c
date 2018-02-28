@@ -433,14 +433,14 @@ float quaternionDotProduct(quaternion *l, quaternion *r) {
     return l->w * r->w + l->x * r->x + l->y * r->y + l->z * r->z;
 }
 
-void quaternionQinit(quaternion *i) {
+void quaternionInitQuaternion(quaternion *i) {
     i->w = 1;
     i->x = 0;
     i->y = 0;
     i->z = 0;
 }
 
-void quaternionVinit(quaternion *i) {
+void quaternionInitVector(quaternion *i) {
     i->w = 0;
     i->x = 0;
     i->y = 0;

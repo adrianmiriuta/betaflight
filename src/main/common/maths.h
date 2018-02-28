@@ -174,5 +174,5 @@ void quaternionCopy(quaternion *s, quaternion *d);
 void quaternionInverse(quaternion *i, quaternion *o);
 void quaternionConjugate(quaternion *i, quaternion *o);
 float quaternionDotProduct(quaternion *l, quaternion *r);
-void quaternionQinit(quaternion *i);
-void quaternionVinit(quaternion *i);
+void quaternionInitQuaternion(quaternion *i);
+void quaternionInitVector(quaternion *i);

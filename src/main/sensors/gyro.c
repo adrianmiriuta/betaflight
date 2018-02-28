@@ -887,7 +887,7 @@ bool gyroGetAverage(quaternion *vAverage) {
         accumulatedMeasurementTimeUs = 0;
         return true;
     } else {
-        quaternionVinit(vAverage);
+        quaternionInitVector(vAverage);
         return false;
     }
 }
