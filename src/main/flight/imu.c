@@ -70,7 +70,7 @@ static bool imuUpdated = false;
 
 // the limit (in degrees/second) beyond which we stop integrating vIntegralFB.
 // at larger spin rates the DCM PI controller can get 'dizzy' , which results in false gyro drift.
-// http://gentlenav.googlecode.com/files/fastRotations.pdf
+// link broken! http://gentlenav.googlecode.com/files/fastRotations.pdf
 #define SPIN_RATE_LIMIT 20
 
 int32_t accSum[XYZ_AXIS_COUNT];
