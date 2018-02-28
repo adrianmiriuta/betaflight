@@ -82,4 +82,4 @@ void imuSetHasNewData(uint32_t dt);
 #endif
 #endif
 
-bool quaternionHeadfreeOffsetSet(void);
+bool imuQuaternionHeadfreeOffsetSet(void);

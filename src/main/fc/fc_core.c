@@ -322,7 +322,7 @@ void tryArm(void)
         if (isModeActivationConditionPresent(BOXPREARM)) {
             ENABLE_ARMING_FLAG(WAS_ARMED_WITH_PREARM);
         }
-        quaternionHeadfreeOffsetSet();
+        imuQuaternionHeadfreeOffsetSet();
 
         disarmAt = millis() + armingConfig()->auto_disarm_delay * 1000;   // start disarm timeout, will be extended when throttle is nonzero
 
@@ -543,7 +543,7 @@ bool processRx(timeUs_t currentTimeUs)
                 && (fabsf(axisPIDSum[FD_PITCH]) < RUNAWAY_TAKEOFF_DEACTIVATE_PIDSUM_LIMIT)
                 && (fabsf(axisPIDSum[FD_ROLL]) < RUNAWAY_TAKEOFF_DEACTIVATE_PIDSUM_LIMIT)
                 && (fabsf(axisPIDSum[FD_YAW]) < RUNAWAY_TAKEOFF_DEACTIVATE_PIDSUM_LIMIT)) {
-                
+
                 inStableFlight = true;
                 if (runawayTakeoffDeactivateUs == 0) {
                     runawayTakeoffDeactivateUs = currentTimeUs;
@@ -702,7 +702,7 @@ bool processRx(timeUs_t currentTimeUs)
             DISABLE_FLIGHT_MODE(HEADFREE_MODE);
         }
         if (IS_RC_MODE_ACTIVE(BOXHEADADJ)) {
-            if (quaternionHeadfreeOffsetSet()){
+            if (imuQuaternionHeadfreeOffsetSet()){
                beeper(BEEPER_RX_SET);
             }
         }
@@ -775,7 +775,7 @@ static void subTaskPidController(timeUs_t currentTimeUs)
             if (runawayTakeoffTriggerUs == 0) {
                 runawayTakeoffTriggerUs = currentTimeUs + (pidConfig()->runaway_takeoff_activate_delay * 1000);
             } else if (currentTimeUs > runawayTakeoffTriggerUs) {
-                
+
                 setArmingDisabled(ARMING_DISABLED_RUNAWAY_TAKEOFF);
                 disarm();
             }
