@@ -392,14 +392,14 @@ void quaternionMultiply(quaternion *l, quaternion *r, quaternion *o) {
 }
 
 void quaternionNormalize(quaternion *q) {
-    float norm = sqrtf(q->w * q->w + q->x * q->x + q->y * q->y + q->z * q->z);
-    if (norm == 0) {
-      norm = 0.0000001;
+    float modulus = sqrtf(q->w * q->w + q->x * q->x + q->y * q->y + q->z * q->z);
+    if (modulus == 0) {
+      modulus = 0.0000001;
     }
-    q->w /= norm;
-    q->x /= norm;
-    q->y /= norm;
-    q->z /= norm;
+    q->w /= modulus;
+    q->x /= modulus;
+    q->y /= modulus;
+    q->z /= modulus;
 }
 
 void quaternionAdd(quaternion *l, quaternion *r, quaternion *o) {
@@ -417,14 +417,14 @@ void quaternionCopy(quaternion *s, quaternion *d) {
 }
 
 void quaternionInverse(quaternion *i, quaternion *o) {
-    float norm_squared = i->w * i->w + i->x * i->x + i->y * i->y + i->z * i->z;
-    if (norm_squared == 0) {
-        norm_squared = 0.0000001;
+    float norm = i->w * i->w + i->x * i->x + i->y * i->y + i->z * i->z;
+    if (norm == 0) {
+        norm = 0.0000001;
     }
-    o->w = i->w / norm_squared;
-    o->x = i->x * -1 / norm_squared;
-    o->y = i->y * -1 / norm_squared;
-    o->z = i->z * -1 / norm_squared;
+    o->w = i->w / norm;
+    o->x = i->x * -1 / norm;
+    o->y = i->y * -1 / norm;
+    o->z = i->z * -1 / norm;
 }
 
 void quaternionConjugate(quaternion *i, quaternion *o) {
