@@ -417,9 +417,14 @@ void quaternionCopy(quaternion *s, quaternion *d) {
 }
 
 void quaternionInverse(quaternion *i, quaternion *o) {
-    quaternionCopy(i, o);
-    quaternionNormalize(o);
-    quaternionConjugate(o, o);
+    float norm_squared = i->w * i->w + i->x * i->x + i->y * i->y + i->z * i->z;
+    if (norm_squared == 0) {
+        norm_squared = 0.0000001;
+    }
+    o->w = i->w / norm_squared;
+    o->x = i->x * -1 / norm_squared;
+    o->y = i->y * -1 / norm_squared;
+    o->z = i->z * -1 / norm_squared;
 }
 
 void quaternionConjugate(quaternion *i, quaternion *o) {
