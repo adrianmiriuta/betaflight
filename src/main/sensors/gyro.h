@@ -66,6 +66,7 @@ typedef struct gyroConfig_s {
     bool     gyro_high_fsr;
     bool     gyro_use_32khz;
     uint8_t  gyro_to_use;
+    uint16_t gyro_soft_lpf_hz_2;
     uint16_t gyro_soft_notch_hz_1;
     uint16_t gyro_soft_notch_cutoff_1;
     uint16_t gyro_soft_notch_hz_2;
@@ -98,3 +99,4 @@ void gyroReadTemperature(void);
 int16_t gyroGetTemperature(void);
 int16_t gyroRateDps(int axis);
 bool gyroOverflowDetected(void);
+uint16_t gyroAbsRateDps(int axis);
