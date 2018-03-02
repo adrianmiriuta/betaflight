@@ -51,6 +51,11 @@
 #define USE_GYRO_DATA_ANALYSE
 #define USE_ADC
 #define USE_ADC_INTERNAL
+
+#if defined(STM32F40_41xxx) || defined(STM32F411xE)
+#define USE_OVERCLOCK
+#endif
+
 #endif // STM32F4
 
 #ifdef STM32F722xx
@@ -150,6 +155,7 @@
 #define USE_VTX_CONTROL
 #define USE_VTX_SMARTAUDIO
 #define USE_VTX_TRAMP
+#define USE_GYRO_BIQUAD_RC_FIR2
 
 #ifdef USE_SERIALRX_SPEKTRUM
 #define USE_SPEKTRUM_BIND
@@ -169,7 +175,6 @@
 #define USE_GPS
 #define USE_GPS_NMEA
 #define USE_GPS_UBLOX
-#define USE_GYRO_BIQUAD_RC_FIR2
 #define USE_NAV
 #define USE_OSD_ADJUSTMENTS
 #define USE_SENSOR_NAMES
