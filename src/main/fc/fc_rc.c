@@ -343,20 +343,20 @@ void updateRcCommands(void)
     }
 
     if (FLIGHT_MODE(HEADFREE_MODE)) {
-        static quaternion  rcCommandBuff;
+        static quaternion  vRcCommand;
 
-        rcCommandBuff.x = rcCommand[ROLL];
-        rcCommandBuff.y = rcCommand[PITCH];
+        vRcCommand.x = rcCommand[ROLL];
+        vRcCommand.y = rcCommand[PITCH];
         if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)))) {
-            rcCommandBuff.z = rcCommand[YAW];
+            vRcCommand.z = rcCommand[YAW];
         } else {
-            rcCommandBuff.z = 0;
+            vRcCommand.z = 0;
         }
-        quaternionTransformVectorEarthToBody(&rcCommandBuff, &qHeadfree);
-        rcCommand[ROLL] = rcCommandBuff.x;
-        rcCommand[PITCH] = rcCommandBuff.y;
+        quaternionTransformVectorEarthToBody(&vRcCommand, &qHeadfree);
+        rcCommand[ROLL] = vRcCommand.x;
+        rcCommand[PITCH] = vRcCommand.y;
         if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)))) {
-            rcCommand[YAW] = rcCommandBuff.z;
+            rcCommand[YAW] = vRcCommand.z;
         }
     }
 }
