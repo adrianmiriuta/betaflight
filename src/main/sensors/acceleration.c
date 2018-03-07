@@ -487,7 +487,7 @@ void accUpdate(timeUs_t currentTimeUs, rollAndPitchTrims_t *rollAndPitchTrims)
     acc.isAccelUpdatedAtLeastOnce = true;
 
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-        //DEBUG_SET(DEBUG_ACCELEROMETER, axis, acc.dev.ADCRaw[axis]);
+        DEBUG_SET(DEBUG_ACCELEROMETER, axis, acc.dev.ADCRaw[axis]);
         acc.accADC[axis] = acc.dev.ADCRaw[axis];
     }
 
@@ -521,12 +521,6 @@ bool accGetAverage(quaternion *vAverage) {
     vAverage->x = accumulatedMeasurements[X] / accumulatedMeasurementCount;
     vAverage->y = accumulatedMeasurements[Y] / accumulatedMeasurementCount;
     vAverage->z = accumulatedMeasurements[Z] / accumulatedMeasurementCount;
-
-    //debug
-    DEBUG_SET(DEBUG_ACCELEROMETER, X, lrintf(vAverage->x));
-    DEBUG_SET(DEBUG_ACCELEROMETER, Y, lrintf(vAverage->y));
-    DEBUG_SET(DEBUG_ACCELEROMETER, Z, lrintf(vAverage->z));
-    DEBUG_SET(DEBUG_ACCELEROMETER, 3, accumulatedMeasurementCount);
 
     for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
       accumulatedMeasurements[axis] = 0.0f;
