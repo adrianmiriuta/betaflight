@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common/time.h"
+#include "common/maths.h"
 #include "drivers/io_types.h"
 #include "drivers/sensor.h"
 #include "pg/pg.h"
@@ -60,3 +61,5 @@ PG_DECLARE(compassConfig_t, compassConfig);
 bool compassIsHealthy(void);
 void compassUpdate(timeUs_t currentTime);
 bool compassInit(void);
+union flightDynamicsTrims_u;
+bool compassGetAverage(quaternion *vAverage);
