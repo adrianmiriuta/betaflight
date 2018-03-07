@@ -837,7 +837,7 @@ static FAST_CODE void gyroUpdateSensor(gyroSensor_t *gyroSensor, timeUs_t curren
         }
     } else {
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            DEBUG_SET(DEBUG_GYRO_RAW, axis, gyroSensor->gyroDev.gyroADCRaw[axis]);
+            // DEBUG_SET(DEBUG_GYRO_RAW, axis, gyroSensor->gyroDev.gyroADCRaw[axis]);
             // scale gyro output to degrees per second
             float gyroADCf = gyroSensor->gyroDev.gyroADC[axis] * gyroSensor->gyroDev.scale;
             // DEBUG_GYRO_NOTCH records the unfiltered gyro output
@@ -893,6 +893,13 @@ bool gyroGetAverage(quaternion *vAverage) {
         vAverage->x = DEGREES_TO_RADIANS(accumulatedMeasurements[X] / accumulatedMeasurementTimeUs);
         vAverage->y = DEGREES_TO_RADIANS(accumulatedMeasurements[Y] / accumulatedMeasurementTimeUs);
         vAverage->z = DEGREES_TO_RADIANS(accumulatedMeasurements[Z] / accumulatedMeasurementTimeUs);
+
+        //debug
+
+        DEBUG_SET(DEBUG_GYRO_RAW, X, lrintf(vAverage->x));
+        DEBUG_SET(DEBUG_GYRO_RAW, Y, lrintf(vAverage->y));
+        DEBUG_SET(DEBUG_GYRO_RAW, Z, lrintf(vAverage->z));
+        DEBUG_SET(DEBUG_GYRO_RAW, 3, accumulatedMeasurementTimeUs);
 
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
             accumulatedMeasurements[axis] = 0.0f;
