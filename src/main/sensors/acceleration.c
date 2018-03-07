@@ -561,6 +561,6 @@ void accInitFilters(void)
 bool accIsHealthy(quaternion *q) {
     float accModulus = sqrtf(sq(q->x) + sq(q->y) + sq(q->z));
     accModulus = accModulus / acc.dev.acc_1G;
-    // accept accel readings only in range 0.90g - 1.10g
-    return ((0.81f < accModulus) && (accModulus < 1.21f));
+    // accept accel readings in 20% range 0.80g - 1.20g
+    return ((0.8f < accModulus) && (accModulus < 1.2f));
 }
