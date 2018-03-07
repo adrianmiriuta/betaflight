@@ -553,10 +553,17 @@ void accInitFilters(void)
         }
     }
 }
-
+/*
 bool accIsHealthy(quaternion *q) {
     float accMagnitude = sq(q->x) + sq(q->y) + sq(q->z);
     accMagnitude = accMagnitude * 100 / (sq((int32_t)acc.dev.acc_1G));
     // accept accel readings only in range 0.90g - 1.10g
     return ((81 < accMagnitude) && (accMagnitude < 121));
+}*/
+
+bool accIsHealthy(quaternion *q) {
+    float accModulus = sqrtf(sq(q->x) + sq(q->y) + sq(q->z));
+    accModulus = accModulus / acc.dev.acc_1G;
+    // accept accel readings only in range 0.90g - 1.10g
+    return ((0.81f < accModulus) && (accModulus < 1.21f));
 }
