@@ -416,9 +416,9 @@ static void performAcclerationCalibration(rollAndPitchTrims_t *rollAndPitchTrims
 
     if (isOnFinalAccelerationCalibrationCycle()) {
         // Calculate average, shift Z down by acc_1G and store values in EEPROM at end of calibration
-        accelerationTrims->raw[X] = (a[X] + (CALIBRATING_ACC_CYCLES / 2)) / CALIBRATING_ACC_CYCLES;
-        accelerationTrims->raw[Y] = (a[Y] + (CALIBRATING_ACC_CYCLES / 2)) / CALIBRATING_ACC_CYCLES;
-        accelerationTrims->raw[Z] = (a[Z] + (CALIBRATING_ACC_CYCLES / 2)) / CALIBRATING_ACC_CYCLES - acc.dev.acc_1G;
+        accelerationTrims->raw[X] = a[X] / CALIBRATING_ACC_CYCLES;
+        accelerationTrims->raw[Y] = a[Y] / CALIBRATING_ACC_CYCLES;
+        accelerationTrims->raw[Z] = a[Z] / CALIBRATING_ACC_CYCLES - acc.dev.acc_1G;
 
         resetRollAndPitchTrims(rollAndPitchTrims);
 
@@ -525,22 +525,22 @@ void accUpdate(timeUs_t currentTimeUs, rollAndPitchTrims_t *rollAndPitchTrims)
     }
 }
 
-bool accGetAccumulationAverage(float *accumulationAverage)
-{
-    if (accumulatedMeasurementCount > 0) {
-        // If we have gyro data accumulated, calculate average rate that will yield the same rotation
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            accumulationAverage[axis] = accumulatedMeasurements[axis] / accumulatedMeasurementCount;
-            accumulatedMeasurements[axis] = 0.0f;
-        }
-        accumulatedMeasurementCount = 0;
-        return true;
-    } else {
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            accumulationAverage[axis] = 0.0f;
-        }
-        return false;
+bool accGetAverage(quaternion *vAverage) {
+  if (accumulatedMeasurementCount > 0) {
+    vAverage->w = 0;
+    vAverage->x = accumulatedMeasurements[X] / accumulatedMeasurementCount;
+    vAverage->y = accumulatedMeasurements[Y] / accumulatedMeasurementCount;
+    vAverage->z = accumulatedMeasurements[Z] / accumulatedMeasurementCount;
+
+    for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
+      accumulatedMeasurements[axis] = 0.0f;
     }
+    accumulatedMeasurementCount = 0;
+    return true;
+  } else {
+    quaternionInitVector(vAverage);
+    return false;
+  }
 }
 
 void setAccelerationTrims(flightDynamicsTrims_t *accelerationTrimsToUse)
@@ -556,4 +556,12 @@ void accInitFilters(void)
             biquadFilterInitLPF(&accFilter[axis], accLpfCutHz, acc.accSamplingInterval);
         }
     }
+}
+
+bool accIsHealthy(quaternion *q) {
+    float accModulus = quaternionModulus(q);
+
+    accModulus = accModulus / acc.dev.acc_1G;
+    // accept 20% g variation
+    return ((0.8f < accModulus) && (accModulus < 1.2f));
 }

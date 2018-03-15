@@ -820,7 +820,6 @@ STATIC_UNIT_TESTED void performGyroCalibration(gyroSensor_t *gyroSensor, uint8_t
                 gyroSetCalibrationCycles(gyroSensor);
                 return;
             }
-
             // please take care with exotic boardalignment !!
             gyroSensor->gyroDev.gyroZero[axis] = gyroSensor->calibration.sum[axis] / gyroCalculateCalibratingCycles();
             if (axis == Z) {
@@ -1081,20 +1080,20 @@ FAST_CODE void gyroUpdate(timeUs_t currentTimeUs)
 #endif
 }
 
-bool gyroGetAccumulationAverage(float *accumulationAverage)
-{
+bool gyroGetAverage(quaternion *vAverage) {
     if (accumulatedMeasurementTimeUs > 0) {
-        // If we have gyro data accumulated, calculate average rate that will yield the same rotation
+        vAverage->w = 0;
+        vAverage->x = DEGREES_TO_RADIANS(accumulatedMeasurements[X] / accumulatedMeasurementTimeUs);
+        vAverage->y = DEGREES_TO_RADIANS(accumulatedMeasurements[Y] / accumulatedMeasurementTimeUs);
+        vAverage->z = DEGREES_TO_RADIANS(accumulatedMeasurements[Z] / accumulatedMeasurementTimeUs);
+
         for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            accumulationAverage[axis] = accumulatedMeasurements[axis] / accumulatedMeasurementTimeUs;
             accumulatedMeasurements[axis] = 0.0f;
         }
         accumulatedMeasurementTimeUs = 0;
         return true;
     } else {
-        for (int axis = 0; axis < XYZ_AXIS_COUNT; axis++) {
-            accumulationAverage[axis] = 0.0f;
-        }
+        quaternionInitVector(vAverage);
         return false;
     }
 }
