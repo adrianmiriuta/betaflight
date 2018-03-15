@@ -93,8 +93,8 @@ attitudeEulerAngles_t attitude = EULER_INITIALIZE;
 PG_REGISTER_WITH_RESET_TEMPLATE(imuConfig_t, imuConfig, PG_IMU_CONFIG, 0);
 
 PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
-    .dcm_kp = 5013,                // 5.013 * 1000
-    .dcm_ki = 3013,                // 3.013 * 1000
+    .dcm_kp = 7013,                // 0.7013 * 10000
+    .dcm_ki = 3013,                // 0.3013 * 10000
     .small_angle = 25,
     .accDeadband = {.xy = 40, .z= 40},
     .acc_unarmedcal = 1
@@ -114,8 +114,8 @@ static float calculateThrottleAngleScale(uint16_t throttle_correction_angle)
 
 void imuConfigure(uint16_t throttle_correction_angle)
 {
-    imuRuntimeConfig.dcm_kp = imuConfig()->dcm_kp / 1000.0f;
-    imuRuntimeConfig.dcm_ki = imuConfig()->dcm_ki / 1000.0f;
+    imuRuntimeConfig.dcm_kp = imuConfig()->dcm_kp / 10000.0f;
+    imuRuntimeConfig.dcm_ki = imuConfig()->dcm_ki / 10000.0f;
     imuRuntimeConfig.acc_unarmedcal = imuConfig()->acc_unarmedcal;
     imuRuntimeConfig.small_angle = imuConfig()->small_angle;
 
