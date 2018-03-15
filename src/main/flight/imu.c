@@ -93,8 +93,8 @@ attitudeEulerAngles_t attitude = EULER_INITIALIZE;
 PG_REGISTER_WITH_RESET_TEMPLATE(imuConfig_t, imuConfig, PG_IMU_CONFIG, 0);
 
 PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
-    .dcm_kp = 7013,                // 1.0 * 10000
-    .dcm_ki = 13,                  // 0.003 * 10000
+    .dcm_kp = 7013,                // 7.013 * 1000
+    .dcm_ki = 13,                  // 1.300 * 1000
     .small_angle = 25,
     .accDeadband = {.xy = 40, .z= 40},
     .acc_unarmedcal = 1
@@ -114,8 +114,8 @@ static float calculateThrottleAngleScale(uint16_t throttle_correction_angle)
 
 void imuConfigure(uint16_t throttle_correction_angle)
 {
-    imuRuntimeConfig.dcm_kp = imuConfig()->dcm_kp / 10000.0f;
-    imuRuntimeConfig.dcm_ki = imuConfig()->dcm_ki / 10000.0f;
+    imuRuntimeConfig.dcm_kp = imuConfig()->dcm_kp / 1000.0f;
+    imuRuntimeConfig.dcm_ki = imuConfig()->dcm_ki / 1000.0f;
     imuRuntimeConfig.acc_unarmedcal = imuConfig()->acc_unarmedcal;
     imuRuntimeConfig.small_angle = imuConfig()->small_angle;
 
@@ -184,20 +184,6 @@ static void imuCalculateAcceleration(timeDelta_t deltaT)
 }
 #endif // USE_ALT_HOLD
 
-static bool imuUseFastGains(void) {
-    return (!ARMING_FLAG(ARMED));
-}
-
-static float imuGetPGainScaleFactor(void)
-{
-    if (imuUseFastGains()) {
-        return (10.0f);
-    }
-    else {
-        return (1.0f);
-    }
-}
-
 static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quaternion *vAcc, bool useMag, quaternion *vMag, bool useYaw, float yawError) {
     quaternion vKpKi = VECTOR_INITIALIZE;
     quaternion vError = VECTOR_INITIALIZE;
@@ -249,8 +235,8 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     }
 
     // scale dcm to converge faster (if not armed)
-    const float dcmKpGain = imuRuntimeConfig.dcm_kp * imuGetPGainScaleFactor();
-    const float dcmKiGain = imuRuntimeConfig.dcm_ki * imuGetPGainScaleFactor();
+    const float dcmKpGain = imuRuntimeConfig.dcm_kp;
+    const float dcmKiGain = imuRuntimeConfig.dcm_ki;
 
     // calculate integral feedback
     if (imuRuntimeConfig.dcm_ki > 0.0f) {
