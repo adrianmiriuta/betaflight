@@ -563,6 +563,6 @@ bool accIsHealthy(quaternion *q) {
     float accModulus = quaternionModulus(q);
 
     accModulus = accModulus / acc.dev.acc_1G;
-    // accept 9% deviation
-    return ((0.91f < accModulus) && (accModulus < 1.09f));
+    // accept 7% deviation
+    return ((0.93f < accModulus) && (accModulus < 1.07f));
 }
