@@ -563,5 +563,5 @@ bool accIsHealthy(quaternion *q) {
 
     accModulus = accModulus / acc.dev.acc_1G;
     // accept 10% g variation
-    return ((0.95f < accModulus) && (accModulus < 1.05f));
+    return ((0.97f < accModulus) && (accModulus < 1.03f));
 }
