@@ -114,8 +114,8 @@ static float calculateThrottleAngleScale(uint16_t throttle_correction_angle)
 
 void imuConfigure(uint16_t throttle_correction_angle)
 {
-    imuRuntimeConfig.dcm_kp = imuConfig()->dcm_kp / 1000.0f;
-    imuRuntimeConfig.dcm_ki = imuConfig()->dcm_ki / 1000.0f;
+    imuRuntimeConfig.dcm_kp = imuConfig()->dcm_kp / 10000.0f;
+    imuRuntimeConfig.dcm_ki = imuConfig()->dcm_ki / 10000.0f;
     imuRuntimeConfig.acc_unarmedcal = imuConfig()->acc_unarmedcal;
     imuRuntimeConfig.small_angle = imuConfig()->small_angle;
 
