@@ -559,9 +559,10 @@ void accInitFilters(void)
 }
 
 bool accIsHealthy(quaternion *q) {
+    // acc calibbration error max 2.4% (non Z axes)
     float accModulus = quaternionModulus(q);
 
     accModulus = accModulus / acc.dev.acc_1G;
-    // accept X% g variation
-    return ((0.97f < accModulus) && (accModulus < 1.03f));
+    // accept 9% deviation
+    return ((0.91f < accModulus) && (accModulus < 1.09f));
 }
