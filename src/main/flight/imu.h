@@ -65,6 +65,12 @@ typedef struct imuRuntimeConfig_s {
     accDeadband_t accDeadband;
 } imuRuntimeConfig_t;
 
+enum {
+    DEBUG_IMU_VGYROMODULUS,
+    DEBUG_IMU_VKPKIMODULUS,
+    DEBUG_IMU_QATTITUDEMODULUS
+};
+
 void imuConfigure(uint16_t throttle_correction_angle);
 
 float getCosTiltAngle(void);
