@@ -224,7 +224,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     UNUSED(vMag);
 #endif
     //debug
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf(quaternionModulus(vAcc)));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf(quaternionModulus(vAcc) * 1000));
     if (useAcc) {
         if (accIsHealthy(vAcc)) {
             quaternionNormalize(vAcc);
