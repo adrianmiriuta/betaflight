@@ -93,8 +93,8 @@ attitudeEulerAngles_t attitude = EULER_INITIALIZE;
 PG_REGISTER_WITH_RESET_TEMPLATE(imuConfig_t, imuConfig, PG_IMU_CONFIG, 0);
 
 PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
-    .dcm_kp = 7013,
-    .dcm_ki = 210,
+    .dcm_kp = 13001,
+    .dcm_ki = 15013,
     .small_angle = 25,
     .accDeadband = {.xy = 40, .z= 40},
     .acc_unarmedcal = 1
@@ -236,8 +236,8 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     }
 
     // scale dcm to converge faster (if not armed)
-    const float dcmKpGain = imuRuntimeConfig.dcm_kp;
-    const float dcmKiGain = imuRuntimeConfig.dcm_ki;
+    const float dcmKpGain = imuRuntimeConfig.dcm_kp * 10.0f;
+    const float dcmKiGain = imuRuntimeConfig.dcm_ki * 10.0f;
 
     // calculate integral feedback
     if (imuRuntimeConfig.dcm_ki > 0.0f) {
