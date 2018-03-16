@@ -93,8 +93,8 @@ attitudeEulerAngles_t attitude = EULER_INITIALIZE;
 PG_REGISTER_WITH_RESET_TEMPLATE(imuConfig_t, imuConfig, PG_IMU_CONFIG, 0);
 
 PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
-    .dcm_kp = 13001,
-    .dcm_ki = 15013,
+    .dcm_kp = 7013,
+    .dcm_ki = 13,
     .small_angle = 25,
     .accDeadband = {.xy = 40, .z= 40},
     .acc_unarmedcal = 1
@@ -184,6 +184,15 @@ static void imuCalculateAcceleration(timeDelta_t deltaT)
 }
 #endif // USE_ALT_HOLD
 
+static float imuUseFastGains(void) {
+   if(!ARMING_FLAG(ARMED)) {
+        return (17.0f);
+    }
+    else {
+        return (1.0f);
+    }
+}
+
 static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quaternion *vAcc, bool useMag, quaternion *vMag, bool useYaw, float yawError) {
     quaternion vKpKi = VECTOR_INITIALIZE;
     quaternion vError = VECTOR_INITIALIZE;
@@ -236,8 +245,8 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     }
 
     // scale dcm to converge faster (if not armed)
-    const float dcmKpGain = imuRuntimeConfig.dcm_kp;
-    const float dcmKiGain = imuRuntimeConfig.dcm_ki;
+    const float dcmKpGain = imuRuntimeConfig.dcm_kp * imuUseFastGains();
+    const float dcmKiGain = imuRuntimeConfig.dcm_ki * imuUseFastGains();
 
     // calculate integral feedback
     if (imuRuntimeConfig.dcm_ki > 0.0f) {
