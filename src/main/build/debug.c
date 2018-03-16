@@ -62,4 +62,5 @@ const char * const debugModeNames[DEBUG_COUNT] = {
     "CORE_TEMP",
     "RUNAWAY_TAKEOFF",
     "CURRENT_SENSOR",
+    "IMU",
 };
