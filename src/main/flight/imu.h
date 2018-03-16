@@ -68,6 +68,7 @@ typedef struct imuRuntimeConfig_s {
 enum {
     DEBUG_IMU_VGYROMODULUS,
     DEBUG_IMU_VKPKIMODULUS,
+    DEBUG_IMU_VACCMODULUS,
     DEBUG_IMU_QATTITUDEMODULUS
 };
 
