@@ -185,11 +185,15 @@ static void imuCalculateAcceleration(timeDelta_t deltaT)
 #endif // USE_ALT_HOLD
 
 static float imuUseFastGains(void) {
-   if(!ARMING_FLAG(ARMED)) {
+   if (!ARMING_FLAG(ARMED)) {
         return (17.0f);
     }
     else {
-        return (1.0f);
+        if (isBeeperOn()) {
+          return (0.17f);
+        } else {
+          return (1.0f);
+        }
     }
 }
 
