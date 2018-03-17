@@ -40,6 +40,7 @@
 #include "flight/pid.h"
 
 #include "io/gps.h"
+#include "io/beeper.h"
 
 #include "sensors/acceleration.h"
 #include "sensors/barometer.h"
