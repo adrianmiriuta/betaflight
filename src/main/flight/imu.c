@@ -191,7 +191,7 @@ static float imuUseFastGains(void) {
     }
     else {
         if (isBeeperOn()) {
-          // reduce PI scaling (onboard beeper influences vAcc) 
+          // reduce PI scaling (onboard beeper influences vAcc)
           return (0.17f);
         } else {
           return (1.0f);
@@ -202,7 +202,7 @@ static float imuUseFastGains(void) {
 static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quaternion *vAcc, bool useMag, quaternion *vMag, bool useYaw, float yawError) {
     quaternion vKpKi = VECTOR_INITIALIZE;
     quaternion vError = VECTOR_INITIALIZE;
-    quaternion vIntegralFB = VECTOR_INITIALIZE;
+    static quaternion vIntegralFB = VECTOR_INITIALIZE;
     quaternion qBuff, qDiff;
 
     // use raw heading error (from GPS or whatever else)
