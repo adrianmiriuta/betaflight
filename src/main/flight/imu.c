@@ -191,7 +191,7 @@ static float imuUseFastGains(void) {
     }
     else {
         if (isBeeperOn()) {
-          // reduce PI scaling because onboard beeper influences vAcc 
+          // reduce PI scaling (onboard beeper influences vAcc) 
           return (0.17f);
         } else {
           return (1.0f);
