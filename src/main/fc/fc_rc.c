@@ -345,7 +345,7 @@ void updateRcCommands(void)
 
     if (FLIGHT_MODE(HEADFREE_MODE)) {
         static quaternion  vRcCommand;
-        // in ANGLE_MODE and HORIZON_MODE  yaw rotation is Body bound, in ACRO_MODE it is Earth bound
+        // in ANGLE_MODE and HORIZON_MODE  yaw rotation is Bodyframe bound, in ACRO_MODE it is Earthframe bound
         vRcCommand.x = rcCommand[ROLL];
         vRcCommand.y = rcCommand[PITCH];
         if ((!FLIGHT_MODE(ANGLE_MODE) && (!FLIGHT_MODE(HORIZON_MODE)))) {
