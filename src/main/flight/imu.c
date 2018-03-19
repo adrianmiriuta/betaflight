@@ -470,8 +470,8 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
         qOffset.y = 0;
         qOffset.z = sin_approx(yawHalf);
         quaternionConjugate(&qOffset, &qOffset);
-        return(true);
+        return (true);
     } else {
-        return false;
+        return (false);
     }
 }
