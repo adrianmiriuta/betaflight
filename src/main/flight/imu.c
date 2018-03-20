@@ -40,6 +40,7 @@
 #include "flight/pid.h"
 
 #include "io/gps.h"
+#include "io/beeper.h"
 
 #include "sensors/acceleration.h"
 #include "sensors/barometer.h"
@@ -93,8 +94,8 @@ attitudeEulerAngles_t attitude = EULER_INITIALIZE;
 PG_REGISTER_WITH_RESET_TEMPLATE(imuConfig_t, imuConfig, PG_IMU_CONFIG, 0);
 
 PG_RESET_TEMPLATE(imuConfig_t, imuConfig,
-    .dcm_kp = 7013,                // 1.0 * 10000
-    .dcm_ki = 13,                  // 0.003 * 10000
+    .dcm_kp = 7013,
+    .dcm_ki = 13,
     .small_angle = 25,
     .accDeadband = {.xy = 40, .z= 40},
     .acc_unarmedcal = 1
@@ -184,24 +185,24 @@ static void imuCalculateAcceleration(timeDelta_t deltaT)
 }
 #endif // USE_ALT_HOLD
 
-static bool imuUseFastGains(void) {
-    return (!ARMING_FLAG(ARMED));
-}
-
-static float imuGetPGainScaleFactor(void)
-{
-    if (imuUseFastGains()) {
-        return (10.0f);
+static float imuUseFastGains(void) {
+   if (!ARMING_FLAG(ARMED)) {
+        return (17.0f);
     }
     else {
-        return (1.0f);
+        if (isBeeperOn()) {
+          // reduce PI scaling (onboard beeper influences vAcc)
+          return (0.17f);
+        } else {
+          return (1.0f);
+        }
     }
 }
 
 static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quaternion *vAcc, bool useMag, quaternion *vMag, bool useYaw, float yawError) {
     quaternion vKpKi = VECTOR_INITIALIZE;
     quaternion vError = VECTOR_INITIALIZE;
-    quaternion vIntegralFB = VECTOR_INITIALIZE;
+    static quaternion vIntegralFB = VECTOR_INITIALIZE;
     quaternion qBuff, qDiff;
 
     // use raw heading error (from GPS or whatever else)
@@ -238,6 +239,8 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     UNUSED(vMag);
 #endif
 
+    //debug
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf((quaternionModulus(vAcc)/ acc.dev.acc_1G) * 1000));
     if (useAcc) {
         if (accIsHealthy(vAcc)) {
             quaternionNormalize(vAcc);
@@ -249,8 +252,8 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     }
 
     // scale dcm to converge faster (if not armed)
-    const float dcmKpGain = imuRuntimeConfig.dcm_kp * imuGetPGainScaleFactor();
-    const float dcmKiGain = imuRuntimeConfig.dcm_ki * imuGetPGainScaleFactor();
+    const float dcmKpGain = imuRuntimeConfig.dcm_kp * imuUseFastGains();
+    const float dcmKiGain = imuRuntimeConfig.dcm_ki * imuUseFastGains();
 
     // calculate integral feedback
     if (imuRuntimeConfig.dcm_ki > 0.0f) {
@@ -294,9 +297,9 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 
     //debug
-    debug[0] = lrintf(vGyroModulus * 1000);
-    debug[1] = lrintf(vKpKiModulus * 1000);
-    debug[2] = lrintf(quaternionModulus(&qAttitude) * 1000);
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VGYROMODULUS, lrintf(vGyroModulus * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VKPKIMODULUS, lrintf(vKpKiModulus * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(quaternionModulus(&qAttitude) * 1000));
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
@@ -467,8 +470,8 @@ bool imuQuaternionHeadfreeOffsetSet(void) {
         qOffset.y = 0;
         qOffset.z = sin_approx(yawHalf);
         quaternionConjugate(&qOffset, &qOffset);
-        return(true);
+        return (true);
     } else {
-        return false;
+        return (false);
     }
 }

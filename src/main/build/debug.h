@@ -80,6 +80,7 @@ typedef enum {
     DEBUG_CORE_TEMP,
     DEBUG_RUNAWAY_TAKEOFF,
     DEBUG_CURRENT,
+    DEBUG_IMU,
     DEBUG_COUNT
 } debugType_e;
 
