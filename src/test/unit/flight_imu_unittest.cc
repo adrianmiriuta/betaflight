@@ -115,4 +115,5 @@ bool gyroGetAverage(quaternion *) { return false; }
 bool accGetAverage(quaternion *) { return false; }
 bool accIsHealthy(quaternion *) { return false; }
 bool compassGetAverage(quaternion *) { return false; }
+bool isBeeperOn(void){ return true; }
 }
