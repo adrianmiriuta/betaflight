@@ -412,6 +412,7 @@ static bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProce
         break;
 
     case MSP_BOARD_INFO:
+    {
         sbufWriteData(dst, systemConfig()->boardIdentifier, BOARD_IDENTIFIER_LENGTH);
 #ifdef USE_HARDWARE_REVISION_DETECTION
         sbufWriteU16(dst, hardwareRevision);
@@ -427,7 +428,23 @@ static bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProce
         sbufWriteU8(dst, 0);  // 0 == FC
 #endif
 #endif
+        // Board communication capabilities (uint8)
+        // Bit 0: 1 iff the board has VCP
+        // Bit 1: 1 iff the board supports software serial
+        uint8_t commCapabilities = 0;
+#ifdef USE_VCP
+        commCapabilities |= 1 << 0;
+#endif
+#if defined(USE_SOFTSERIAL1) || defined(USE_SOFTSERIAL2)
+        commCapabilities |= 1 << 1;
+#endif
+        sbufWriteU8(dst, commCapabilities);
+
+        // Target name with explicit length
+        sbufWriteU8(dst, strlen(targetName));
+        sbufWriteData(dst, targetName, strlen(targetName));
         break;
+    }
 
     case MSP_BUILD_INFO:
         sbufWriteData(dst, buildDate, BUILD_DATE_LENGTH);
@@ -471,7 +488,7 @@ static bool mspCommonProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst, mspPostProce
         sbufWriteU32(dst, featureMask());
         break;
 
-#ifdef BEEPER
+#ifdef USE_BEEPER
     case MSP_BEEPER_CONFIG:
         sbufWriteU32(dst, getBeeperOffMask());
         sbufWriteU8(dst, beeperConfig()->dshotBeaconTone);
@@ -781,7 +798,7 @@ static bool mspProcessOutCommand(uint8_t cmdMSP, sbuf_t *dst)
             }
 
             for (int i = 0; i < 3; i++) {
-                sbufWriteU16(dst, acc.accADC[i] / scale);
+                sbufWriteU16(dst, lrintf(acc.accADC[i] / scale));
             }
             for (int i = 0; i < 3; i++) {
                 sbufWriteU16(dst, gyroRateDps(i));
@@ -1337,7 +1354,21 @@ static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
 {
     UNUSED(cmdMSP);
     UNUSED(src);
-    return MSP_RESULT_ERROR;
+
+    switch(cmdMSP) {
+    case MSP_RESET_CONF:
+        resetEEPROM();
+        readEEPROM();
+        break;
+    case MSP_EEPROM_WRITE:
+        writeEEPROM();
+        readEEPROM();
+        break;
+    default:
+        // we do not know how to handle the (valid) message, indicate error MSP $M!
+        return MSP_RESULT_ERROR;
+    }
+    return MSP_RESULT_ACK;
 }
 
 #else
@@ -1773,6 +1804,9 @@ static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         {
             const uint8_t command = sbufReadU8(src);
             uint8_t disableRunawayTakeoff = 0;
+#ifndef USE_RUNAWAY_TAKEOFF
+            UNUSED(disableRunawayTakeoff);
+#endif
             if (sbufBytesRemaining(src)) {
                 disableRunawayTakeoff = sbufReadU8(src);
             }
@@ -1846,7 +1880,7 @@ static mspResult_e mspProcessInCommand(uint8_t cmdMSP, sbuf_t *src)
         featureSet(sbufReadU32(src)); // features bitmap
         break;
 
-#ifdef BEEPER
+#ifdef USE_BEEPER
     case MSP_SET_BEEPER_CONFIG:
         beeperOffClearAll();
         setBeeperOffMask(sbufReadU32(src));
