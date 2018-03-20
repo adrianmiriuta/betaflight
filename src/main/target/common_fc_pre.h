@@ -67,6 +67,7 @@
 #define I2C3_OVERCLOCK true
 #define I2C4_OVERCLOCK true
 #define USE_GYRO_DATA_ANALYSE
+#define USE_OVERCLOCK
 #endif
 
 #if defined(STM32F4) || defined(STM32F7)
@@ -155,7 +156,7 @@
 #define USE_VTX_CONTROL
 #define USE_VTX_SMARTAUDIO
 #define USE_VTX_TRAMP
-#define USE_GYRO_BIQUAD_RC_FIR2
+#define USE_GYRO_LPF2
 
 #ifdef USE_SERIALRX_SPEKTRUM
 #define USE_SPEKTRUM_BIND
