@@ -88,6 +88,8 @@ STATIC_UNIT_TESTED quaternionProducts qpAttitude = QUATERNION_PRODUCTS_INITIALIZ
 quaternion qHeadfree = QUATERNION_INITIALIZE;
 quaternion qOffset = QUATERNION_INITIALIZE;
 
+static float vGyroModulusOld = 0.001;
+
 // absolute angle inclination in multiple of 0.1 degree    180 deg = 1800
 attitudeEulerAngles_t attitude = EULER_INITIALIZE;
 
@@ -272,7 +274,6 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     // vGyro integration
     // PCDM Acta Mech 224, 3091–3109 (2013)
     const float vGyroModulus = quaternionModulus(vGyro);
-    static float vGyroModulusOld = 0;
     // reduce gyro noise integration integrate only differences above vGyroStdDevModulus
     if (fabsf(vGyroModulus - vGyroModulusOld) > vGyroStdDevModulus) {
         vGyroModulusOld = vGyroModulus;
