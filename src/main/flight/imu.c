@@ -203,7 +203,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     quaternion vKpKi = VECTOR_INITIALIZE;
     quaternion vError = VECTOR_INITIALIZE;
     static quaternion vIntegralFB = VECTOR_INITIALIZE;
-    quaternion qBuff, qDiff;
+    quaternion qBuff = QUATERNION_INITIALIZE, qDiff = QUATERNION_INITIALIZE;
 
     // use raw heading error (from GPS or whatever else)
     if (useYaw) {
