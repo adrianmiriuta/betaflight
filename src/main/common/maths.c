@@ -393,17 +393,13 @@ void quaternionMultiply(quaternion *l, quaternion *r, quaternion *o) {
 
 void quaternionNormalize(quaternion *q) {
     float modulus = sqrtf(q->w * q->w + q->x * q->x + q->y * q->y + q->z * q->z);
-    if (modulus < 0.001) {
-      q->w = 1;
-      q->x = 0;
-      q->y = 0;
-      q->z = 0;
-    } else {
+    if (modulus == 0) {
+      modulus = 0.0000001;
+    }
     q->w /= modulus;
     q->x /= modulus;
     q->y /= modulus;
     q->z /= modulus;
-  }
 }
 
 void quaternionAdd(quaternion *l, quaternion *r, quaternion *o) {

@@ -296,7 +296,14 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
         //quaternionNormalize(&qAttitude);
     }
 
-    quaternionNormalize(&qAttitude);
+    if (quaternionModulus(&qAttitude) < 0.01f) {
+        quaternionInitQuaternion(&qAttitude);
+    }
+
+    if (quaternionModulus(&qAttitude) != 1.0f) {
+        quaternionNormalize(&qAttitude);
+    }
+
     // compute caching products
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 
