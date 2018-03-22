@@ -297,7 +297,12 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     }
 
     if (quaternionModulus(&qAttitude) < 0.01f) {
-        quaternionInitQuaternion(&qAttitude);
+        //quaternionInitQuaternion(&qAttitude);
+        qAttitude.w = 1;
+        qAttitude.x = 0;
+        qAttitude.y = 0;
+        qAttitude.z = 0;
+        DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(fabsf(vGyroModulus - vGyroModulusOld) * 1000));
     }
 
     if (quaternionModulus(&qAttitude) != 1.0f) {
@@ -310,10 +315,11 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     //debug
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VGYROMODULUS, lrintf(vGyroModulus * 1000));
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VKPKIMODULUS, lrintf(vKpKiModulus * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf(quaternionModulus(&qAttitude) * 1000));
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(quaternionModulus(&qAttitude) * 1000));
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(vGyroStdDevModulus * 1000));
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(fabsf(vGyroModulus - vGyroModulusOld) * 1000));
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf(quaternionModulus(&qAttitude) * 10000));
+
+
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
