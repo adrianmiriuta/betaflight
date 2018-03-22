@@ -271,12 +271,10 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
 
     // vGyro integration
     // PCDM Acta Mech 224, 3091–3109 (2013)
-    static float vGyroModulusOld = 0;
     const float vGyroModulus = quaternionModulus(vGyro);
-    // reduce gyro noise integration integrate only above vGyroStdDevModulus
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, 0);
+    static float vGyroModulusOld = 0;
+    // reduce gyro noise integration integrate only differences above vGyroStdDevModulus
     if (fabsf(vGyroModulus - vGyroModulusOld) > vGyroStdDevModulus) {
-        DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, 13);
         vGyroModulusOld = vGyroModulus;
         qDiff.w = cosf(vGyroModulus * 0.5f * dt);
         qDiff.x = sinf(vGyroModulus * 0.5f * dt) * (vGyro->x / vGyroModulus);
@@ -306,6 +304,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VKPKIMODULUS, lrintf(vKpKiModulus * 1000));
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(quaternionModulus(&qAttitude) * 1000));
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(vGyroStdDevModulus * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(fabsf(vGyroModulus - vGyroModulusOld) * 1000));
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
