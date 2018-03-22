@@ -306,7 +306,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(quaternionModulus(&qAttitude) * 1000));
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(vGyroStdDevModulus * 1000));
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(fabsf(vGyroModulus - vGyroModulusOld) * 1000));
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf(quaternionModulus(&qAttitude) * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf(quaternionModulus(&qAttitude) * 10000));
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
