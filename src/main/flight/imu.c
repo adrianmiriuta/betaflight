@@ -240,7 +240,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
 #endif
 
     //debug
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf((quaternionModulus(vAcc)/ acc.dev.acc_1G) * 1000));
+    //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf((quaternionModulus(vAcc)/ acc.dev.acc_1G) * 1000));
     if (useAcc) {
         if (accIsHealthy(vAcc)) {
             quaternionNormalize(vAcc);
@@ -296,6 +296,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
         quaternionNormalize(&qAttitude);
     }
 
+    quaternionNormalize(&qAttitude);
     // compute caching products
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 
@@ -305,6 +306,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(quaternionModulus(&qAttitude) * 1000));
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(vGyroStdDevModulus * 1000));
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(fabsf(vGyroModulus - vGyroModulusOld) * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf(quaternionModulus(&qAttitude) * 1000));
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
