@@ -293,7 +293,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
         qDiff.z = vKpKi.z * 0.5f * dt;
         quaternionMultiply(&qAttitude, &qDiff, &qBuff);
         quaternionAdd(&qAttitude, &qBuff, &qAttitude);
-        quaternionNormalize(&qAttitude);
+        //quaternionNormalize(&qAttitude);
     }
 
     quaternionNormalize(&qAttitude);
