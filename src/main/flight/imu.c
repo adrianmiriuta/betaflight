@@ -274,7 +274,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     const float vGyroModulus = quaternionModulus(vGyro);
     // reduce gyro noise integration integrate only differences above vGyroStdDevModulus
     //debug
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(fabsf(vGyroModulus - vGyroModulusOld) * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf((vGyroModulus - vGyroModulusOld) * 1000));
     if ((vGyroModulus > vGyroStdDevModulus) && (fabsf(vGyroModulus - vGyroModulusOld) > vGyroStdDevModulus)) {
         quaternion qDiff;
         vGyroModulusOld = vGyroModulus;
