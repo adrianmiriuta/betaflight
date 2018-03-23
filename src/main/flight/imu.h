@@ -68,8 +68,8 @@ typedef struct imuRuntimeConfig_s {
 enum {
     DEBUG_IMU_VGYROMODULUS,
     DEBUG_IMU_VKPKIMODULUS,
-    DEBUG_IMU_VACCMODULUS,
-    DEBUG_IMU_FREE
+    DEBUG_IMU_3,
+    DEBUG_IMU_4
 };
 
 void imuConfigure(uint16_t throttle_correction_angle);

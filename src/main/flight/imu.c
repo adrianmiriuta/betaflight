@@ -239,7 +239,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
 #endif
 
     //debug
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf((quaternionModulus(vAcc)/ acc.dev.acc_1G) * 1000));
+    //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_3, lrintf((quaternionModulus(vAcc)/ acc.dev.acc_1G) * 1000));
     if (useAcc) {
         if (accIsHealthy(vAcc)) {
             quaternionNormalize(vAcc);
@@ -274,7 +274,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     const float vGyroModulus = quaternionModulus(vGyro);
     // reduce gyro noise integration integrate only differences above vGyroStdDevModulus
     //debug
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf((vGyroModulus - vGyroModulusOld) * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_4, lrintf((vGyroModulus - vGyroModulusOld) * 1000));
     if ((vGyroModulus > vGyroStdDevModulus) && (fabsf(vGyroModulus - vGyroModulusOld) > vGyroStdDevModulus)) {
         //debug
         DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VGYROMODULUS, lrintf(vGyroModulus * 1000));
@@ -307,8 +307,8 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 
     //debug
-    //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(quaternionModulus(&qAttitude) * 1000));
-    //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(vGyroStdDevModulus * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_3, lrintf(quaternionModulus(&qAttitude) * 1000));
+    //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_4, lrintf(vGyroStdDevModulus * 1000));
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
