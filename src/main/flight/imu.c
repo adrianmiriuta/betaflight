@@ -187,6 +187,7 @@ static void imuCalculateAcceleration(timeDelta_t deltaT)
 
 static float imuUseFastGains(void) {
    if (!ARMING_FLAG(ARMED)) {
+        //debug
         //return (17.0f);
         return (1.0f);
     }
