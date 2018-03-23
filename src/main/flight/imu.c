@@ -187,9 +187,7 @@ static void imuCalculateAcceleration(timeDelta_t deltaT)
 
 static float imuUseFastGains(void) {
    if (!ARMING_FLAG(ARMED)) {
-        //debug
-        //return (17.0f);
-        return (1.0f);
+        return (17.0f);
     }
     else {
         if (isBeeperOn()) {
@@ -241,7 +239,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
 #endif
 
     //debug
-    //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf((quaternionModulus(vAcc)/ acc.dev.acc_1G) * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf((quaternionModulus(vAcc)/ acc.dev.acc_1G) * 1000));
     if (useAcc) {
         if (accIsHealthy(vAcc)) {
             quaternionNormalize(vAcc);
@@ -307,7 +305,6 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     //debug
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VGYROMODULUS, lrintf(vGyroModulus * 1000));
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VKPKIMODULUS, lrintf(vKpKiModulus * 1000));
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, imuUseFastGains());
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(quaternionModulus(&qAttitude) * 1000));
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(vGyroStdDevModulus * 1000));
 }
