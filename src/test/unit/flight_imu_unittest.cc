@@ -53,8 +53,6 @@ extern "C" {
 
     void imuUpdateEulerAngles(void);
 
-    extern quaternion q;
-
     PG_REGISTER(rcControlsConfig_t, rcControlsConfig, PG_RC_CONTROLS_CONFIG, 0);
     PG_REGISTER(barometerConfig_t, barometerConfig, PG_BAROMETER_CONFIG, 0);
 
@@ -72,6 +70,7 @@ extern "C" {
 boxBitmask_t rcModeActivationMask;
 float rcCommand[4];
 int16_t rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
+float vGyroStdDevModulus;
 
 gyro_t gyro;
 acc_t acc;

@@ -89,6 +89,7 @@ static FAST_RAM float accumulatedMeasurements[XYZ_AXIS_COUNT];
 static FAST_RAM float gyroPrevious[XYZ_AXIS_COUNT];
 static FAST_RAM timeUs_t accumulatedMeasurementTimeUs;
 static FAST_RAM timeUs_t accumulationLastTimeSampledUs;
+float vGyroStdDevModulus;
 
 typedef struct gyroCalibration_s {
     int32_t sum[XYZ_AXIS_COUNT];
@@ -831,6 +832,13 @@ STATIC_UNIT_TESTED void performGyroCalibration(gyroSensor_t *gyroSensor, uint8_t
     if (isOnFinalGyroCalibrationCycle(&gyroSensor->calibration)) {
         schedulerResetTaskStatistics(TASK_SELF); // so calibration cycles do not pollute tasks statistics
         if (!firstArmingCalibrationWasStarted || (getArmingDisableFlags() & ~ARMING_DISABLED_CALIBRATING) == 0) {
+            // calculate gyro noise standard deviation modulus
+            static quaternion vStdDev = VECTOR_INITIALIZE;
+            vStdDev.x =  devStandardDeviation(&gyroSensor->calibration.var[X]);
+            vStdDev.y =  devStandardDeviation(&gyroSensor->calibration.var[Y]);
+            vStdDev.z =  devStandardDeviation(&gyroSensor->calibration.var[Z]);
+            vGyroStdDevModulus =  quaternionModulus(&vStdDev) / 1000.0f;
+
             beeper(BEEPER_GYRO_CALIBRATED);
         }
     }

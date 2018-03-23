@@ -24,6 +24,7 @@
 #include "drivers/bus.h"
 #include "drivers/sensor.h"
 
+extern float vGyroStdDevModulus;
 typedef enum {
     GYRO_NONE = 0,
     GYRO_DEFAULT,
