@@ -276,6 +276,8 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     //debug
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf((vGyroModulus - vGyroModulusOld) * 1000));
     if ((vGyroModulus > vGyroStdDevModulus) && (fabsf(vGyroModulus - vGyroModulusOld) > vGyroStdDevModulus)) {
+        //debug
+        DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VGYROMODULUS, lrintf(vGyroModulus * 1000));
         quaternion qDiff;
         vGyroModulusOld = vGyroModulus;
         qDiff.w = cosf(vGyroModulus * 0.5f * dt);
@@ -289,6 +291,8 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     // Euler integration (q(n+1) is determined by a first-order Taylor expansion) (old bf method adapted)
     const float vKpKiModulus = quaternionModulus(&vKpKi);
     if (vKpKiModulus > 0.003f) {
+        //debug
+        DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VKPKIMODULUS, lrintf(vKpKiModulus * 1000));
         quaternion qBuff, qDiff;
         qDiff.w = 0;
         qDiff.x = vKpKi.x * 0.5f * dt;
@@ -303,8 +307,6 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 
     //debug
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VGYROMODULUS, lrintf(vGyroModulus * 1000));
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VKPKIMODULUS, lrintf(vKpKiModulus * 1000));
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(quaternionModulus(&qAttitude) * 1000));
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(vGyroStdDevModulus * 1000));
 }
