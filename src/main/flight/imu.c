@@ -203,7 +203,6 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     quaternion vKpKi = VECTOR_INITIALIZE;
     quaternion vError = VECTOR_INITIALIZE;
     static quaternion vIntegralFB = VECTOR_INITIALIZE;
-    quaternion qBuff = QUATERNION_INITIALIZE, qDiff = QUATERNION_INITIALIZE;
 
     // use raw heading error (from GPS or whatever else)
     if (useYaw) {
@@ -240,7 +239,7 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
 #endif
 
     //debug
-    //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf((quaternionModulus(vAcc)/ acc.dev.acc_1G) * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf((quaternionModulus(vAcc)/ acc.dev.acc_1G) * 1000));
     if (useAcc) {
         if (accIsHealthy(vAcc)) {
             quaternionNormalize(vAcc);
@@ -274,7 +273,8 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     static float vGyroModulusOld = 0;
     const float vGyroModulus = quaternionModulus(vGyro);
     // reduce gyro noise integration integrate only differences above vGyroStdDevModulus
-    if (fabsf(vGyroModulus - vGyroModulusOld) > vGyroStdDevModulus) {
+    if ((vGyroModulus > vGyroStdDevModulus) && (fabsf(vGyroModulus - vGyroModulusOld) > vGyroStdDevModulus)) {
+        quaternion qDiff;
         vGyroModulusOld = vGyroModulus;
         qDiff.w = cosf(vGyroModulus * 0.5f * dt);
         qDiff.x = sinf(vGyroModulus * 0.5f * dt) * (vGyro->x / vGyroModulus);
@@ -287,25 +287,13 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     // Euler integration (q(n+1) is determined by a first-order Taylor expansion) (old bf method adapted)
     const float vKpKiModulus = quaternionModulus(&vKpKi);
     if (vKpKiModulus > 0.003f) {
+        quaternion qBuff, qDiff;
         qDiff.w = 0;
         qDiff.x = vKpKi.x * 0.5f * dt;
         qDiff.y = vKpKi.y * 0.5f * dt;
         qDiff.z = vKpKi.z * 0.5f * dt;
         quaternionMultiply(&qAttitude, &qDiff, &qBuff);
         quaternionAdd(&qAttitude, &qBuff, &qAttitude);
-        //quaternionNormalize(&qAttitude);
-    }
-
-    if (quaternionModulus(&qAttitude) < 0.01f) {
-        //quaternionInitQuaternion(&qAttitude);
-        qAttitude.w = 1;
-        qAttitude.x = 0;
-        qAttitude.y = 0;
-        qAttitude.z = 0;
-        DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(fabsf(vGyroModulus - vGyroModulusOld) * 1000));
-    }
-
-    if (quaternionModulus(&qAttitude) != 1.0f) {
         quaternionNormalize(&qAttitude);
     }
 
@@ -315,11 +303,9 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, bool useAcc, quater
     //debug
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VGYROMODULUS, lrintf(vGyroModulus * 1000));
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VKPKIMODULUS, lrintf(vKpKiModulus * 1000));
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf(quaternionModulus(&qAttitude) * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(fabsf(vGyroModulus - vGyroModulusOld) * 1000));
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(quaternionModulus(&qAttitude) * 1000));
     //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(vGyroStdDevModulus * 1000));
-
-
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
