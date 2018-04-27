@@ -394,8 +394,16 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     qAttitude.x = imufQuat.x;
     qAttitude.y = imufQuat.y;
     qAttitude.z = imufQuat.z;
+
+    //debug
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VGYROMODULUS, lrintf(quaternionModulus(&qAttitude) * 1000));
+
     applySensorCorrection(&qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
+
+    //debug
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VKPKIMODULUS, lrintf(quaternionModulus(&qAttitude) * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(vGyroStdDevModulus * 1000));
 #endif
     imuUpdateEulerAngles();
 #endif
