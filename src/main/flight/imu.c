@@ -328,11 +328,10 @@ static void imuMahonyAHRSupdate(float dt, quaternion *vGyro, quaternion *vError)
     // compute caching products
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 
-    //debug
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VGYROMODULUS, lrintf(vGyroModulus * 1000));
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VKPKIMODULUS, lrintf(vKpKiModulus * 1000));
-    //DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(quaternionModulus(&qAttitude) * 1000));
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(vGyroStdDevModulus * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU0, lrintf(vGyroModulus * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU1, lrintf(vKpKiModulus * 1000));
+    //DEBUG_SET(DEBUG_IMU, DEBUG_IMU3, lrintf(quaternionModulus(&qAttitude) * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU3, lrintf(vGyroStdDevModulus * 1000));
 }
 
 STATIC_UNIT_TESTED void imuUpdateEulerAngles(void) {
@@ -380,7 +379,7 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     quaternion vAccAverage;
     gyroGetAverage(&vGyroAverage);
     accGetAverage(&vAccAverage);
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VACCMODULUS, lrintf((quaternionModulus(&vAccAverage)/ acc.dev.acc_1G) * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU2, lrintf((quaternionModulus(&vAccAverage)/ acc.dev.acc_1G) * 1000));
     if (accIsHealthy(&vAccAverage)) {
          applyAccError(&vAccAverage, &vError);
     }
@@ -394,16 +393,12 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     qAttitude.x = imufQuat.x;
     qAttitude.y = imufQuat.y;
     qAttitude.z = imufQuat.z;
-
-    //debug
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VGYROMODULUS, lrintf(quaternionModulus(&qAttitude) * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU0, lrintf(quaternionModulus(&qAttitude) * 1000));
 
     applySensorCorrection(&qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
-
-    //debug
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_VKPKIMODULUS, lrintf(quaternionModulus(&qAttitude) * 1000));
-    DEBUG_SET(DEBUG_IMU, DEBUG_IMU_FREE, lrintf(vGyroStdDevModulus * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU1, lrintf(quaternionModulus(&qAttitude) * 1000));
+    DEBUG_SET(DEBUG_IMU, DEBUG_IMU3, lrintf(vGyroStdDevModulus * 1000));
 #endif
     imuUpdateEulerAngles();
 #endif
