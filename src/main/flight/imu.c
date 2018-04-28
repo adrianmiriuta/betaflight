@@ -389,6 +389,7 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     UNUSED(deltaT);
     UNUSED(applyAccError);
     UNUSED(imuMahonyAHRSupdate);
+    UNUSED(applySensorCorrection);
     qAttitude.w = imufQuat.w;
     qAttitude.x = imufQuat.x;
     qAttitude.y = imufQuat.y;
