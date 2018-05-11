@@ -394,6 +394,8 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
     qAttitude.x = imufQuat.x;
     qAttitude.y = imufQuat.y;
     qAttitude.z = imufQuat.z;
+
+    quaternionNormalize(&qAttitude);
     quaternionComputeProducts(&qAttitude, &qpAttitude);
 
     DEBUG_SET(DEBUG_IMU, DEBUG_IMU0, lrintf(quaternionModulus(&qAttitude) * 1000));
