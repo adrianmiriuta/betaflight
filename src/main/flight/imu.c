@@ -384,7 +384,7 @@ static void imuCalculateEstimatedAttitude(timeUs_t currentTimeUs)
          applyAccError(&vAccAverage, &vError);
     }
     applySensorCorrection(&vError);
-    imuMahonyAHRSupdate(deltaT * 1e-6f, &vGyroAverage, &vError);
+    imuMahonyAHRSupdate((deltaT + gyroConfig()->gyro_offset_yaw) * 1e-6f, &vGyroAverage, &vError);
 #else
     UNUSED(deltaT);
     UNUSED(applyAccError);
