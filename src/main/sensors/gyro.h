@@ -86,7 +86,7 @@ typedef struct gyroConfig_s {
     uint16_t gyro_soft_notch_cutoff_2;
     gyroOverflowCheck_e checkOverflow;
 
-    int16_t  gyro_offset_yaw;
+    int16_t  attitude_time_compensation;
 #if defined(USE_GYRO_IMUF9001)
     uint16_t imuf_mode;
     uint16_t imuf_rate;

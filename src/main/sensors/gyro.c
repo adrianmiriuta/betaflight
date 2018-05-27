@@ -203,7 +203,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .imuf_pitch_lpf_cutoff_hz = 150.0f,
     .imuf_roll_lpf_cutoff_hz = 150.0f,
     .imuf_yaw_lpf_cutoff_hz = 150.0f,
-    .gyro_offset_yaw = 0,
+    .attitude_time_compensation = 0,
 );
 #else //USE_GYRO_IMUF9001
 PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
@@ -226,7 +226,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .gyro_filter_r = 88,
     .gyro_filter_p = 0,
     .gyro_stage2_filter_type = STAGE2_FILTER_FAST_KALMAN,
-    .gyro_offset_yaw = 0,
+    .attitude_time_compensation = 0,
 );
 #endif //USE_GYRO_IMUF9001
 
@@ -814,9 +814,6 @@ STATIC_UNIT_TESTED void performGyroCalibration(gyroSensor_t *gyroSensor, uint8_t
             #ifndef USE_GYRO_IMUF9001
             // please take care with exotic boardalignment !!
             gyroSensor->gyroDev.gyroZero[axis] = gyroSensor->calibration.sum[axis] / gyroCalculateCalibratingCycles();
-            if (axis == Z) {
-              gyroSensor->gyroDev.gyroZero[axis] -= ((float)gyroConfig()->gyro_offset_yaw / 100);
-            }
             #else
             gyroSensor->gyroDev.gyroZero[axis] = 0.0f;
             gyroSensor->calibration.sum[axis] = 0.0f;
