@@ -417,7 +417,7 @@ const clivalue_t valueTable[] = {
 #endif
 #endif
     { "moron_threshold",            VAR_UINT8  | MASTER_VALUE, .config.minmax = { 0,  200 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, gyroMovementCalibrationThreshold) },
-    { "attitude_time_compensation",            VAR_INT16 | MASTER_VALUE, .config.minmax = { -100, 100 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, attitude_time_compensation) },
+    { "attitude_compensation_us",            VAR_INT16 | MASTER_VALUE, .config.minmax = { -100, 100 }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, attitude_compensation_us) },
 #ifdef USE_GYRO_OVERFLOW_CHECK
     { "gyro_overflow_detect",       VAR_UINT8  | MASTER_VALUE | MODE_LOOKUP, .config.lookup = { TABLE_GYRO_OVERFLOW_CHECK }, PG_GYRO_CONFIG, offsetof(gyroConfig_t, checkOverflow) },
 #endif

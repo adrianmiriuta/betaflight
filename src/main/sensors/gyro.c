@@ -203,7 +203,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .imuf_pitch_lpf_cutoff_hz = 150.0f,
     .imuf_roll_lpf_cutoff_hz = 150.0f,
     .imuf_yaw_lpf_cutoff_hz = 150.0f,
-    .attitude_time_compensation = 0,
+    .attitude_compensation_us = 0,
 );
 #else //USE_GYRO_IMUF9001
 PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
@@ -226,7 +226,7 @@ PG_RESET_TEMPLATE(gyroConfig_t, gyroConfig,
     .gyro_filter_r = 88,
     .gyro_filter_p = 0,
     .gyro_stage2_filter_type = STAGE2_FILTER_FAST_KALMAN,
-    .attitude_time_compensation = 0,
+    .attitude_compensation_us = 0,
 );
 #endif //USE_GYRO_IMUF9001
 
